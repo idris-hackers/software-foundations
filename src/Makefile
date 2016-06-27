@@ -2,7 +2,7 @@
 
 # TODO: Find idris executable.
 IDRIS       ?= idris
-IDRISFLAGS := --check --total
+IDRISFLAGS := --check --total --noprelude
 # TODO: Find pandoc executable.
 PANDOC     ?= pandoc
 
@@ -26,9 +26,10 @@ all.pdf: all.tex
 
 all.tex: book.tex $(TEXFILES)
 	$(PANDOC) --filter pandoc-minted.py --latex-engine=xelatex \
-	-f markdown+lhs -t latex \
-	-o $@ $(foreach tex,$(filter-out $<,$^),-A $(tex)) \
+	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
+	--chapters -N \
 	--toc \
+	-o $@ $(foreach tex,$(filter-out $<,$^),-A $(tex)) \
 	book.tex
 
 %.ibc: %.lidr
@@ -36,5 +37,6 @@ all.tex: book.tex $(TEXFILES)
 
 %.tex: %.lidr
 	$(PANDOC) --filter pandoc-minted.py --latex-engine=xelatex \
-	-f markdown+lhs -t latex+lhs \
+	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
+	--chapters -N \
 	-o $@ $<
