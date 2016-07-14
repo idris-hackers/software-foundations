@@ -439,7 +439,7 @@ all!
 
 For most function definitions over numbers, just pattern matching is not enough:
 we also need recursion. For example, to check that a number `n` is even, we may
-need to recursivelt check whether `n-2` is even.
+need to recursively check whether `n-2` is even.
 
 > evenb : (n : Nat) -> Bool
 > evenb Z          = True
