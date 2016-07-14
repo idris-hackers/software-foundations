@@ -548,13 +548,16 @@ Translate this into Idris.
 > testFactorial2 : factorial 5 = mult 10 12
 > -- FILL IN HERE
 
-We can make numerical expressions a little easier to read and write by
-introducing _notations_ for addition, multiplication, and subtraction.
+\color{red}
+-- FIXME: This breaks things...
+-- We can make numerical expressions a little easier to read and write by
+-- introducing _notations_ for addition, multiplication, and subtraction.
 
-> syntax [x] "+" [y] = plus  x y
-> syntax [x] "-" [y] = minus x y
-> syntax [x] "*" [y] = mult  x y
+> -- syntax [x] "+" [y] = plus  x y
+> -- syntax [x] "-" [y] = minus x y
+> -- syntax [x] "*" [y] = mult  x y
 
+\color{black}
 
 ```idris
 λΠ> :t (0 + 1) + 1
