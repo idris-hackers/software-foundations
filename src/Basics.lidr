@@ -570,14 +570,14 @@ Note that these do not change the definitions we've already made: they are
 simply instructions to the Idris parser to accept `x + y` in place of `plus x y`
 and, conversely, to the Idris pretty-printer to display `plus x y` as `x + y`.
 
-The `beqNat` function tests `Nat`ural numbers for `eq`uality, yielding a
+The `beq_nat` function tests `Nat`ural numbers for `eq`uality, yielding a
 `b`oolean.
 
-> beqNat : (n, m : Nat) -> Bool
-> beqNat Z      Z      = True
-> beqNat Z      (S m') = False
-> beqNat (S n') Z      = False
-> beqNat (S n') (S m') = beqNat n' m'
+> beq_nat : (n, m : Nat) -> Bool
+> beq_nat Z      Z      = True
+> beq_nat Z      (S m') = False
+> beq_nat (S n') Z      = False
+> beq_nat (S n') (S m') = beq_nat n' m'
 
 The `leb` function tests whether its first argument is less than of equal to its
 second argument, yielding a boolean.
@@ -595,24 +595,24 @@ second argument, yielding a boolean.
 > testLeb3 = Refl
 
 
-=== Exercise: 1 star (bltNat)
+=== Exercise: 1 star (blt_nat)
 
-The `bltNat` function tests `Nat`ural numbers for `l`ess-`t`han, yielding a
+The `blt_nat` function tests `Nat`ural numbers for `l`ess-`t`han, yielding a
 `b`oolean. Instead of making up a new recursive function for this one, define it
 in terms of a previously defined function.
 
 > postulate
-> bltNat : (n, m : Nat) -> Bool
+> blt_nat : (n, m : Nat) -> Bool
 > -- FILL IN HERE
 
 > postulate
-> testBltNat1 : bltNat 2 2 = False
+> test_blt_nat_1 : blt_nat 2 2 = False
 > -- FILL IN HERE
 > postulate
-> testBltNat2 : bltNat 2 4 = True
+> test_blt_nat_2 : blt_nat 2 4 = True
 > -- FILL IN HERE
 > postulate
-> testBltNat3 : bltNat 4 2 = False
+> test_blt_nat_3 : blt_nat 4 2 = False
 > -- FILL IN HERE
 
 
