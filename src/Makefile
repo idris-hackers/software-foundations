@@ -3,7 +3,8 @@
 # TODO: Find pandoc executable.
 PANDOC    ?= pandoc
 
-LIDRFILES := Basics.lidr
+LIDRFILES := Basics.lidr \
+	Induction.lidr
 # TODO: Add more chapters, in order, here.
 
 TEXFILES  := $(LIDRFILES:.lidr=.tex)

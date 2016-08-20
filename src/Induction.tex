@@ -1,0 +1,36 @@
+\chapter{Induction: Proof by
+Induction}\label{induction-proof-by-induction}
+
+First, we import all of our definitions from the previous chapter.
+
+\begin{minted}[]{idris}
+import Basics
+\end{minted}
+
+For \mintinline[]{idris}{import Basics} to work, you first need to use
+\mintinline[]{idris}{idris} to compile \mintinline[]{idris}{Basics.lidr}
+into \mintinline[]{idris}{Basics.ibc}. This is like making a .class file
+from a .java file, or a .o file from a .c file. There are at least two
+ways to do it:
+
+\begin{itemize}
+\item
+  In your editor with an Idris plugin, e.g.
+  \href{https://github.com/idris-hackers/idris-mode}{Emacs}:
+
+  Open \mintinline[]{idris}{Basics.lidr}. Evaluate
+  \mintinline[]{idris}{idris-load-file}.
+
+  There exists similar support for
+  \href{https://github.com/idris-hackers/idris-vim}{Vim} and
+  \href{https://github.com/idris-hackers/idris-sublime}{Sublime Text} as
+  well.
+\item
+  From the command line:
+
+  Run
+  \mintinline[]{sh}{idris --check --total --noprelude src/Basics.lidr}.
+
+  Refer to the Idris man page (or \mintinline[]{sh}{idris --help} for
+  descriptions of the flags.
+\end{itemize}
