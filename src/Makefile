@@ -1,24 +1,19 @@
 .DEFAULT_GOAL := all
 
-# TODO: Find idris executable.
-IDRIS       ?= idris
-IDRISFLAGS := --check --total --noprelude
 # TODO: Find pandoc executable.
-PANDOC     ?= pandoc
+PANDOC    ?= pandoc
 
 LIDRFILES := Basics.lidr
 # TODO: Add more chapters, in order, here.
 
-IBCFILES  := $(LIDRFILES:.lidr=.ibc)
 TEXFILES  := $(LIDRFILES:.lidr=.tex)
-
-all: $(IBCFILES)
-
 
 .PHONY: clean
 
+all: all.pdf
+
 clean:
-	rm -rf all.{aux,log,out,toc,pdf} _minted-all $(IBCFILES) $(TEXFILES)
+	rm -rf all.{aux,log,out,toc,pdf} _minted-all $(TEXFILES)
 
 all.pdf: all.tex
 	xelatex -shell-escape $<
@@ -31,9 +26,6 @@ all.tex: book.tex $(TEXFILES)
 	--toc \
 	-o $@ $(foreach tex,$(filter-out $<,$^),-A $(tex)) \
 	book.tex
-
-%.ibc: %.lidr
-	$(IDRIS) $(IDRISFLAGS) $<
 
 %.tex: %.lidr
 	$(PANDOC) --filter pandoc-minted.py --latex-engine=xelatex \

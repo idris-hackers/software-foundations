@@ -13,4 +13,4 @@ sourceloc  = https://github.com/idris-hackers/software-foundations
 bugtracker = https://github.com/idris-hackers/software-foundations/issues
 
 sourcedir  = src
-opts       = "--noprelude"
+opts       = "--check --total --noprelude"
