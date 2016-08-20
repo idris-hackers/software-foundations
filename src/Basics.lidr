@@ -16,18 +16,15 @@ pandoc-minted:
 > ||| Basics: Functional Programming in Idris
 > module Basics
 >
-> import Prelude.Interfaces
-> import Prelude.Nat
->
 > %access public export
 >
 > %default total
 
 
 `postulate` is Idris's "escape hatch" that says accept this definition without
-proof. We use it to mark the 'holes' in the development that should be completed
-as part of your homework exercises. In practice, `postulate` is useful when
-you're incrementally developing large proofs.
+proof. Instead of using it to mark the holes, similar to Coq's
+\mintinline[]{Coq}{Admitted}, we use Idris's holes directly. In practice, holes
+(and `postulate`) are useful when you're incrementally developing large proofs.
 
 
 == Introduction
@@ -233,13 +230,15 @@ We'll come back to this topic in later chapters.
 
 > namespace Booleans
 
-In a similar way, we can define the standard type `B` of booleans, with
+In a similar way, we can define the standard type `Bool` of booleans, with
 members `False` and `True`.
 
->   ||| Boolean Data Type
->   data B : Type where
->    False : B
->    True  : B
+```idris
+||| Boolean Data Type
+data Bool : Type where
+     True : Bool
+    False : Bool
+```
 
 Although we are rolling our own booleans here for the sake of building up
 everything from scratch, Idiris does, of course, provide a default
@@ -251,16 +250,16 @@ standard library.
 
 Functions over booleans can be defined in the same way as above:
 
->   negb : (b : B) -> B
+>   negb : (b : Bool) -> Bool
 >   negb True  = False
 >   negb False = True
 
->   andb : (b1 : B) -> (b2 : B) -> B
+>   andb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   andb True  b2 = b2
 >   andb False b2 = False
 
 >   ||| Boolean OR.
->   orb : (b1 : B) -> (b2 : B) -> B
+>   orb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   orb True  b2 = True
 >   orb False b2 = b2
 
@@ -286,45 +285,40 @@ just defined. The `syntax` command defines new notation for an existing
 definition, and `infixl` specifies left-associative fixity.
 \color{black}
 
->   infixl 4 &&, ||
+>   infixl 4 /\, \/
 
->   (&&) : B -> B -> B
->   (&&) = andb
+>   (/\) : Bool -> Bool -> Bool
+>   (/\) = andb
 
 >   ||| Boolean OR; infix alias for [`orb`](#Basics.Booleans.orb).
->   (||) : B -> B -> B
->   (||) = orb
+>   (\/) : Bool -> Bool -> Bool
+>   (\/) = orb
 
->   testOrb5 : False || False || True = True
+>   testOrb5 : False \/ False \/ True = True
 >   testOrb5 = Refl
 
 
 === Exercises: 1 star (nandb)
 
-Remove `postulate` and complete the following function; then make sure that the
-assertions belof can each be verified by Idris. (Remove `postulate` and fill in
-each proof, following the model of the `orb` tests above.) The function should
-return `True` if either or both of its inputs `False`.
+Fill in the hole `?nandb_rhs` and omplete the following function; then make sure
+that the assertions below can each be verified by Idris. (Fill in each of the
+holes, following the model of the `orb` tests above.) The function should return
+`True` if either or both of its inputs `False`.
 
->   postulate
->   nandb : (b1 : B) -> (b2 : B) -> B
->   -- FILL IN HERE
+>   nandb : (b1 : Bool) -> (b2 : Bool) -> Bool
+>   nandb b1 b2 = ?nandb_rhs
 
->   postulate
 >   testNandb1 : (nandb True  False) = True
->   -- FILL IN HERE
+>   testNandb1 = ?testNandb1_rhs
 
->   postulate
 >   testNandb2 : (nandb False False) = True
->   -- FILL IN HERE
+>   testNandb2 = ?testNandb2_rhs
 
->   postulate
 >   testNandb3 : (nandb False True)  = True
->   -- FILL IN HERE
+>   testNandb3 = ?testNandb3_rhs
 
->   postulate
 >   testNandb4 : (nandb True  True)  = False
->   -- FILL IN HERE
+>   testNandb4 = ?testNandb4_rhs
 
 
 == Function Types
@@ -333,13 +327,13 @@ Every expression in Idris has a type, describing what sort of thing it computes.
 The `:type` (or `:t`) REPL command asks Idris to print the type of an
 expression.
 
-For example, the type of `negb True` is `B`.
+For example, the type of `negb True` is `Bool`.
 
 ```idris
 λΠ> :type True
--- True : B
-λΠ> :t negb True : B
--- negb True : B
+-- True : Bool
+λΠ> :t negb True : Bool
+-- negb True : Bool
 ```
 
 \color{red}
@@ -351,14 +345,14 @@ Their types are called _function types_, and they are written with arrows.
 
 ```idris
 λΠ> :t negb
--- negb : B -> B
+-- negb : Bool -> Bool
 ```
 
-The type of `negb`, written `B -> B` and pronounced "`B` arrow `B`," can be read,
-"Given an input of type `B`, this function produces an output of type `B`."
-Similarly, the type of `andb`, written `B -> B -> B`, can be read, "Given
-two inputs, both of type `B`, this function produces an output of type
-`B`."
+The type of `negb`, written `Bool -> Bool` and pronounced "`Bool` arrow `Bool`,"
+can be read, "Given an input of type `Bool`, this function produces an output of
+type `Bool`." Similarly, the type of `andb`, written `Bool -> Bool -> Bool`, can
+be read, "Given two inputs, both of type `Bool`, this function produces an
+output of type `Bool`."
 
 
 == Modules
@@ -368,10 +362,6 @@ two inputs, both of type `B`, this function produces an output of type
 
 Idris provides a _module system_, to aid in organizing large developments.
 \color{black}
-
-> -- FIXME: Figure out how to redefine `Nat` locally here.
-> -- namespace Playground1
-> --   %hide Prelude.Nat.Nat
 
 
 == Numbers
@@ -383,10 +373,11 @@ definitions explicitly enumerate a finit set of elements. A More interesting way
 of defining a type is to give a collection of _inductive rules_ describing its
 elements. For example, we can define the natural numbers as follows:
 
-> -- FIXME:
-> --   data Nat : Type where
-> --          Z : Nat
-> --          S : Nat -> Nat
+```idris
+data Nat : Type where
+       Z : Nat
+       S : Nat -> Nat
+```
 
 The clauses of this definition can be read:
 - `Z` is a natural number.
@@ -395,7 +386,7 @@ The clauses of this definition can be read:
 
 Let's look at this in a little more detail.
 
-Every inductively defined set (`Day`, `Nat`, `B`, etc.) is actually a set of
+Every inductively defined set (`Day`, `Nat`, `Bool`, etc.) is actually a set of
 _expressions_. The definition of `Nat` says how expressions in the set `Nat` can
 be constructed:
 
@@ -405,7 +396,7 @@ be constructed:
 - expression formed in these two ways are the only ones belonging to the set
   `Nat`.
 
-The same rules apply for our definitions of `Day` and `B`. The annotations we
+The same rules apply for our definitions of `Day` and `Bool`. The annotations we
 used for their constructors are analogous to the one for the `Z` constructor,
 indicating that they don't take any arguments.
 
@@ -417,17 +408,16 @@ expressions like `True`, `andb True False`, and `S (S False)` do not.
 We can write simple functions that pattern match on natural numbers just as we
 did above -- for example, the predecessor function:
 
-> -- FIXME:
-> --   pred : (n : Nat) -> Nat
-> --   pred Z      = Z
-> --   pred (S n') = n'
+>   pred : (n : Nat) -> Nat
+>   pred  Z     = Z
+>   pred (S n') = n'
 
 The second branch can be read: "if `n` has the form `S n'` for some `n'`, then
 return `n'`."
 
 >   minusTwo : (n : Nat) -> Nat
->   minusTwo Z          = Z
->   minusTwo (S Z)      = Z
+>   minusTwo  Z         = Z
+>   minusTwo (S  Z)     = Z
 >   minusTwo (S (S n')) = n'
 
 Because natural numbers are such a pervasive form of data, Idris provides a tiny
@@ -465,9 +455,9 @@ need to recursively check whether `n-2` is even.
 
 >   ||| Determine whether a number is even.
 >   ||| @n a number
->   evenb : (n : Nat) -> B
->   evenb Z          = True
->   evenb (S Z)      = False
+>   evenb : (n : Nat) -> Bool
+>   evenb  Z         = True
+>   evenb (S  Z)     = False
 >   evenb (S (S n')) = evenb n'
 
 We can define `oddb` by a similar recursive declaration, but here is a simpler
@@ -475,7 +465,7 @@ definition that is a bit easier to work with:
 
 >   ||| Determine whether a number is odd.
 >   ||| @n a number
->   oddb : (n : Nat) -> B
+>   oddb : (n : Nat) -> Bool
 >   oddb n = negb (evenb n)
 
 >   testOddb1 : oddb 1 = True
@@ -485,13 +475,10 @@ definition that is a bit easier to work with:
 
 Naturally we can also define multi-argument functions by recursion.
 
-> -- FIXME: Figure out how to redefine `plus`, `mult` and `minus` locally here.
-> -- namespace Playground2
-> --   %hide Prelude.Nat.Nat
-
-> --   plus : (n : Nat) -> (m : Nat) -> Nat
-> --   plus Z      m = m
-> --   plus (S n') m = S (plus n' m)
+> namespace Playground2
+>   plus : (n : Nat) -> (m : Nat) -> Nat
+>   plus  Z     m = m
+>   plus (S n') m = S (Playground2.plus n' m)
 
 Adding three to two now gives us five, as we'd expect.
 
@@ -520,19 +507,23 @@ As a notational convenience, if two or more arguments have the same type, they
 can be written together. In the following definition, `(n, m : Nat)` means just
 the same as if we had written `(n : Nat) -> (m : Nat)`.
 
-> --   mult : (n, m : Nat) -> Nat
-> --   mult Z      = Z
-> --   mult (S n') = plus m (mult n' m)
+```idris
+mult : (n, m : Nat) -> Nat
+mult  Z     = Z
+mult (S n') = plus m (mult n' m)
+```
 
 >   testMult1 : (mult 3 3) = 9
 >   testMult1 = Refl
 
 You can match two expression at once:
 
-> --   minus (n, m : Nat) -> Nat
-> --   minus Z      _      = Z
-> --   minus n      Z      = n
-> --   minus (S n') (S m') = minus n' m'
+```idris
+minus (n, m : Nat) -> Nat
+minus  Z      _     = Z
+minus  n      Z     = n
+minus (S n') (S m') = minus n' m'
+```
 
 \color{red}
 -- TODO: Verify this.
@@ -544,7 +535,7 @@ This avoids the need to invent a bogus variable name.
 
 
 >   exp : (base, power : Nat) -> Nat
->   exp base Z     = S Z
+>   exp base  Z    = S Z
 >   exp base (S p) = mult base (exp base p)
 
 
@@ -562,28 +553,23 @@ Recall the standard mathematical factorial function:
 
 Translate this into Idris.
 
->   postulate
 >   factorial : (n : Nat) -> Nat
->   -- FILL IN HERE
+>   factorial n = ?factorial_rhs
 
->   postulate
 >   testFactorial1 : factorial 3 = 6
->   -- FILL IN HERE
+>   testFactorial1 = ?testFactorial1_rhs
 
->   postulate
 >   testFactorial2 : factorial 5 = mult 10 12
->   -- FILL IN HERE
+>   testFactorial2 = ?testFactorial2_rhs
 
-\color{red}
--- FIXME: This breaks things...
--- We can make numerical expressions a little easier to read and write by
--- introducing _notations_ for addition, multiplication, and subtraction.
+We can make numerical expressions a little easier to read and write by
+introducing _syntax_ for addition, multiplication, and subtraction.
 
-> -- syntax [x] "+" [y] = plus  x y
-> -- syntax [x] "-" [y] = minus x y
-> -- syntax [x] "*" [y] = mult  x y
-
-\color{black}
+```idris
+syntax [x] "+" [y] = plus  x y
+syntax [x] "-" [y] = minus x y
+syntax [x] "*" [y] = mult  x y
+```
 
 ```idris
 λΠ> :t (0 + 1) + 1
@@ -600,19 +586,19 @@ The `beq_nat` function tests `Nat`ural numbers for `eq`uality, yielding a
 `b`oolean.
 
 >   ||| Test natural numbers for equality.
->   beq_nat : (n, m : Nat) -> B
->   beq_nat Z      Z      = True
->   beq_nat Z      (S m') = False
->   beq_nat (S n') Z      = False
+>   beq_nat : (n, m : Nat) -> Bool
+>   beq_nat  Z      Z     = True
+>   beq_nat  Z     (S m') = False
+>   beq_nat (S n')  Z     = False
 >   beq_nat (S n') (S m') = beq_nat n' m'
 
 The `leb` function tests whether its first argument is less than or equal to its
 second argument, yielding a boolean.
 
 >   ||| Test whether a number is less than or equal to another.
->   leb : (n, m : Nat) -> B
->   leb Z      m      = True
->   leb (S n') Z      = False
+>   leb : (n, m : Nat) -> Bool
+>   leb  Z      m     = True
+>   leb (S n')  Z     = False
 >   leb (S n') (S m') = leb n' m'
 
 >   testLeb1 : leb 2 2 = True
@@ -629,19 +615,17 @@ The `blt_nat` function tests `Nat`ural numbers for `l`ess-`t`han, yielding a
 `b`oolean. Instead of making up a new recursive function for this one, define it
 in terms of a previously defined function.
 
->   postulate
->   blt_nat : (n, m : Nat) -> B
->   -- FILL IN HERE
+>   blt_nat : (n, m : Nat) -> Bool
+>   blt_nat n m = ?blt_nat_rhs
 
->   postulate
 >   test_blt_nat_1 : blt_nat 2 2 = False
->   -- FILL IN HERE
->   postulate
+>   test_blt_nat_1 = ?test_blt_nat_1_rhs
+
 >   test_blt_nat_2 : blt_nat 2 4 = True
->   -- FILL IN HERE
->   postulate
+>   test_blt_nat_2 = ?test_blt_nat_2_rhs
+
 >   test_blt_nat_3 : blt_nat 4 2 = False
->   -- FILL IN HERE
+>   test_blt_nat_3 = ?test_blt_nat_3_rhs
 
 
 == Proof by Simplification
@@ -746,20 +730,22 @@ equality hypothesis `prf` with the right side.
 
 === Exercise: 1 star (plus_id_exercise)
 
-Remove "`postulate`" and fill in the proof.
+Fill in the proof.
 
-> postulate
 > plus_id_exercise : (n, m, o : Nat) -> (n = m) -> (m = o)
 >                  -> n + m = m + o
+> plus_id_exercise n m o prf prf1 = ?plus_id_exercise_rhs
 
-The `postulate` command tells Idris that we want to skip trying to prove this
-theorem and just accept it as a given. This can be useful for developing longer
-proofs, since we can state subsidiary lemmas that we believe will be useful for
-making some larger argument, use `postulate` to accept them on faith for the
-moment, and continue working on the main argument until we are sure it makes
-sense; then we can go back and fill in the proofs we skipped. Be careful,
-though: every time you say `postulate` you are leaving a door open for total
-nonsense to enter Idris's nice, rigorous, formally checked world!
+The prefix `?` on the right-hand side of an equation tells Idris that we want to
+skip trying to prove this theorem and just leave a hole. This can be useful for
+developing longer proofs, since we can state subsidiary lemmas that we believe
+will be useful for making some larger argument, use holes to delay defining them
+for the moment, and continue working on the main argument until we are sure it
+makes sense; then we can go back and fill in the proofs we skipped.
+
+> -- TODO: Decide whether or not to discuss `postulate`.
+> -- Be careful, though: every time you say `postulate` you are leaving a door open
+> -- for total nonsense to enter Idris's nice, rigorous, formally checked world!
 
 We can also use the `rewrite` tactic with a previously proved theorem instead of
 a hypothesis from the context. If the statement of the previously proved theorem
@@ -775,9 +761,9 @@ Idris and can just use `Refl` instead.
 
 === Exercise: 2 starts (mult_S_1)
 
-> postulate
 > mult_S_1 : (n, m : Nat) -> (m = S n)
 >          -> m * (1 + n) = m * m
+> mult_S_1 n m prf = ?mult_S_1_rhs
 
 
 == Proof by Case Analysis
@@ -812,7 +798,7 @@ where `n = S n'`, simply case split on `n`.
 \color{black}
 
 > plus_1_neq_0 : (n : Nat) -> beq_nat (n + 1) 0 = False
-> plus_1_neq_0 Z      = Refl
+> plus_1_neq_0  Z     = Refl
 > plus_1_neq_0 (S n') = Refl
 
 Case splitting on `n` generates _two_ holes, which we must then prove,
@@ -839,7 +825,7 @@ For example, we use it next to prove that boolean negation is involutive --
 i.e., that negation is its own inverse.
 
 > ||| A proof that boolean negation is involutive.
-> negb_involutive : (b : B) -> negb (negb b) = b
+> negb_involutive : (b : Bool) -> negb (negb b) = b
 > negb_involutive True  = Refl
 > negb_involutive False = Refl
 
@@ -850,7 +836,7 @@ any names.
 It is sometimes useful to case split on more than one parameter, generating yet
 more proof obligations. For example:
 
-> andb_commutative : (b, c : B) -> andb b c = andb c b
+> andb_commutative : (b, c : Bool) -> andb b c = andb c b
 > andb_commutative True  True  = Refl
 > andb_commutative True  False = Refl
 > andb_commutative False True  = Refl
@@ -859,15 +845,15 @@ more proof obligations. For example:
 In more complex proofs, it is often better to lift subgoals to lemmas:
 
 
-> andb_commutative'_rhs_1 : (c : B) -> c = andb c True
+> andb_commutative'_rhs_1 : (c : Bool) -> c = andb c True
 > andb_commutative'_rhs_1 True  = Refl
 > andb_commutative'_rhs_1 False = Refl
 
-> andb_commutative'_rhs_2 : (c : B) -> False = andb c False
+> andb_commutative'_rhs_2 : (c : Bool) -> False = andb c False
 > andb_commutative'_rhs_2 True  = Refl
 > andb_commutative'_rhs_2 False = Refl
 
-> andb_commutative' : (b, c : B) -> andb b c = andb c b
+> andb_commutative' : (b, c : Bool) -> andb b c = andb c b
 > andb_commutative' True  = andb_commutative'_rhs_1
 > andb_commutative' False = andb_commutative'_rhs_2
 
@@ -876,14 +862,14 @@ In more complex proofs, it is often better to lift subgoals to lemmas:
 
 Prove the following claim, lift cases (and subcases) to lemmas when case split.
 
-> postulate
-> andb_true_elim_2 : (b, c : B) -> (andb b c = True) -> c = True
+> andb_true_elim_2 : (b, c : Bool) -> (andb b c = True) -> c = True
+> andb_true_elim_2 b c prf = ?andb_true_elim_2_rhs
 
 
 === Exercise: 1 star (zero_nbeq_plus
 
-> postulate
 > zero_nbeq_plus_1 : (n : Nat) -> beq_nat 0 (n + 1) = False
+> zero_nbeq_plus_1 n = ?zero_nbeq_plus_1_rhs
 
 
 \color{red}
@@ -896,7 +882,7 @@ Here is a copy of the definition of addition:
 
 ```idris
 plus' : Nat -> Nat -> Nat
-plus' Z        right = right
+plus'  Z       right = right
 plus' (S left) right = S (plus' left right)
 ```
 
@@ -925,19 +911,19 @@ unnatural ways.
 Use the tactics you have learned so far to prove the following theorem about
 boolean functions.
 
-> postulate
-> identity_fn_applied_twice : (f : B -> B)
->                           -> ((x : B) -> f x = x)
->                           -> (b : B) -> f (f b) = b
+> identity_fn_applied_twice : (f : Bool -> Bool)
+>                          -> ((x : Bool) -> f x = x)
+>                          -> (b : Bool) -> f (f b) = b
+> identity_fn_applied_twice f g b = ?identity_fn_applied_twice_rhs
 
 Now state and prove a theorem `negation_fn_applied_twice` similar to the
 previous one but where the second hypothesis says that the function `f` has the
 property that `f x = negb x`.
 
-> postulate
-> andb_eq_orb : (b, c : B)
->             -> (andb b c = orb b c)
->             -> b = c
+> andb_eq_orb : (b, c : Bool)
+>            -> (andb b c = orb b c)
+>            -> b = c
+> andb_eq_orb b c prf = ?andb_eq_orb_rhs
 
 
 === Exercise: 3 stars (binary)
@@ -958,8 +944,8 @@ binary number is either
 
 ```idris
 data Nat : Type where
-  Z : Nat
-  S : Nat -> Nat
+       Z : Nat
+       S : Nat -> Nat
 ```
 
 says nothing about what `Z` and `S` "mean." It just says "`Z` is in the set
