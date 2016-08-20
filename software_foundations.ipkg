@@ -1,5 +1,16 @@
 package software_foundations
 
-opts      = "--noprelude"
-sourcedir = src
-modules   = Basics
+modules    = Basics
+
+brief      = "Software Foundations in Idris"
+version    = 0.0.1.0
+readme     = README.md
+-- license    = TODO: Add LICENSE
+author     = "Eric Bailey, et al."
+
+homepage   = https://github.com/idris-hackers/software-foundations
+sourceloc  = https://github.com/idris-hackers/software-foundations
+bugtracker = https://github.com/idris-hackers/software-foundations/issues
+
+sourcedir  = src
+opts       = "--noprelude"
