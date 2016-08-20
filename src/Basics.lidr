@@ -299,17 +299,42 @@ holes, following the model of the `orb` tests above.) The function should return
 >   nandb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   nandb b1 b2 = ?nandb_rhs
 
->   testNandb1 : (nandb True  False) = True
->   testNandb1 = ?testNandb1_rhs
+>   test_nandb1 : (nandb True  False) = True
+>   test_nandb1 = ?test_nandb1_rhs
 
->   testNandb2 : (nandb False False) = True
->   testNandb2 = ?testNandb2_rhs
+>   test_nandb2 : (nandb False False) = True
+>   test_nandb2 = ?test_nandb2_rhs
 
->   testNandb3 : (nandb False True)  = True
->   testNandb3 = ?testNandb3_rhs
+>   test_nandb3 : (nandb False True)  = True
+>   test_nandb3 = ?test_nandb3_rhs
 
->   testNandb4 : (nandb True  True)  = False
->   testNandb4 = ?testNandb4_rhs
+>   test_nandb4 : (nandb True  True)  = False
+>   test_nandb4 = ?test_nandb4_rhs
+
+$\square$
+
+
+=== Exercise: 1 star (andb3)
+
+Do the same for the `andb3` function below. This function should return `True`
+when all of its inputs are `True`, and `False` otherwise.
+
+>   andb3 : (b1 : Bool) -> (b2 : Bool) -> (b3 : Bool) -> Bool
+>   andb3 b1 b2 b3 = ?andb3_rhs
+
+>   test_andb31 : (andb3 True  True  True)  = True
+>   test_andb31 = ?test_andb31_rhs
+
+>   test_andb32 : (andb3 False True  True)  = False
+>   test_andb32 = ?test_andb32_rhs
+
+>   test_andb33 : (andb3 True  False True)  = False
+>   test_andb33 = ?test_andb33_rhs
+
+>   test_andb34 : (andb3 True  True  False) = False
+>   test_andb34 = ?test_andb34_rhs
+
+$\square$
 
 
 == Function Types
@@ -553,6 +578,8 @@ Translate this into Idris.
 >   testFactorial2 : factorial 5 = mult 10 12
 >   testFactorial2 = ?testFactorial2_rhs
 
+$\square$
+
 We can make numerical expressions a little easier to read and write by
 introducing _syntax_ for addition, multiplication, and subtraction.
 
@@ -617,6 +644,8 @@ in terms of a previously defined function.
 
 >   test_blt_nat_3 : blt_nat 4 2 = False
 >   test_blt_nat_3 = ?test_blt_nat_3_rhs
+
+$\square$
 
 
 == Proof by Simplification
@@ -727,6 +756,8 @@ Fill in the proof.
 >                  -> n + m = m + o
 > plus_id_exercise n m o prf prf1 = ?plus_id_exercise_rhs
 
+$\square$
+
 The prefix `?` on the right-hand side of an equation tells Idris that we want to
 skip trying to prove this theorem and just leave a hole. This can be useful for
 developing longer proofs, since we can state subsidiary lemmas that we believe
@@ -755,6 +786,8 @@ Idris and can just use `Refl` instead.
 > mult_S_1 : (n, m : Nat) -> (m = S n)
 >          -> m * (1 + n) = m * m
 > mult_S_1 n m prf = ?mult_S_1_rhs
+
+$\square$
 
 
 == Proof by Case Analysis
@@ -856,16 +889,21 @@ Prove the following claim, lift cases (and subcases) to lemmas when case split.
 > andb_true_elim_2 : (b, c : Bool) -> (andb b c = True) -> c = True
 > andb_true_elim_2 b c prf = ?andb_true_elim_2_rhs
 
+$\square$
 
-=== Exercise: 1 star (zero_nbeq_plus
+
+=== Exercise: 1 star (zero_nbeq_plus_1)
 
 > zero_nbeq_plus_1 : (n : Nat) -> beq_nat 0 (n + 1) = False
 > zero_nbeq_plus_1 n = ?zero_nbeq_plus_1_rhs
+
+$\square$
 
 
 \color{red}
 -- TODO: discuss associativity
 \color{black}
+
 
 == Structural Recursion (Optional)
 
@@ -894,6 +932,10 @@ unnatural ways.
 -- TODO: verify the previous claims
 \color{black}
 
+\color{red}
+-- TODO: Add decreasing exercise
+\color{black}
+
 
 == More Exercises
 
@@ -911,10 +953,23 @@ Now state and prove a theorem `negation_fn_applied_twice` similar to the
 previous one but where the second hypothesis says that the function `f` has the
 property that `f x = negb x`.
 
+> -- FILL IN HERE
+
+$\square$
+
+
+=== Exercise: 2 start (andb_eq_orb)
+
+Prove the following theorem. (You may want to first prove a subsidiary lemma or
+two. Alternatively, remember that you do not have to introduce all hypotheses at
+the same time.)
+
 > andb_eq_orb : (b, c : Bool)
 >            -> (andb b c = orb b c)
 >            -> b = c
 > andb_eq_orb b c prf = ?andb_eq_orb_rhs
+
+$\square$
 
 
 === Exercise: 3 stars (binary)
@@ -953,3 +1008,7 @@ functions you will write next that will give it mathematical meaning.)
     increment and binary-to-unary functions. Notice that incrementing a binary
     number and then converting it to unary should yield the same result as first
     converting it to unary and then incrementing.
+
+> -- FILL IN HERE
+
+$\square$
