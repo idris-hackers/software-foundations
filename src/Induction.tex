@@ -7,6 +7,14 @@ First, we import all of our definitions from the previous chapter.
 import Basics
 \end{minted}
 
+Next, we import the following \mintinline[]{idris}{Prelude} modules,
+since we'll be dealing with natural numbers.
+
+\begin{minted}[]{idris}
+import Prelude.Interfaces
+import Prelude.Nat
+\end{minted}
+
 For \mintinline[]{idris}{import Basics} to work, you first need to use
 \mintinline[]{idris}{idris} to compile \mintinline[]{idris}{Basics.lidr}
 into \mintinline[]{idris}{Basics.ibc}. This is like making a .class file
@@ -34,3 +42,93 @@ ways to do it:
   Refer to the Idris man page (or \mintinline[]{sh}{idris --help} for
   descriptions of the flags.
 \end{itemize}
+
+\section{Proof by Induction}\label{proof-by-induction}
+
+We proved in the last chapter that \mintinline[]{idris}{0} is a netural
+element for \mintinline[]{idris}{+} on the left using an easy argument
+based on simplification. The fact that it is also a neutral element on
+the \emph{right}\ldots{}
+
+\begin{minted}[]{coq}
+Theorem plus_n_O_firsttry : forall n:nat,
+  n = n + 0.
+\end{minted}
+
+\ldots{} cannot be proved in the same simple way in Coq, but as we saw
+in \mintinline[]{idris}{Basics}, Idris's \mintinline[]{idris}{Refl} just
+works.
+
+To prove interesting facts about numbers, lists, and other inductively
+defined sets, we usually need a more powerful reasoning principle:
+\emph{induction}.
+
+Recall (from high school, a discrete math course, etc.) the principle of
+induction over natural numbers: If \mintinline[]{idris}{p n} is some
+proposition involving a natural number \mintinline[]{idris}{n} and we
+want to show that \mintinline[]{idris}{p} holds for \emph{all} numbers
+\mintinline[]{idris}{n}, we can reason like this:
+
+\begin{itemize}
+\tightlist
+\item
+  show that \mintinline[]{idris}{p Z} holds;
+\item
+  show that, for any \mintinline[]{idris}{n'}, if
+  \mintinline[]{idris}{p in'} holds, then so does
+  \mintinline[]{idris}{p (S n')};
+\item
+  conclude that \mintinline[]{idris}{p n} holds for all
+  \mintinline[]{idris}{n}.
+\end{itemize}
+
+In Idris, the steps are the same and can often be written as function
+clauses by case splitting. Here's how this works for the theorem at
+hand.
+
+\begin{minted}[]{idris}
+plus_n_Z : (n : Nat) -> n = n + 0
+plus_n_Z  Z     = Refl
+plus_n_Z (S n') =
+  let inductiveHypothesis = plus_n_Z n' in
+    rewrite inductiveHypothesis in Refl
+\end{minted}
+
+In the first clause, \mintinline[]{idris}{n} is replaced by
+\mintinline[]{idris}{Z} and the goal becomes
+\mintinline[]{idris}{0 = 0}, which follows by
+\mintinline[]{idris}{Refl}exivity. In the second,
+\mintinline[]{idris}{n} is replaced by \mintinline[]{idris}{S n'} and
+the goal becomes \mintinline[]{idris}{S n' = S (plus n' 0)}. Then we
+define the inductive hypothesis, \mintinline[]{idris}{n' = n' + 0},
+which can be written as \mintinline[]{idris}{plus_n_Z n'}, and the goal
+follows from it.
+
+\begin{minted}[]{idris}
+minus_diag : (n : Nat) -> minus n n = 0
+minus_diag  Z     = Refl
+minus_diag (S n') = minus_diag n'
+\end{minted}
+
+\subsection{Exercise: 2 stars, recommended
+(basic\_induction)}\label{exercise-2-stars-recommended-basic_induction}
+
+Prove the following using induction. You might need previously proven
+results.
+
+\begin{minted}[]{idris}
+mult_0_r : (n : Nat) -> n * 0 = 0
+mult_0_r n = ?mult_0_r_rhs
+\end{minted}
+
+\begin{minted}[]{idris}
+plus_n_Sm : (n, m : Nat) -> S (n + m) = n + (S m)
+plus_n_Sm n m = ?plus_n_Sm_rhs
+\end{minted}
+
+\begin{minted}[]{idris}
+plus_comm : (n, m : Nat) -> n + m = m + n
+plus_comm n m = ?plus_comm_rhs
+\end{minted}
+
+\(\square\)
