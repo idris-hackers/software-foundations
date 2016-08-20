@@ -12,8 +12,12 @@ pdf:
 	$(MAKE) -C src all.pdf
 	mv src/all.pdf docs/pdf/sf-idris-2016.pdf
 
+clean-all: clean clean-docs
+
 clean:
 	$(IDRIS) --clean $(PKG).ipkg
+
+clean-docs:
 	$(MAKE) -C src clean
 	@$(RM) docs/index.html >/dev/null
 
