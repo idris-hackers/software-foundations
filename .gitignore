@@ -187,5 +187,5 @@ TSWLatexianTemp*
 *~[0-9]*
 
 ## Generated LaTeX files:
-all.tex
-Basics.tex
+*.tex
+!book.tex
