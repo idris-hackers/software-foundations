@@ -150,15 +150,6 @@ Call \mintinline[]{elisp}{idris-load-file} (\mintinline[]{elisp}{M-RET r} in
 Spacemacs) to load the `Basics` module with the finished `nextWeekday`
 definition.
 
-\color{red}
--- TODO: Verify that top-level type signatures are optional.
-
-One thing to note is that the argument and return types of this function are
-explicitly declared. Like most functional programming languages, Idris can often
-figure out these types for itself when they are not given explicitly -- i.e., it
-performs _type inference_ -- but we'll include them to make reading easier.
-\color{black}
-
 Having defined a function, we should check that it works on some examples. There
 are actually three different .ways to do this in Idris.
 
