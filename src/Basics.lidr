@@ -88,21 +88,20 @@ values -- a _type_.
 > namespace Days
 >
 >   ||| Days of the week.
->   data Day =
->            ||| `Monday` is a `Day`.
->            Monday |
->            ||| `Tuesday` is a `Day`.
->            Tuesday |
->            ||| `Wednesday` is a `Day`.
->            Wednesday |
->            ||| `Thursday` is a `Day`.
->            Thursday |
->            ||| `Friday` is a `Day`.
->            Friday |
->            ||| `Saturday` is a `Day`.
->            Saturday |
->            ||| `Sunday` is a `Day`.
->            Sunday
+>   data Day = ||| `Monday` is a `Day`.
+>              Monday
+>            | ||| `Tuesday` is a `Day`.
+>              Tuesday
+>            | ||| `Wednesday` is a `Day`.
+>              Wednesday
+>            | ||| `Thursday` is a `Day`.
+>              Thursday
+>            | ||| `Friday` is a `Day`.
+>              Friday
+>            | ||| `Saturday` is a `Day`.
+>              Saturday
+>            | ||| `Sunday` is a `Day`.
+>              Sunday
 
 The type is called `Day`, and its members are `Monday`, `Tuesday`, etc. The
 right hand side of the definition can be read "`Monday` is a `Day`, `Tuesday` is
@@ -239,8 +238,8 @@ members `False` and `True`.
 
 >   ||| Boolean Data Type
 >   data B : Type where
->     False : B
->     True  : B
+>    False : B
+>    True  : B
 
 Although we are rolling our own booleans here for the sake of building up
 everything from scratch, Idiris does, of course, provide a default
@@ -386,8 +385,8 @@ elements. For example, we can define the natural numbers as follows:
 
 > -- FIXME:
 > --   data Nat : Type where
-> --     Z : Nat
-> --     S : Nat -> Nat
+> --          Z : Nat
+> --          S : Nat -> Nat
 
 The clauses of this definition can be read:
 - `Z` is a natural number.
