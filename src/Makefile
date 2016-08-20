@@ -3,7 +3,8 @@
 # TODO: Find pandoc executable.
 PANDOC    ?= pandoc
 
-LIDRFILES := Basics.lidr \
+LIDRFILES := Preface.lidr \
+	Basics.lidr \
 	Induction.lidr
 # TODO: Add more chapters, in order, here.
 
