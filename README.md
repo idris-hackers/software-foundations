@@ -106,5 +106,5 @@ Using Mac OS X Core Text and Cocoa frameworks
 
 
 [SF]: http://www.cis.upenn.edu/%7Ebcpierce/sf/current/index.html
-[PDF]: https://idris-hackers.github.io/software-foundations/docs/pdf/sf-idris-2016.pdf
+[PDF]: https://idris-hackers.github.io/software-foundations/pdf/sf-idris-2016.pdf
 [prereqs]: #prerequisites
