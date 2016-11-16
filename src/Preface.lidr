@@ -28,7 +28,7 @@ are suitable for both upper-level undergraduate and graduate students.
 Building reliable software is hard. The scale and complexity of modern systems,
 the number of people involved in building them, and the range of demands placed
 on them render it extremely difficult to build software that is even
-more-or-less correct, much less 100%% correct. At the same time, the increasing
+more-or-less correct, much less 100% correct. At the same time, the increasing
 degree to which information processing is woven into every aspect of society
 continually amplifies the cost of bugs and insecurities.
 
@@ -164,7 +164,7 @@ letters of the name of Thierry Coquand, one of Coq's early developers.
 The term _functional programming_ refers both to a collection of programming
 idioms that can be used in almost any programming language and to a family of
 programming languages designed to emphasize these idioms, including Haskell,
-OCaml, Standard ML, F##, Scala, Scheme, Racket, Common Lisp, Clojure, Erlang,
+OCaml, Standard ML, F#, Scala, Scheme, Racket, Common Lisp, Clojure, Erlang,
 and Coq.
 
 Functional programming has been developed over many decades -- indeed, its roots
