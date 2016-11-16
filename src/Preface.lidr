@@ -106,7 +106,7 @@ propositions. These tools fall into two broad categories:
   - _Proof assistants_ are hybrid tools that automate the more routine aspects
     of building proofs while depending on human guidance for more difficult
     aspects. Widely used proof assistants include Isabelle, Agda, Twelf, ACL2,
-    PVS, and Coq, among many others.
+    PVS, Coq, and Idris among many others.
 
 This course is based around Coq, a proof assistant that has been under
 development, mostly in France, since 1983 and that in recent years has attracted
