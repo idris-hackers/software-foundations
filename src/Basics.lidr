@@ -425,16 +425,16 @@ We can write simple functions that pattern match on natural numbers just as we
 did above -- for example, the predecessor function:
 
 >   pred : (n : Nat) -> Nat
->   pred  Z     = Z
->   pred (S n') = n'
+>   pred  Z    = Z
+>   pred (S k) = k
 
-The second branch can be read: "if `n` has the form `S n'` for some `n'`, then
-return `n'`."
+The second branch can be read: "if `n` has the form `S k` for some `k`, then
+return `k`."
 
 >   minusTwo : (n : Nat) -> Nat
->   minusTwo  Z         = Z
->   minusTwo (S  Z)     = Z
->   minusTwo (S (S n')) = n'
+>   minusTwo  Z        = Z
+>   minusTwo (S  Z)    = Z
+>   minusTwo (S (S k)) = k
 
 Because natural numbers are such a pervasive form of data, Idris provides a tiny
 bit of built-in magic for parsing and printing them: ordinary arabic numerals
@@ -472,9 +472,9 @@ need to recursively check whether `n-2` is even.
 >   ||| Determine whether a number is even.
 >   ||| @n a number
 >   evenb : (n : Nat) -> Bool
->   evenb  Z         = True
->   evenb (S  Z)     = False
->   evenb (S (S n')) = evenb n'
+>   evenb  Z        = True
+>   evenb (S  Z)    = False
+>   evenb (S (S k)) = evenb k
 
 We can define `oddb` by a similar recursive declaration, but here is a simpler
 definition that is a bit easier to work with:
@@ -493,8 +493,8 @@ Naturally we can also define multi-argument functions by recursion.
 
 > namespace Playground2
 >   plus : (n : Nat) -> (m : Nat) -> Nat
->   plus  Z     m = m
->   plus (S n') m = S (Playground2.plus n' m)
+>   plus  Z    m = m
+>   plus (S k) m = S (Playground2.plus k m)
 
 Adding three to two now gives us five, as we'd expect.
 
@@ -525,8 +525,8 @@ the same as if we had written `(n : Nat) -> (m : Nat)`.
 
 ```idris
 mult : (n, m : Nat) -> Nat
-mult  Z     = Z
-mult (S n') = plus m (mult n' m)
+mult  Z    = Z
+mult (S k) = plus m (mult k m)
 ```
 
 >   testMult1 : (mult 3 3) = 9
@@ -535,10 +535,10 @@ mult (S n') = plus m (mult n' m)
 You can match two expression at once:
 
 ```idris
-minus (n, m : Nat) -> Nat
-minus  Z      _     = Z
-minus  n      Z     = n
-minus (S n') (S m') = minus n' m'
+minus : (n, m : Nat) -> Nat
+minus  Z     _    = Z
+minus  n     Z    = n
+minus (S k) (S j) = minus k j
 ```
 
 \color{red}
@@ -605,10 +605,10 @@ The `beq_nat` function tests `Nat`ural numbers for `eq`uality, yielding a
 
 >   ||| Test natural numbers for equality.
 >   beq_nat : (n, m : Nat) -> Bool
->   beq_nat  Z      Z     = True
->   beq_nat  Z     (S m') = False
->   beq_nat (S n')  Z     = False
->   beq_nat (S n') (S m') = beq_nat n' m'
+>   beq_nat  Z     Z    = True
+>   beq_nat  Z    (S j) = False
+>   beq_nat (S k)  Z    = False
+>   beq_nat (S k) (S j) = beq_nat k j
 
 The `leb` function tests whether its first argument is less than or equal to its
 second argument, yielding a boolean.
@@ -616,8 +616,8 @@ second argument, yielding a boolean.
 >   ||| Test whether a number is less than or equal to another.
 >   leb : (n, m : Nat) -> Bool
 >   leb  Z      m     = True
->   leb (S n')  Z     = False
->   leb (S n') (S m') = leb n' m'
+>   leb (S k)  Z     = False
+>   leb (S k) (S j) = leb k j
 
 >   testLeb1 : leb 2 2 = True
 >   testLeb1 = Refl
@@ -809,28 +809,28 @@ expression `n + 1`; neither can be simplified.
 
 To make progress, we need to consider the possible forms of `n` separately. If
 `n` is `Z`, then we can calculate the final result of `beq_nat (n + 1) 0` and
-check that it is, indeed, `False`. And if `n = S n'` for some `n'`, then,
+check that it is, indeed, `False`. And if `n = S k` for some `k`, then,
 although we don't know exactly what number `n + 1` yields, we can calculate
 that, at least, it will begin with one `S`, and this is enough to calculate
 that, again, `beq_nat (n + 1) 0` will yield `False`.
 
 To tell Idris to consider, separately, the cases where `n = Z` and
-where `n = S n'`, simply case split on `n`.
+where `n = S k`, simply case split on `n`.
 
 \color{red}
 -- TODO: mention case splitting interactively in Emacs, Atom, etc.
 \color{black}
 
 > plus_1_neq_0 : (n : Nat) -> beq_nat (n + 1) 0 = False
-> plus_1_neq_0  Z     = Refl
-> plus_1_neq_0 (S n') = Refl
+> plus_1_neq_0  Z    = Refl
+> plus_1_neq_0 (S k) = Refl
 
 Case splitting on `n` generates _two_ holes, which we must then prove,
 separately, in order to get Idris to accept the theorem.
 
 In this example, each of the holes is easily filled by a single use of `Refl`,
 which itself performs some simplification -- e.g., the first one simplifies
-`beq_nat (S n' + 1) 0` to `False` by first rewriting `(S n' + 1)` to `S (n' +
+`beq_nat (S k + 1) 0` to `False` by first rewriting `(S k + 1)` to `S (k +
 1)`, then unfolding `beq_nat`, simplifying its pattern matching.
 
 There are no hard and fast rules for how proofs should be formatted in Idris.

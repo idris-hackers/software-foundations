@@ -61,26 +61,26 @@ number `n` and we want to show that `p` holds for _all_ numbers `n`, we can
 reason like this:
 
   - show that `p Z` holds;
-  - show that, for any `n'`, if `p in'` holds, then so does `p (S n')`;
+  - show that, for any `k`, if `p k` holds, then so does `p (S k)`;
   - conclude that `p n` holds for all `n`.
 
 In Idris, the steps are the same and can often be written as function clauses by
 case splitting. Here's how this works for the theorem at hand.
 
 > plus_n_Z : (n : Nat) -> n = n + 0
-> plus_n_Z  Z     = Refl
-> plus_n_Z (S n') =
->   let inductiveHypothesis = plus_n_Z n' in
+> plus_n_Z  Z    = Refl
+> plus_n_Z (S k) =
+>   let inductiveHypothesis = plus_n_Z k in
 >     rewrite inductiveHypothesis in Refl
 
 In the first clause, `n` is replaced by `Z` and the goal becomes `0 = 0`, which
-follows by `Refl`exivity. In the second, `n` is replaced by `S n'` and the goal
-becomes `S n' = S (plus n' 0)`. Then we define the inductive hypothesis, `n' =
-n' + 0`, which can be written as `plus_n_Z n'`, and the goal follows from it.
+follows by `Refl`exivity. In the second, `n` is replaced by `S k` and the goal
+becomes `S k = S (plus k 0)`. Then we define the inductive hypothesis, `k =
+k + 0`, which can be written as `plus_n_Z k`, and the goal follows from it.
 
 > minus_diag : (n : Nat) -> minus n n = 0
-> minus_diag  Z     = Refl
-> minus_diag (S n') = minus_diag n'
+> minus_diag  Z    = Refl
+> minus_diag (S k) = minus_diag k
 
 
 === Exercise: 2 stars, recommended (basic_induction)
