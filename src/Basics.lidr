@@ -230,13 +230,16 @@ data Bool = True | False
 ```
 
 This definition is written in the simplified style, similar to `Day`. It can 
-also be written in the verbose style (which is more powerful):
+also be written in the verbose style:
 
 ```idris
 data Bool : Type where
      True : Bool
     False : Bool
 ```
+
+The verbose style is more powerful because it allows us to assign precise 
+types to individual constructors. This will become very useful later on.
 
 Although we are rolling our own booleans here for the sake of building up
 everything from scratch, Idris does, of course, provide a default
@@ -279,8 +282,8 @@ truth table -- for the `orb` function:
 -- TODO: Edit this
 
 We can also introduce some familiar syntax for the boolean operations we have
-just defined. The `syntax` command defines a new notation for an existing
-definition, and `infixl` specifies left-associative fixity.
+just defined. The `syntax` command defines a new symbolic notation for an 
+existing definition, and `infixl` specifies left-associative fixity.
 \color{black}
 
 >   infixl 4 /\, \/
@@ -301,7 +304,7 @@ definition, and `infixl` specifies left-associative fixity.
 Fill in the hole `?nandb_rhs` and complete the following function; then make 
 sure that the assertions below can each be verified by Idris. (Fill in each of 
 the holes, following the model of the `orb` tests above.) The function should 
-return `True` if either or both of its inputs `False`.
+return `True` if either or both of its inputs are `False`.
 
 >   nandb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   nandb b1 b2 = ?nandb_rhs
