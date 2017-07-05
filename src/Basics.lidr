@@ -61,9 +61,9 @@ that can be used to prove simple properties of Idris programs.
 
 One unusual aspect of Coq is that its set of built-in features is _extremely_
 small, For example, instead of providing the usual palette of atomic data types
-(booleans, integers, strings, etc.), Coq offers a powerl mechanism for defining
-new data types from scratch, from which all these familiar types arise as
-instances.
+(booleans, integers, strings, etc.), Coq offers a powerful mechanism for 
+defining new data types from scratch, from which all these familiar types arise 
+as instances.
 
 Naturally, the Coq distribution comes with an extensive standard library
 providing definitions of booleans, numbers, and many common data structures like
@@ -153,7 +153,7 @@ definition.
 Having defined a function, we should check that it works on some examples. There
 are actually three different .ways to do this in Idris.
 
-First, we can evalute an expression involving `nextWeekday` in a REPL.
+First, we can evaluate an expression involving `nextWeekday` in a REPL.
 
 ```idris
 λΠ> nextWeekday Friday
@@ -226,13 +226,20 @@ members `False` and `True`.
 
 ```idris
 ||| Boolean Data Type
+data Bool = True | False
+```
+
+This definition is written in the simplified style, similar to `Day`. It can 
+also be written in the verbose style (which is more powerful):
+
+```idris
 data Bool : Type where
      True : Bool
     False : Bool
 ```
 
 Although we are rolling our own booleans here for the sake of building up
-everything from scratch, Idiris does, of course, provide a default
+everything from scratch, Idris does, of course, provide a default
 implementation of the booleans in its standard library, together with a
 multitude of useful functions and lemmas. (Take a look at `Prelude` in the Idris
 library documentation if you're interested.) Whenever possible, we'll name our
@@ -272,7 +279,7 @@ truth table -- for the `orb` function:
 -- TODO: Edit this
 
 We can also introduce some familiar syntax for the boolean operations we have
-just defined. The `syntax` command defines new notation for an existing
+just defined. The `syntax` command defines a new notation for an existing
 definition, and `infixl` specifies left-associative fixity.
 \color{black}
 
@@ -291,10 +298,10 @@ definition, and `infixl` specifies left-associative fixity.
 
 === Exercises: 1 star (nandb)
 
-Fill in the hole `?nandb_rhs` and omplete the following function; then make sure
-that the assertions below can each be verified by Idris. (Fill in each of the
-holes, following the model of the `orb` tests above.) The function should return
-`True` if either or both of its inputs `False`.
+Fill in the hole `?nandb_rhs` and complete the following function; then make 
+sure that the assertions below can each be verified by Idris. (Fill in each of 
+the holes, following the model of the `orb` tests above.) The function should 
+return `True` if either or both of its inputs `False`.
 
 >   nandb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   nandb b1 b2 = ?nandb_rhs
@@ -348,7 +355,7 @@ For example, the type of `negb True` is `Bool`.
 ```idris
 λΠ> :type True
 -- True : Bool
-λΠ> :t negb True : Bool
+λΠ> :t negb True
 -- negb True : Bool
 ```
 
@@ -385,9 +392,9 @@ Idris provides a _module system_, to aid in organizing large developments.
 > namespace Numbers
 
 The types we have defined so far are examples of "enumerated types": their
-definitions explicitly enumerate a finit set of elements. A More interesting way
-of defining a type is to give a collection of _inductive rules_ describing its
-elements. For example, we can define the natural numbers as follows:
+definitions explicitly enumerate a finite set of elements. A More interesting 
+way of defining a type is to give a collection of _inductive rules_ describing 
+its elements. For example, we can define the natural numbers as follows:
 
 ```idris
 data Nat : Type where
@@ -461,7 +468,7 @@ These are all things that can be applied to a number to yield a number. However,
 there is a fundamental difference between the first one and the other two:
 functions like `pred` and `minusTwo` come with _computation rules_ -- e.g., the
 definition of `pred` says that `pred 2` can be simplified to `1` -- while the
-definition of `S` has no such behavior attached. Althrough it is like a function
+definition of `S` has no such behavior attached. Although it is like a function
 in the sense that it can be applied to an argument, it does not _do_ anything at
 all!
 
@@ -489,7 +496,7 @@ definition that is a bit easier to work with:
 >   testOddb2 : oddb 4 = False
 >   testOddb2 = Refl
 
-Naturally we can also define multi-argument functions by recursion.
+Naturally, we can also define multi-argument functions by recursion.
 
 > namespace Playground2
 >   plus : (n : Nat) -> (m : Nat) -> Nat
@@ -532,7 +539,7 @@ mult (S k) = plus m (mult k m)
 >   testMult1 : (mult 3 3) = 9
 >   testMult1 = Refl
 
-You can match two expression at once:
+You can match two expressions at once:
 
 ```idris
 minus : (n, m : Nat) -> Nat
@@ -680,18 +687,13 @@ Other similar theorems can be proved with the same pattern.
 > mult_0_l : (n : Nat) -> 0 * n = 0
 > mult_0_l n = Refl
 
-The `_l` suffix in the names of these theorems is pronounces "on the left."
+The `_l` suffix in the names of these theorems is pronounced "on the left."
 
 Although simplification is powerful enough to prove some fairly general facts,
 there are many statements that cannot be handled by simplification alone. For
 instance, we cannot use it to prove that `0` is also a neutral element for `+`
 _on the right_.
 
-
-```idris
-plus_n_Z : (n : Nat) -> n = n + 0
-plus_n_Z n = Refl
-```
 
 ```idris
 plus_n_Z : (n : Nat) -> n = n + 0
@@ -718,6 +720,11 @@ When checking right hand side of plus_n_Z with expected type
 The next chapter will introduce _induction_, a powerful technique that can be
 used for proving this goal. For the moment, though, let's look at a few more
 simple tactics.
+
+
+== Proof by Rewriting
+
+This theorem is a bit more interesting than the others we've seen:
 
 > plus_id_example : (n, m : Nat) -> (n = m)
 >                 -> n + n = m + m
