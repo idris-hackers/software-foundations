@@ -23,12 +23,13 @@ file, or a .o file from a .c file. There are at least two ways to do it:
 
     Open `Basics.lidr`. Evaluate `idris-load-file`.
 
-    There exists similar support for [Vim][idris-vim] and [Sublime
-    Text][idris-sublime] as well.
+    There exists similar support for [Vim][idris-vim], [Sublime
+    Text][idris-sublime] and [Visual Studio Code][idris-vscode] as well.
 
     [idris-mode]: https://github.com/idris-hackers/idris-mode
     [idris-vim]: https://github.com/idris-hackers/idris-vim
     [idris-sublime]: https://github.com/idris-hackers/idris-sublime
+    [idris-vscode]: https://github.com/zjhmale/vscode-idris
 
   - From the command line:
 
@@ -40,7 +41,7 @@ file, or a .o file from a .c file. There are at least two ways to do it:
 
 == Proof by Induction
 
-We proved in the last chapter that `0` is a netural element for `+` on the left
+We proved in the last chapter that `0` is a neutral element for `+` on the left
 using an easy argument based on simplification. The fact that it is also a
 neutral element on the _right_...
 
@@ -120,7 +121,7 @@ $\square$
 
 === Exercise: 2 stars, optional (evenb_S)
 
-One inconveninent aspect of our definition of `evenb n` is that it may need to
+One inconvenient aspect of our definition of `evenb n` is that it may need to
 perform a recursive call on `n - 2`. This makes proofs about `evenb n` harder
 when done by induction on `n`, since we may need an induction hypothesis about
 `n - 2`. The following lemma gives a better characterization of `evenb (S n)`:
@@ -181,17 +182,16 @@ _ does not have an equality type ((n1 : Nat) ->
 ```
 
 To get `plus_comm` to apply at the point where we want it to, we can introduce a
-local lemma stating that `n + m = m + n` (for the particular `m` and `n` that we
-are talking about here), prove this lemma using `plus_comm`, and then use it to
-do the desired rewrite.
-
-> plus_rearrange_lemma : (n, m : Nat) -> n + m = m + n
-> plus_rearrange_lemma = plus_comm
+local lemma using the `where` keyword stating that `n + m = m + n` (for the 
+particular `m` and `n` that we are talking about here), prove this lemma using 
+`plus_comm`, and then use it to do the desired rewrite.
 
 > plus_rearrange : (n, m, p, q : Nat) ->
 >                  (n + m) + (p + q) = (m + n) + (p + q)
 > plus_rearrange n m p q = rewrite plus_rearrange_lemma n m in Refl
-
+>   where
+>   plus_rearrange_lemma : (n, m : Nat) -> n + m = m + n
+>   plus_rearrange_lemma = plus_comm
 
 == More Exercises
 
