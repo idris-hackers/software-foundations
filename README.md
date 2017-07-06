@@ -19,6 +19,7 @@ make
 - [Pandoc](http://pandoc.org)
 - [Python](https://www.python.org)
 - [Pygments](http://pygments.org)
+- [pandocfilters](https://github.com/jgm/pandocfilters)
 - [XeLaTeX](http://tug.org/xetex/)
 - [minted](http://www.ctan.org/pkg/minted)
 
