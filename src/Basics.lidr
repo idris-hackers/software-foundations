@@ -56,8 +56,7 @@ that can be used to prove simple properties of Idris programs.
 
 == Enumerated Types
 
-\color{red}
--- TODO: Edit the following.
+\todo[inline]{Edit the following.}
 
 One unusual aspect of Coq is that its set of built-in features is _extremely_
 small, For example, instead of providing the usual palette of atomic data types
@@ -165,9 +164,7 @@ First, we can evaluate an expression involving `nextWeekday` in a REPL.
 -- Tuesday : Day
 ```
 
-\color{red}
--- TODO: Mention other editors? Discuss idris-mode?
-\color{black}
+\todo[inline]{Mention other editors? Discuss idris-mode?}
 
 We show Idris's responses in comments, but, if you have a computer handy, this
 would be an excellent moment to fire up the Idris interpreter under your
@@ -190,8 +187,7 @@ Having made the assertion, we can also ask Idris to verify it, like this:
 
 >   testNextWeekday = Refl
 
-\color{red}
--- TODO: Edit this
+\todo[inline]{Edit this}
 
 The details are not important for now (we'll come back to them in a bit), but
 essentially this can be read as "The assertion we've just made can be proved by
@@ -205,8 +201,7 @@ point on the name (`testNextWeekday`) in the type signature and then call
 \mintinline[]{elisp}{idris-proof-search} (\mintinline[]{elisp}{M-RET p}) with
 the point on the resultant hole to have Idris solve the proof for you.)
 
-\color{red}
--- TODO: verify the "main uses" claim.
+\todo[inline]{Verify the "main uses" claim.}
 
 Third, we can ask Idris to _generate_, from our definition, a program in some
 other, more conventional, programming (C, Javascript and Node are bundled with
@@ -278,8 +273,7 @@ truth table -- for the `orb` function:
 >   testOrb4 : (orb True  True)  = True
 >   testOrb4 = Refl
 
-\color{red}
--- TODO: Edit this
+\todo[inline]{Edit this.}
 
 We can also introduce some familiar syntax for the boolean operations we have
 just defined. The `syntax` command defines a new symbolic notation for an
@@ -362,8 +356,7 @@ For example, the type of `negb True` is `Bool`.
 -- negb True : Bool
 ```
 
-\color{red}
--- TODO: Confirm the "function types" wording.
+\todo[inline]{Confirm the "function types" wording.}
 
 Functions like `negb` itself are also data values, just like `True` and `False`.
 Their types are called _function types_, and they are written with arrows.
@@ -383,8 +376,7 @@ output of type `Bool`."
 
 == Modules
 
-\color{red}
--- TODO: Flesh this out and discuss namespaces
+\todo[inline]{Flesh this out and discuss namespaces}
 
 Idris provides a _module system_, to aid in organizing large developments.
 \color{black}
@@ -551,8 +543,7 @@ minus  n     Z    = n
 minus (S k) (S j) = minus k j
 ```
 
-\color{red}
--- TODO: Verify this.
+\todo[inline]{Verify this.}
 
 The `_` in the first line is a _wilcard pattern_. Writing `_` in a pattern is
 the same as writing some variable that doesn't get used on the right-hand side.
@@ -775,9 +766,13 @@ will be useful for making some larger argument, use holes to delay defining them
 for the moment, and continue working on the main argument until we are sure it
 makes sense; then we can go back and fill in the proofs we skipped.
 
-> -- TODO: Decide whether or not to discuss `postulate`.
-> -- Be careful, though: every time you say `postulate` you are leaving a door open
-> -- for total nonsense to enter Idris's nice, rigorous, formally checked world!
+\todo[inline]{
+Decide whether or not to discuss `postulate`.
+```idris
+-- Be careful, though: every time you say `postulate` you are leaving a door open
+-- for total nonsense to enter Idris's nice, rigorous, formally checked world!
+```
+}
 
 We can also use the `rewrite` tactic with a previously proved theorem instead of
 a hypothesis from the context. If the statement of the previously proved theorem
@@ -827,9 +822,7 @@ that, again, `beq_nat (n + 1) 0` will yield `False`.
 To tell Idris to consider, separately, the cases where `n = Z` and
 where `n = S k`, simply case split on `n`.
 
-\color{red}
--- TODO: mention case splitting interactively in Emacs, Atom, etc.
-\color{black}
+\todo[inline]{Mention case splitting interactively in Emacs, Atom, etc.}
 
 > plus_1_neq_0 : (n : Nat) -> beq_nat (n + 1) 0 = False
 > plus_1_neq_0  Z    = Refl
@@ -910,9 +903,7 @@ $\square$
 $\square$
 
 
-\color{red}
--- TODO: discuss associativity
-\color{black}
+\todo[inline]{Discuss associativity.}
 
 
 == Structural Recursion (Optional)
@@ -938,13 +929,9 @@ all inputs. However, because Idris's "decreasing analysis" is not very
 sophisticated, it is sometimes necessary to write functions in slightly
 unnatural ways.
 
-\color{red}
--- TODO: verify the previous claims
-\color{black}
+\todo[inline]{Verify the previous claims.}
 
-\color{red}
--- TODO: Add decreasing exercise
-\color{black}
+\todo[inline]{Add decreasing exercise.}
 
 
 == More Exercises
