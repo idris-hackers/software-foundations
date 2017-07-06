@@ -24,7 +24,7 @@ all.pdf: all.tex
 all.tex: book.tex $(TEXFILES)
 	$(PANDOC) --filter pandoc-minted.py --latex-engine=xelatex \
 	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
-	--chapters -N \
+	--top-level-division=chapter -N \
 	--toc \
 	-o $@ $(foreach tex,$(filter-out $<,$^),-A $(tex)) \
 	book.tex
@@ -32,5 +32,5 @@ all.tex: book.tex $(TEXFILES)
 %.tex: %.lidr
 	$(PANDOC) --filter pandoc-minted.py --latex-engine=xelatex \
 	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
-	--chapters -N \
+	--top-level-division=chapter -N \
 	-o $@ $<
