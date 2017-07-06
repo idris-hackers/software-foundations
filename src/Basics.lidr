@@ -61,8 +61,8 @@ that can be used to prove simple properties of Idris programs.
 
 One unusual aspect of Coq is that its set of built-in features is _extremely_
 small, For example, instead of providing the usual palette of atomic data types
-(booleans, integers, strings, etc.), Coq offers a powerful mechanism for 
-defining new data types from scratch, from which all these familiar types arise 
+(booleans, integers, strings, etc.), Coq offers a powerful mechanism for
+defining new data types from scratch, from which all these familiar types arise
 as instances.
 
 Naturally, the Coq distribution comes with an extensive standard library
@@ -229,7 +229,7 @@ members `False` and `True`.
 data Bool = True | False
 ```
 
-This definition is written in the simplified style, similar to `Day`. It can 
+This definition is written in the simplified style, similar to `Day`. It can
 also be written in the verbose style:
 
 ```idris
@@ -238,7 +238,7 @@ data Bool : Type where
     False : Bool
 ```
 
-The verbose style is more powerful because it allows us to assign precise 
+The verbose style is more powerful because it allows us to assign precise
 types to individual constructors. This will become very useful later on.
 
 Although we are rolling our own booleans here for the sake of building up
@@ -282,7 +282,7 @@ truth table -- for the `orb` function:
 -- TODO: Edit this
 
 We can also introduce some familiar syntax for the boolean operations we have
-just defined. The `syntax` command defines a new symbolic notation for an 
+just defined. The `syntax` command defines a new symbolic notation for an
 existing definition, and `infixl` specifies left-associative fixity.
 \color{black}
 
@@ -301,9 +301,9 @@ existing definition, and `infixl` specifies left-associative fixity.
 
 === Exercises: 1 star (nandb)
 
-Fill in the hole `?nandb_rhs` and complete the following function; then make 
-sure that the assertions below can each be verified by Idris. (Fill in each of 
-the holes, following the model of the `orb` tests above.) The function should 
+Fill in the hole `?nandb_rhs` and complete the following function; then make
+sure that the assertions below can each be verified by Idris. (Fill in each of
+the holes, following the model of the `orb` tests above.) The function should
 return `True` if either or both of its inputs are `False`.
 
 >   nandb : (b1 : Bool) -> (b2 : Bool) -> Bool
@@ -395,8 +395,8 @@ Idris provides a _module system_, to aid in organizing large developments.
 > namespace Numbers
 
 The types we have defined so far are examples of "enumerated types": their
-definitions explicitly enumerate a finite set of elements. A More interesting 
-way of defining a type is to give a collection of _inductive rules_ describing 
+definitions explicitly enumerate a finite set of elements. A More interesting
+way of defining a type is to give a collection of _inductive rules_ describing
 its elements. For example, we can define the natural numbers as follows:
 
 ```idris

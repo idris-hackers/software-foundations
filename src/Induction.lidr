@@ -176,14 +176,14 @@ plus_rearrange_firsttry n m p q = rewrite plus_comm in Refl
 ```
 When checking right hand side of plus_rearrange_firsttry with expected type
         n + m + (p + q) = m + n + (p + q)
-                          
+
 _ does not have an equality type ((n1 : Nat) ->
 (n1 : Nat) -> plus n1 m1 = plus m1 n1)
 ```
 
 To get `plus_comm` to apply at the point where we want it to, we can introduce a
-local lemma using the `where` keyword stating that `n + m = m + n` (for the 
-particular `m` and `n` that we are talking about here), prove this lemma using 
+local lemma using the `where` keyword stating that `n + m = m + n` (for the
+particular `m` and `n` that we are talking about here), prove this lemma using
 `plus_comm`, and then use it to do the desired rewrite.
 
 > plus_rearrange : (n, m, p, q : Nat) ->
