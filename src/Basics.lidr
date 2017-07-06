@@ -168,7 +168,7 @@ First, we can evaluate an expression involving `nextWeekday` in a REPL.
 
 We show Idris's responses in comments, but, if you have a computer handy, this
 would be an excellent moment to fire up the Idris interpreter under your
-favorite Idiris-friendly text editor -- such as Emacs or Vim -- and try this for
+favorite Idris-friendly text editor -- such as Emacs or Vim -- and try this for
 and try this for yourself. Load this file, `Basics.lidr` from the book's
 accompanying Idris sources, find the above example, submit it to the Idris REPL,
 and observe the result.
@@ -204,7 +204,7 @@ the point on the resultant hole to have Idris solve the proof for you.)
 \todo[inline]{Verify the "main uses" claim.}
 
 Third, we can ask Idris to _generate_, from our definition, a program in some
-other, more conventional, programming (C, Javascript and Node are bundled with
+other, more conventional, programming (C, JavaScript and Node are bundled with
 Idris) with a high-performance compiler. This facility is very interesting,
 since it gives us a way to construct _fully certified_ programs in mainstream
 languages. Indeed, this is one of the main uses for which Idris was developed.
@@ -439,9 +439,9 @@ return `k`."
 >   minusTwo (S (S k)) = k
 
 Because natural numbers are such a pervasive form of data, Idris provides a tiny
-bit of built-in magic for parsing and printing them: ordinary arabic numerals
+bit of built-in magic for parsing and printing them: ordinary Arabic numerals
 can be used as an alternative to the "unary" notation defined by the
-constructors `S` and `Z`. Idris prints numbers in arabic form by default:
+constructors `S` and `Z`. Idris prints numbers in Arabic form by default:
 
 ```idris
 λΠ> S (S (S (S Z)))
@@ -545,7 +545,7 @@ minus (S k) (S j) = minus k j
 
 \todo[inline]{Verify this.}
 
-The `_` in the first line is a _wilcard pattern_. Writing `_` in a pattern is
+The `_` in the first line is a _wildcard pattern_. Writing `_` in a pattern is
 the same as writing some variable that doesn't get used on the right-hand side.
 This avoids the need to invent a bogus variable name.
 \color{black}

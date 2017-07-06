@@ -78,7 +78,7 @@ about the central role of logic in computer science. Manna and Waldinger called
 it "the calculus of computer science," while Halpern et al.'s paper _On the
 Unusual Effectiveness of Logic in Computer Science_ catalogs scores of ways in
 which logic offers critical tools and insights. Indeed, they observe that "As a
-matter of fact, logic has turned out to be significiantly more effective in
+matter of fact, logic has turned out to be significantly more effective in
 computer science than it has been in mathematics. This is quite remarkable,
 especially since much of the impetus for the development of logic during the
 past one hundred years came from mathematics."
