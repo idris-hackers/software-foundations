@@ -406,11 +406,13 @@ return the same bag unchanged.
 
 $\square$
 
-==== Exercise: 3 stars, recommendedM (bag_theorem) Write down an interesting
-theorem `bag_theorem` about bags involving the functions `count` and `add`, and
-prove it. Note that, since this problem is somewhat open-ended, it's possible
-that you may come up with a theorem which is true, but whose proof requires
-techniques you haven't learned yet. Feel free to ask for help if you get stuck!
+==== Exercise: 3 stars, recommendedM (bag_theorem) 
+
+Write down an interesting theorem `bag_theorem` about bags involving the
+functions `count` and `add`, and prove it. Note that, since this problem is
+somewhat open-ended, it's possible that you may come up with a theorem which is
+true, but whose proof requires techniques you haven't learned yet. Feel free to
+ask for help if you get stuck!
 
 > bag_theorem : ?bag_theorem
 
@@ -510,10 +512,10 @@ _Proof_: By induction on `l1`.
   - Next, suppose `l1 = n :: l1'`, with
     `(l1' ++ l2) ++ l3 = l1' ++ (l2 ++ l3)`
     (the induction hypothesis). We must show
-	`((n :: l1') ++ l2) ++ l3 = (n :: l1') ++ (l2 ++ l3)`.
-	By the definition of `++`, this follows from
-	`n :: ((l1' ++ l2) ++ l 3) = n :: (l1' ++ (l2 ++ l3))`,
-	which is immediate from the induction hypothesis. $\square$
+    `((n :: l1') ++ l2) ++ l3 = (n :: l1') ++ (l2 ++ l3)`.
+    By the definition of `++`, this follows from
+    `n :: ((l1' ++ l2) ++ l 3) = n :: (l1' ++ (l2 ++ l3))`,
+    which is immediate from the induction hypothesis. $\square$
 
 ==== Reversing a List
 
@@ -586,14 +588,14 @@ _Proof_: By induction on `l1`.
 
   - First, suppose `l1 = []`. We must show
     `length ([] ++ l2) = length [] + length l2`,
-	which follows directly from the definitions of `length` and `++`.
+    which follows directly from the definitions of `length` and `++`.  
 
   - Next, suppose `l1 = n :: l1'`, with
     `length (l1' ++ l2) = length l1' + length l2`.
-	We must show
-	`length ((n :: l1') ++ l2) = length (n :: l1') + length l2)`.
+    We must show
+    `length ((n :: l1') ++ l2) = length (n :: l1') + length l2)`.
     This follows directly from the definitions of `length` and `++` together
-	with the induction hypothesis. $\square$
+    with the induction hypothesis. $\square$
 
 _Theorem_: For all lists `l`, `length (rev l) = length l`.
 
@@ -601,18 +603,18 @@ _Proof_: By induction on `l`.
 
   - First, suppose `l = []`. We must show
     `length (rev []) = length []`,
-	which follows directly from the definitions of `length` and `rev`.
+    which follows directly from the definitions of `length` and `rev`.
 
   - Next, suppose l = n :: l' , with
     `length (rev l') = length l'`.
-	We must show
-	`length (rev (n :: l')) = length (n :: l')`.
-	By the definition of `rev`, this follows from
-	`length ((rev l') ++ [n]) = S (length l')`
-	which, by the previous lemma, is the same as
-	`length (rev l') + length [n] = S (length l')`.
+    We must show
+    `length (rev (n :: l')) = length (n :: l')`.
+    By the definition of `rev`, this follows from
+    `length ((rev l') ++ [n]) = S (length l')`
+    which, by the previous lemma, is the same as
+    `length (rev l') + length [n] = S (length l')`.
     This follows directly from the induction hypothesis and the definition of
-   `length`. $\square$
+    `length`. $\square$
 
 The style of these proofs is rather longwinded and pedantic. After the first
 few, we might find it easier to follow proofs that give fewer details (which can
@@ -918,8 +920,9 @@ $\square$
 
 $\square$
 
-==== Exercise: 2 starsM (baz_num_elts) Consider the following inductive
-definition:
+==== Exercise: 2 starsM (baz_num_elts)
+
+Consider the following inductive definition:
 
 > data Baz : Type where
 >   Baz1 : Baz -> Baz
