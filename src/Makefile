@@ -37,7 +37,7 @@ all.pdf: all.tex
 
 all.tex: book.tex $(TEXFILES)
 	$(PANDOC) $(PANDOC_FLAGS) -N --toc -o $@ \
-	$(foreach texfile,$(TEXFILES),-A $(texfile)) $<
+	$(foreach texfile,$(TEXFILES),-A $(texfile)) -A footer.tex $<
 
 
 %.tex: %.lidr
