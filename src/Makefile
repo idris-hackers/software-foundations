@@ -23,12 +23,16 @@ TEXFILES  := $(LIDRFILES:.lidr=.tex)
 .PHONY: all clean
 
 
-clean:
-	rm -rf all.{aux,log,out,toc,pdf} _minted-all $(TEXFILES)
+clean: clean-tex
+	rm -rf all.* auto _minted-all $(TEXFILES)
+
+
+clean-tex: all.tex
+	latexmk -pdf -CA all.tex
 
 
 all.pdf: all.tex
-	latexmk -xelatex -e '$$pdflatex=q/xelatex %O --shell-escape %S/' $<
+	latexmk -pdf $<
 
 
 all.tex: book.tex $(TEXFILES)
