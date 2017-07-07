@@ -23,7 +23,18 @@ classoption: twoside
 papersize: b5
 geometry: margin=1in
 header-includes:
+- \makeatletter
+- \let\RequirePackage\original@RequirePackage
+- \let\usepackage\RequirePackage
+- \makeatother
+-
 - \usepackage{minted}
+- \usemintedstyle{lovelace}
+-
+- \usepackage[xindy]{glossaries}
+- \makeglossaries
+- \input{glossary}
+-
 - \usepackage{todonotes}
 include-before: \frontmatter
 ---

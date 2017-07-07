@@ -188,5 +188,4 @@ TSWLatexianTemp*
 
 ## Generated LaTeX files:
 *.tex
-!book.tex
 src/auto/
