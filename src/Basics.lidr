@@ -106,8 +106,7 @@ Type the following:
 nextWeekday : Day -> Day
 ```
 
-Then with point on `nextWeekday`, call \mintinline[]{elisp}{idris-add-clause}
-(\mintinline[]{elisp}{M-RET d} in Spacemacs).
+Then with point on `nextWeekday`, call \gls{idris-add-clause}.
 
 ```idris
 nextWeekday : Day -> Day
@@ -190,9 +189,8 @@ observing that both sides of the equality evaluate to the same thing, after some
 simplification."
 \color{black}
 
-(For simple proofs like this, you can call
-\mintinline[]{elisp}{idris-add-clause} (\mintinline[]{elisp}{M-RET d}) with the
-point on the name (`testNextWeekday`) in the type signature and then call
+(For simple proofs like this, you can call \gls{idris-add-clause} with the point
+on the name (`testNextWeekday`) in the type signature and then call
 \mintinline[]{elisp}{idris-proof-search} (\mintinline[]{elisp}{M-RET p}) with
 the point on the resultant hole to have Idris solve the proof for you.)
 
