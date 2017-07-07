@@ -1,8 +1,3 @@
----
-pandoc-minted:
-  language: idris
----
-
 = Basics
 
 **REMINDER**:
