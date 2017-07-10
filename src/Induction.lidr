@@ -1,8 +1,3 @@
----
-pandoc-minted:
-  language: idris
----
-
 = Induction: Proof by Induction
 
 First, we import all of our definitions from the previous chapter.

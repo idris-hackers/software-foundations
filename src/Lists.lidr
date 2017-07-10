@@ -1,8 +1,3 @@
----
-pandoc-minted:
-  language: idris
----
-
 = Lists: Working with Structured Data
 
 > import Basics
