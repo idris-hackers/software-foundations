@@ -622,7 +622,7 @@ _Proof_: By induction on `l1`.
     We must show
 
     `length ((n :: l1') ++ l2) = length (n :: l1') + length l2)`.
-    
+
     This follows directly from the definitions of `length` and `++` together
     with the induction hypothesis. $\square$
 
@@ -955,7 +955,7 @@ $\square$
 
 ==== Exercise: 1 star (update_neq)
 
->   update_neq : (d : PartialMap) -> (x, y : Id ) -> (o : Nat) ->
+>   update_neq : (d : PartialMap) -> (x, y : Id) -> (o : Nat) ->
 >                 beq_id x y = False ->
 >                 find x (update d y o) = find x d
 >   update_neq d x y o prf = ?update_neq_rhs
