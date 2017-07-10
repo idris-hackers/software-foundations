@@ -2,15 +2,18 @@ package software_foundations
 
 modules    = Basics
            , Induction
+           , Lists
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
 readme     = README.md
--- license    = TODO: Add LICENSE
-author     = "Eric Bailey, et al."
+-- NOTE: For license information see the file LICENSE.
 
-homepage   = https://github.com/idris-hackers/software-foundations
-sourceloc  = https://github.com/idris-hackers/software-foundations
+author     = "Eric Bailey, et al."
+maintainer = "Eric Bailey <eric@ericb.me>"
+
+homepage   = http://idris-hackers.github.io/software-foundations
+sourceloc  = git://git@github.com:idris-hackers/software-foundations.git
 bugtracker = https://github.com/idris-hackers/software-foundations/issues
 
 sourcedir  = src
