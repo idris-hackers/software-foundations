@@ -20,6 +20,7 @@ Others may work, but here are the versions I'm using.
 |------------------|----------------------------------------|
 | [(run)ghc][GHC]  |                                  8.0.2 |
 | [Idris][]        |                                    1.0 |
+| [latexmk][]      |                                  4.52c |
 | [Make][]         |                                  4.2.1 |
 | [minted][]       |                                  2.4.1 |
 | [Monoid][]       |                                   0.61 |
@@ -37,6 +38,7 @@ Others may work, but here are the versions I'm using.
 [prereqs]: #prerequisites
 [GHC]: https://www.haskell.org/ghc/
 [Idris]: https://www.idris-lang.org
+[latexmk]: https://www.ctan.org/pkg/latexmk/
 [Make]: https://www.gnu.org/software/make/
 [minted]: http://www.ctan.org/pkg/minted
 [Monoid]: http://larsenwork.com/monoid/
