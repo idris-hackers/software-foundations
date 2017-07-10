@@ -8,6 +8,7 @@
 
 > %default total
 
+
 == Pairs of Numbers
 
 In an inductive type definition, each constructor can take any number of
@@ -94,6 +95,7 @@ match in `fst` and `snd`. We can do this with `case`.
 Notice that `case` matches just one pattern here. That's because `NatProd`s can
 only be constructed in one way.
 
+
 === Exercise: 1 star (snd_fst_is_swap)
 
 > snd_fst_is_swap : (p : NatProd) -> (snd p, fst p) = swap_pair p
@@ -101,12 +103,14 @@ only be constructed in one way.
 
 $\square$
 
+
 === Exercise: 1 star, optional (fst_swap_is_snd)
 
 > fst_swap_is_snd : (p : NatProd) -> fst (swap_pair p) = snd p
 > fst_swap_is_snd p = ?fst_swap_is_snd_rhs
 
 $\square$
+
 
 == Lists of Numbers
 
@@ -168,6 +172,7 @@ square-bracket notation for lists; the right-hand side of the third one
 illustrates Coq's syntax for declaring n-ary notations and translating them to
 nested sequences of binary constructors.
 
+
 === Repeat
 
 A number of functions are useful for manipulating lists. For example, the
@@ -178,6 +183,7 @@ A number of functions are useful for manipulating lists. For example, the
 > repeat n Z = Nil
 > repeat n (S k) = n :: repeat n k
 
+
 === Length
 
 The `length` function calculates the length of a list.
@@ -185,6 +191,7 @@ The `length` function calculates the length of a list.
 > length : (l : NatList) -> Nat
 > length Nil = Z
 > length (h :: t) = S (length t)
+
 
 === Append
 
@@ -207,6 +214,7 @@ convenient to have an infix operator for it.
 
 > test_app3 : ((1::2::3::[]) ++ []) = (1::2::3::[])
 > test_app3 = Refl
+
 
 === Head (with default) and Tail
 
@@ -231,6 +239,7 @@ first element, so we must pass a default value to be returned in that case.
 
 > test_tl : tl (1::2::3::[]) = (2::3::[])
 > test_tl = Refl
+
 
 === Exercises
 
@@ -258,6 +267,7 @@ below. Have a look at the tests to understand what these functions should do.
 > test_countoddmembers1 = ?test_countoddmembers1_rhs
 
 $\square$
+
 
 ==== Exercise: 3 stars, advanced (alternate)
 
@@ -289,6 +299,7 @@ requires defining a new kind of pairs, but this is not the only way.)
 
 $\square$
 
+
 === Bags via Lists
 
 A `bag` (or `multiset`) is like a set, except that each element can appear
@@ -297,6 +308,7 @@ represent a bag of numbers as a list.
 
 > Bag : Type
 > Bag = NatList
+
 
 ==== Exercise: 3 stars, recommended (bag_functions)
 
@@ -352,6 +364,7 @@ functions that have already been defined.
 
 $\square$
 
+
 ==== Exercise: 3 stars, optional (bag_more_functions)
 
 Here are some more bag functions for you to practice with.
@@ -386,7 +399,7 @@ return the same bag unchanged.
 > test_remove_all3 : count 4 (remove_all 5 (2::1::5::4::1::4::[])) = 2
 > test_remove_all3 = ?test_remove_all3_rhs
 
-> test_remove_all4 : count 5 
+> test_remove_all4 : count 5
 >                    (remove_all 5 (2::1::5::4::5::1::4::5::1::4::[])) = 0
 > test_remove_all4 = ?test_remove_all4_rhs
 
@@ -401,6 +414,7 @@ return the same bag unchanged.
 
 $\square$
 
+
 ==== Exercise: 3 stars, recommended (bag_theorem)
 
 Write down an interesting theorem `bag_theorem` about bags involving the
@@ -412,6 +426,7 @@ ask for help if you get stuck!
 > bag_theorem : ?bag_theorem
 
 $\square$
+
 
 == Reasoning About Lists
 
@@ -441,12 +456,14 @@ tail of the list it is constructing).
 Usually, though, interesting theorems about lists require induction for their
 proofs.
 
+
 ==== Micro-Sermon
 
 Simply reading example proof scripts will not get you very far! It is important
 to work through the details of each one, using Idris and thinking about what
 each step achieves. Otherwise it is more or less guaranteed that the exercises
 will make no sense when you get to them. 'Nuff said.
+
 
 === Induction on Lists
 
@@ -512,6 +529,7 @@ _Proof_: By induction on `l1`.
     `n :: ((l1' ++ l2) ++ l 3) = n :: (l1' ++ (l2 ++ l3))`,
     which is immediate from the induction hypothesis. $\square$
 
+
 ==== Reversing a List
 
 For a slightly more involved example of inductive proof over lists, suppose we
@@ -526,6 +544,7 @@ use `app` to define a list-reversing function `rev`:
 
 > test_rev2 : rev Nil = Nil
 > test_rev2 = Refl
+
 
 ==== Properties of rev
 
@@ -583,7 +602,7 @@ _Proof_: By induction on `l1`.
 
   - First, suppose `l1 = []`. We must show
     `length ([] ++ l2) = length [] + length l2`,
-    which follows directly from the definitions of `length` and `++`.  
+    which follows directly from the definitions of `length` and `++`.
 
   - Next, suppose `l1 = n :: l1'`, with
     `length (l1' ++ l2) = length l1' + length l2`.
@@ -650,6 +669,7 @@ the book; it can save you a lot of time!
 If you are using ProofGeneral, you can run Search with C-c C-a C-a. Pasting its
 response into your buffer can be accomplished with C-c C-;.
 
+
 === List Exercises, Part 1
 
 ==== Exercise: 3 stars (list_exercises)
@@ -680,6 +700,7 @@ An exercise about your implementation of `nonzeros`:
 
 $\square$
 
+
 ==== Exercise: 2 stars (beq_NatList)
 
 Fill in the definition of `beq_NatList`, which compares lists of numbers for
@@ -701,6 +722,7 @@ equality. Prove that `beq_NatList l l` yields `True` for every list `l`.
 > beq_NatList_refl l = ?beq_NatList_refl_rhs
 
 $\square$
+
 
 === List Exercises, Part 2
 
@@ -726,6 +748,7 @@ The following lemma about `leb` might help you in the next proof.
 
 $\square$
 
+
 ==== Exercise: 3 stars, optional (bag_count_sum)
 
 Write down an interesting theorem `bag_count_sum` about bags involving the
@@ -735,6 +758,7 @@ the proof depends on how you defined `count`!)
 > bag_count_sum : ?bag_count_sum
 
 $\square$
+
 
 ==== Exercise: 4 stars, advanced (rev_injective)
 
@@ -746,6 +770,7 @@ Prove that the `rev` function is injective -- that is,
 (There is a hard way and an easy way to do this.)
 
 $\square$
+
 
 == Options
 
@@ -811,6 +836,7 @@ default in the `None` case.
 > option_elim d (Some k) = k
 > option_elim d None = d
 
+
 ==== Exercise: 2 stars (hd_error)
 
 Using the same idea, fix the `hd` function from earlier so we don't have to pass
@@ -830,6 +856,7 @@ a default element for the `Nil` case.
 
 $\square$
 
+
 ==== Exercise: 1 star, optional (option_elim_hd)
 
 This exercise relates your new `hd_error` to the old `hd`.
@@ -839,6 +866,7 @@ This exercise relates your new `hd_error` to the old `hd`.
 > option_elim_hd l default = ?option_elim_hd_rhs
 
 $\square$
+
 
 == Partial Maps
 
@@ -860,6 +888,7 @@ We'll also need an equality test for `Id`s:
 
 > beq_id : (x1, x2 : Id) -> Bool
 > beq_id (MkId n1) (MkId n2) = beq_nat n1 n2
+
 
 ==== Exercise: 1 star (beq_id_refl)
 
@@ -898,6 +927,7 @@ first one it encounters.
 >                              then Some v
 >                              else find x d'
 
+
 ==== Exercise: 1 star (update_eq)
 
 >   update_eq : (d : PartialMap) -> (x : Id) -> (v : Nat) ->
@@ -905,6 +935,7 @@ first one it encounters.
 >   update_eq d x v = ?update_eq_rhs
 
 $\square$
+
 
 ==== Exercise: 1 star (update_neq)
 
@@ -914,6 +945,7 @@ $\square$
 >   update_neq d x y o prf = ?update_neq_rhs
 
 $\square$
+
 
 ==== Exercise: 2 stars (baz_num_elts)
 
