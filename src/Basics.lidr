@@ -286,7 +286,7 @@ existing definition, and `infixl` specifies left-associative fixity.
 >   testOrb5 = Refl
 
 
-=== Exercises: 1 star (nandb)
+=== Exercise: 1 star (nandb)
 
 Fill in the hole `?nandb_rhs` and complete the following function; then make
 sure that the assertions below can each be verified by Idris. (Fill in each of

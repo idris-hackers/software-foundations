@@ -401,7 +401,7 @@ return the same bag unchanged.
 
 $\square$
 
-==== Exercise: 3 stars, recommendedM (bag_theorem) 
+==== Exercise: 3 stars, recommended (bag_theorem)
 
 Write down an interesting theorem `bag_theorem` about bags involving the
 functions `count` and `add`, and prove it. Note that, since this problem is
@@ -652,7 +652,7 @@ response into your buffer can be accomplished with C-c C-;.
 
 === List Exercises, Part 1
 
-==== Exercise: 3 starsM (list_exercises)
+==== Exercise: 3 stars (list_exercises)
 
 More practice with lists:
 
@@ -726,7 +726,7 @@ The following lemma about `leb` might help you in the next proof.
 
 $\square$
 
-==== Exercise: 3 stars, optionalM (bag_count_sum)
+==== Exercise: 3 stars, optional (bag_count_sum)
 
 Write down an interesting theorem `bag_count_sum` about bags involving the
 functions `count` and `sum`, and prove it. (You may find that the difficulty of
@@ -736,7 +736,7 @@ the proof depends on how you defined `count`!)
 
 $\square$
 
-==== Exercise: 4 stars, advancedM (rev_injective)
+==== Exercise: 4 stars, advanced (rev_injective)
 
 Prove that the `rev` function is injective -- that is,
 
@@ -915,7 +915,7 @@ $\square$
 
 $\square$
 
-==== Exercise: 2 starsM (baz_num_elts)
+==== Exercise: 2 stars (baz_num_elts)
 
 Consider the following inductive definition:
 

@@ -98,7 +98,7 @@ Prove the following using induction. You might need previously proven results.
 $\square$
 
 
-=== Exercise: 2 stars, (double_plus)
+=== Exercise: 2 stars (double_plus)
 
 Consider the following function, which doubles its argument:
 
