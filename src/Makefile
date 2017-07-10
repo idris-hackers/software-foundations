@@ -13,7 +13,8 @@ PANDOC_FLAGS := \
 
 LIDRFILES := Preface.lidr \
 	Basics.lidr \
-	Induction.lidr
+	Induction.lidr \
+	Lists.lidr
 # TODO: Add more chapters, in order, here.
 
 
