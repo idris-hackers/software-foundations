@@ -103,28 +103,28 @@ Having defined `Day`, we can write functions that operate on days.
 Type the following:
 
 ```idris
-nextWeekday : Day -> Day
+  nextWeekday : Day -> Day
 ```
 
 Then with point on `nextWeekday`, call \gls{idris-add-clause}.
 
 ```idris
-nextWeekday : Day -> Day
-nextWeekday x = ?nextWeekday_rhs
+  nextWeekday : Day -> Day
+  nextWeekday x = ?nextWeekday_rhs
 ```
 
 With the point on `day`, call \mintinline[]{elisp}{idris-case-split}
 (\mintinline[]{elisp}{M-RET c} in Spacemacs).
 
 ```idris
-nextWeekday : Day -> Day
-nextWeekday Monday = ?nextWeekday_rhs_1
-nextWeekday Tuesday = ?nextWeekday_rhs_2
-nextWeekday Wednesday = ?nextWeekday_rhs_3
-nextWeekday Thursday = ?nextWeekday_rhs_4
-nextWeekday Friday = ?nextWeekday_rhs_5
-nextWeekday Saturday = ?nextWeekday_rhs_6
-nextWeekday Sunday = ?nextWeekday_rhs_7
+  nextWeekday : Day -> Day
+  nextWeekday Monday = ?nextWeekday_rhs_1
+  nextWeekday Tuesday = ?nextWeekday_rhs_2
+  nextWeekday Wednesday = ?nextWeekday_rhs_3
+  nextWeekday Thursday = ?nextWeekday_rhs_4
+  nextWeekday Friday = ?nextWeekday_rhs_5
+  nextWeekday Saturday = ?nextWeekday_rhs_6
+  nextWeekday Sunday = ?nextWeekday_rhs_7
 ```
 
 Fill in the proper `Day` constructors and align whitespace as you like.
@@ -213,17 +213,17 @@ In a similar way, we can define the standard type `Bool` of booleans, with
 members `False` and `True`.
 
 ```idris
-||| Boolean Data Type
-data Bool = True | False
+  ||| Boolean Data Type
+  data Bool = True | False
 ```
 
 This definition is written in the simplified style, similar to `Day`. It can
 also be written in the verbose style:
 
 ```idris
-data Bool : Type where
-     True : Bool
-    False : Bool
+  data Bool : Type where
+       True : Bool
+      False : Bool
 ```
 
 The verbose style is more powerful because it allows us to assign precise
@@ -385,9 +385,9 @@ way of defining a type is to give a collection of _inductive rules_ describing
 its elements. For example, we can define the natural numbers as follows:
 
 ```idris
-data Nat : Type where
-       Z : Nat
-       S : Nat -> Nat
+  data Nat : Type where
+         Z : Nat
+         S : Nat -> Nat
 ```
 
 The clauses of this definition can be read:
@@ -519,9 +519,9 @@ can be written together. In the following definition, `(n, m : Nat)` means just
 the same as if we had written `(n : Nat) -> (m : Nat)`.
 
 ```idris
-mult : (n, m : Nat) -> Nat
-mult  Z    = Z
-mult (S k) = plus m (mult k m)
+  mult : (n, m : Nat) -> Nat
+  mult  Z    = Z
+  mult (S k) = plus m (mult k m)
 ```
 
 >   testMult1 : (mult 3 3) = 9
@@ -530,10 +530,10 @@ mult (S k) = plus m (mult k m)
 You can match two expressions at once:
 
 ```idris
-minus : (n, m : Nat) -> Nat
-minus  Z     _    = Z
-minus  n     Z    = n
-minus (S k) (S j) = minus k j
+  minus : (n, m : Nat) -> Nat
+  minus  Z     _    = Z
+  minus  n     Z    = n
+  minus (S k) (S j) = minus k j
 ```
 
 \todo[inline]{Verify this.}
@@ -578,9 +578,9 @@ We can make numerical expressions a little easier to read and write by
 introducing _syntax_ for addition, multiplication, and subtraction.
 
 ```idris
-syntax [x] "+" [y] = plus  x y
-syntax [x] "-" [y] = minus x y
-syntax [x] "*" [y] = mult  x y
+  syntax [x] "+" [y] = plus  x y
+  syntax [x] "-" [y] = minus x y
+  syntax [x] "*" [y] = mult  x y
 ```
 
 ```idris
@@ -723,7 +723,7 @@ is pronounced "implies."
 As before, we need to be able to reason by assuming the existence of some
 numbers `n` and `m`. We also need to assume the hypothesis `n = m`.
 
--- FIXME
+\todo[inline]{Edit.}
 The `intros` tactic will serve to move all three of these from the goal into
 assumptions in the current context.
 

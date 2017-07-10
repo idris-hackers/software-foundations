@@ -51,8 +51,8 @@ The new pair notation can be used both in expressions and in pattern matches
 definition of the `minus` function -- this works because the pair notation is
 also provided as part of the standard library):
 
-```idris λΠ>
-fst_pair (3,5)
+```idris 
+λΠ> fst_pair (3,5)
 -- 3 : Nat
 ```
 
@@ -86,7 +86,7 @@ When checking right hand side of
 Type mismatch between p and Pair (fst p) (snd p)
 ```
 
-We have to expose the structure of `p` so that `simpl` can perform the pattern
+We have to expose the structure of `p` so that Idris can perform the pattern
 match in `fst` and `snd`. We can do this with `case`.
 
 > surjective_pairing : (p : NatProd) -> p = (fst p, snd p)
@@ -470,7 +470,7 @@ will make no sense when you get to them. 'Nuff said.
 Proofs by induction over datatypes like `NatList` are a little less familiar
 than standard natural number induction, but the idea is equally simple. Each
 `data` declaration defines a set of data values that can be built up using the
-declared constructors: a boolean can be either `True` or `False` ; a number can
+declared constructors: a boolean can be either `True` or `False`; a number can
 be either `Z` or `S` applied to another number; a list can be either `Nil` or
 `Cons` applied to a number and a list.
 
@@ -518,15 +518,23 @@ _Theorem_: For all lists `l1`, `l2`, and `l3`,
 _Proof_: By induction on `l1`.
 
   - First, suppose `l1 = []`. We must show
+
     `([] ++ l2) ++ l3 = [] ++ (l2 ++ l3),`
+
     which follows directly from the definition of `++`.
 
   - Next, suppose `l1 = n :: l1'`, with
+
     `(l1' ++ l2) ++ l3 = l1' ++ (l2 ++ l3)`
+
     (the induction hypothesis). We must show
+
     `((n :: l1') ++ l2) ++ l3 = (n :: l1') ++ (l2 ++ l3)`.
+
     By the definition of `++`, this follows from
+
     `n :: ((l1' ++ l2) ++ l 3) = n :: (l1' ++ (l2 ++ l3))`,
+
     which is immediate from the induction hypothesis. $\square$
 
 
@@ -596,18 +604,25 @@ Now we can complete the original proof.
 For comparison, here are informal proofs of these two theorems:
 
 _Theorem_: For all lists `l1` and `l2`,
+
            `length (l1 ++ l2) = length l1 + length l2`.
 
 _Proof_: By induction on `l1`.
 
   - First, suppose `l1 = []`. We must show
+
     `length ([] ++ l2) = length [] + length l2`,
+
     which follows directly from the definitions of `length` and `++`.
 
   - Next, suppose `l1 = n :: l1'`, with
+
     `length (l1' ++ l2) = length l1' + length l2`.
+
     We must show
+
     `length ((n :: l1') ++ l2) = length (n :: l1') + length l2)`.
+
     This follows directly from the definitions of `length` and `++` together
     with the induction hypothesis. $\square$
 
@@ -893,6 +908,7 @@ We'll also need an equality test for `Id`s:
 ==== Exercise: 1 star (beq_id_refl)
 
 > beq_id_refl : (x : Id) -> True = beq_id x x
+> beq_id_refl x = ?beq_id_refl_rhs
 
 $\square$
 
@@ -939,7 +955,7 @@ $\square$
 
 ==== Exercise: 1 star (update_neq)
 
->   update_neq : (d : PartialMap) -> (x, y : Id ) -> (o : Nat) ->
+>   update_neq : (d : PartialMap) -> (x, y : Id) -> (o : Nat) ->
 >                 beq_id x y = False ->
 >                 find x (update d y o) = find x d
 >   update_neq d x y o prf = ?update_neq_rhs
