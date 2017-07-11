@@ -1,5 +1,7 @@
 = Poly: Polymorphism and Higher-Order Functions
 
+> module Poly
+
 > import Basics
 
 > %hide Prelude.List.length
