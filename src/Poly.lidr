@@ -304,10 +304,10 @@ polymorphic lists...
 > test_rev1 : rev (1::2::[]) = 2::1::[]
 > test_rev1 = Refl
 
-> test_rev2: rev (True::[]) = True::[]
+> test_rev2 : rev (True::[]) = True::[]
 > test_rev2 = Refl
 
-> test_length1: length (1::2::3::[]) = 3
+> test_length1 : length (1::2::3::[]) = 3
 > test_length1 = Refl
 
 
@@ -381,7 +381,7 @@ $\square$
 
 Here are some slightly more interesting ones...
 
-> rev_app_distr: (l1, l2 : List x) -> rev (l1 ++ l2) = rev l2 ++ rev l1
+> rev_app_distr : (l1, l2 : List x) -> rev (l1 ++ l2) = rev l2 ++ rev l1
 > rev_app_distr l1 l2 = ?rev_app_distr_rhs
 
 > rev_involutive : (l : List x) -> rev (rev l) = l
@@ -544,7 +544,7 @@ The argument `f` here is itself a function (from `x` to `x`); the body of
 > test_doit3times : doit3times Numbers.minusTwo 9 = 3
 > test_doit3times = Refl
 
-> test_doit3times': doit3times Booleans.negb True = False
+> test_doit3times' : doit3times Booleans.negb True = False
 > test_doit3times' = Refl
 
 
@@ -570,7 +570,8 @@ For example, if we apply `filter` to the predicate `evenb` and a list of numbers
 > length_is_1 : (l : List x) -> Bool 
 > length_is_1 l = beq_nat (length l) 1
 
-\todo[inline]{Why doesn't this work without {x=Nat}?}
+\todo[inline]{Why doesn't this work without {x=Nat}? Apparently it even works
+with {x=_}!}
 
 > test_filter2 : filter (length_is_1 {x=Nat})
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
@@ -607,7 +608,7 @@ without declaring it at the top level or giving it a name.
 
 \todo[inline]{Can't use `*` here due to the interference from our tuple sugar}
 
-> test_anon_fun': doit3times (\n => mult n n) 2 = 256
+> test_anon_fun' : doit3times (\n => mult n n) 2 = 256
 > test_anon_fun' = Refl
 
 The expression `\n => mult n n` can be read as "the function that, given a
@@ -615,7 +616,7 @@ number `n`, yields `n * n`."
 
 Here is the `filter` example, rewritten to use an anonymous function.
 
-> test_filter2': filter (\l => beq_nat (length l) 1)
+> test_filter2' : filter (\l => beq_nat (length l) 1)
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
 >                     = [        [3], [4],              [8] ]
 > test_filter2' = Refl
@@ -643,7 +644,7 @@ $\square$
 
 Use `filter` to write an Idris function `partition`:
 
-> partition : (test: x -> Bool) -> (l : List x) -> (List x) * (List x)
+> partition : (test : x -> Bool) -> (l : List x) -> (List x) * (List x)
 > partition f xs = ?partition_rhs
 
 Given a set `x`, a test function of type `x -> Bool` and a `List x`, `partition`
@@ -655,7 +656,7 @@ two sublists should be the same as their order in the original list.
 > test_partition1 : partition Numbers.oddb [1,2,3,4,5] = ([1,3,5], [2,4])
 > test_partition1 = ?test_partition1_rhs
 
-> test_partition2: partition (\x => false) [5,9,0] = (([], [5,9,0]))
+> test_partition2 : partition (\x => false) [5,9,0] = (([], [5,9,0]))
 > test_partition2 = ?test_partition2_rhs
 
 $\square$
@@ -712,10 +713,10 @@ by 'flattening' the results of `f`, like so:
 flat_map (\n => [n,n+1,n+2]) [1,5,10] = [1,2,3, 5,6,7, 10,11,12]
 ```
 
-> flat_map : (f: x -> List y) -> (l : List x) -> List y
+> flat_map : (f : x -> List y) -> (l : List x) -> List y
 > flat_map f l = ?flat_map_rhs
 
-> test_flat_map1: flat_map (\n => [n,n,n]) [1,5,4] = [1,1,1, 5,5,5, 4,4,4]
+> test_flat_map1 : flat_map (\n => [n,n,n]) [1,5,4] = [1,1,1, 5,5,5, 4,4,4]
 > test_flat_map1 = ?test_flat_map1_rhs
 
 $\square$
@@ -999,21 +1000,21 @@ corresponding unit tests pass by proving them with `Refl`.
 
 Successor of a natural number:
 
->   succ : (n : Nat') -> Nat'
->   succ n = ?succ_rhs
+>   succ' : (n : Nat' {x}) -> Nat' {x}
+>   succ' n = ?succ'_rhs
 
->   succ_1 : succ zero = one
->   succ_1 = ?succ_1_rhs
+>   succ'_1 : succ' zero = one
+>   succ'_1 = ?succ_1_rhs
 
->   succ_2 : succ one = two
->   succ_2 = ?succ_2_rhs
+>   succ'_2 : succ' one = two
+>   succ'_2 = ?succ_2_rhs
 
->   succ_3 : succ two = three
->   succ_3 = ?succ_3_rhs
+>   succ'_3 : succ' two = three
+>   succ'_3 = ?succ'_3_rhs
 
 Addition of two natural numbers:
 
->   plus' : (n, m : Nat') -> Nat'
+>   plus' : (n, m : Nat' {x}) -> Nat' {x}
 >   plus' n m = ?plus'_rhs
 
 >   plus'_1 : plus' zero one = one
@@ -1027,7 +1028,7 @@ Addition of two natural numbers:
 
 Multiplication:
 
->   mult' : (n, m : Nat') -> Nat'
+>   mult' : (n, m : Nat' {x}) -> Nat' {x}
 >   mult' n m = ?mult'_rhs
 
 >   mult'_1 : mult' one one = one
@@ -1041,13 +1042,14 @@ Multiplication:
 
 Exponentiation: 
 
-\todo[inline]{Edit the hint.}
+\todo[inline]{Edit the hint. Can't make it work with `exp' : (n, m : Nat' {x})
+-> Nat' {x}`.}
 
 (Hint: Polymorphism plays a crucial role here. However, choosing the right type
 to iterate over can be tricky. If you hit a "Universe inconsistency" error, try
 iterating over a different type: `Nat'` itself is usually problematic.)
 
->   exp' : (n, m : Nat') -> Nat'
+>   exp' : (n : Nat' {x}) -> (m : Nat' {x=x->x}) -> Nat' {x}
 >   exp' n m = ?exp'_rhs
 
 >   exp'_1 : exp' two two = plus' two two
