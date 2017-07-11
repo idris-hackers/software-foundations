@@ -1052,8 +1052,11 @@ iterating over a different type: `Nat'` itself is usually problematic.)
 >   exp' : (n : Nat' {x}) -> (m : Nat' {x=x->x}) -> Nat' {x}
 >   exp' n m = ?exp'_rhs
 
->   exp'_1 : exp' two two = plus' two two
->   exp'_1 = ?exp'_1_rhs
+\todo[inline]{This won't typecheck under this signature of `exp` because of 2
+instances of `two`}
+
+>   -- exp'_1 : exp' two two = plus' two two
+>   -- exp'_1 = ?exp'_1_rhs
 
 >   exp'_2 : exp' three two = plus' (mult' two (mult' two two)) one
 >   exp'_2 = ?exp'_2_rhs
