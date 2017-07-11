@@ -8,11 +8,15 @@ IDRIS ?= idris
 .PHONY: pdf site
 
 
-all: pdf site
+all: check pdf site
 
 
 build:
 	$(IDRIS) --build $(PKG).ipkg
+
+
+check:
+	$(IDRIS) --checkpkg $(PKG).ipkg
 
 
 pdf:
