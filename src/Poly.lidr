@@ -836,8 +836,8 @@ supply just the first. This is called _partial application_.
 > test_plus3 : plus3 4 = 7
 > test_plus3 = Refl
 
-\todo[inline]{Why is this broken? `the (doit3times plus3 0 = 9) Refl` works in
-REPL}
+\todo[inline]{This is apparently a bug in Idris,
+https://github.com/idris-lang/Idris-dev/issues/3908}
 
 > -- test_plus3' : doit3times plus3 0 = 9
 > -- test_plus3' = Refl
