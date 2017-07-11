@@ -117,6 +117,9 @@ appropriate type parameter:
 > test_repeat2 = Refl
 
 
+\todo[inline]{Explain implicits and {x=foo} syntax first? Move after the
+"Supplying Type Arguments Explicitly" section?} 
+
 ==== Exercise: 2 starsM (mumble_grumble) 
 
 > namespace MumbleGrumble 
@@ -132,15 +135,14 @@ Consider the following two inductively defined types.
 >     D : Mumble -> Grumble x 
 >     E : x -> Grumble x
 
-\todo[inline]{Edit, Idris doesn't require type parameters to constructors}
 Which of the following are well-typed elements of `Grumble x` for some type `x`?
 
   - `D (B A 5)`
-  - `D Mumble (B A 5)`
-  - `D Bool (B A 5)`
-  - `E Bool True`
-  - `E Mumble (B C 0)`
-  - `E Bool (B C 0)`
+  - `D (B A 5) {x=Mumble}`
+  - `D (B A 5) {x=Bool}`
+  - `E True {x=Bool}`
+  - `E (B C 0) {x=Mumble}`
+  - `E (B C 0) {x=Bool}`
   - `C`
   
 > -- FILL IN HERE
@@ -151,6 +153,9 @@ $\square$
 the lowercase/uppercase distinction.}
 
 ==== Type Annotation Inference 
+
+\todo[inline]{This has already happened earlier at `repeat`, delete most of
+this?}
 
 Let's write the definition of `repeat` again, but this time we won't specify the
 types of any of the arguments. Will Idris still accept it?
@@ -179,6 +184,9 @@ code).
 
 
 ==== Type Argument Synthesis
+
+\todo[inline]{We should mention the `_` parameters but it won't work like this
+in Idris}
 
 To use a polymorphic function, we need to pass it one or more types in addition
 to its other arguments. For example, the recursive call in the body of the
@@ -244,20 +252,18 @@ Alternatively, we can declare an argument to be implicit when defining the
 function itself, by surrounding it in curly braces instead of parens. For
 example:
 
-> repeat''' : {x_ty : Type} -> (x : x_ty) -> (count : Nat) -> List x_ty 
-> repeat''' x Z = Nil
-> repeat''' x (S count') = x :: repeat''' x count'
-
-\todo[inline]{Mention that we don't even need the curly-braced argument}
+> repeat' : {x_ty : Type} -> (x : x_ty) -> (count : Nat) -> List x_ty 
+> repeat' x Z = Nil
+> repeat' x (S count') = x :: repeat' x count'
 
 (Note that we didn't even have to provide a type argument to the recursive call
-to `repeat'''`; indeed, it would be invalid to provide one!) 
+to `repeat'`; indeed, it would be invalid to provide one!) 
 
-We will use the latter style whenever possible, but we will continue to use use
-explicit Argument declarations for Inductive constructors. The reason for this
-is that marking the parameter of an inductive type as implicit causes it to
-become implicit for the type itself, not just for its constructors. For
-instance, consider the following alternative definition of the `List` type:
+We will use the latter style whenever possible, but we will continue to use
+explicit declarations in data types. The reason for this is that marking the
+parameter of an inductive type as implicit causes it to become implicit for the
+type itself, not just for its constructors. For instance, consider the following
+alternative definition of the `List` type:
 
 > data List' : {x : Type} -> Type where
 >   Nil' : List' 
@@ -267,6 +273,16 @@ Because `x` is declared as implicit for the _entire_ inductive definition
 including `List'` itself, we now have to write just `List'` whether we are
 talking about lists of numbers or booleans or anything else, rather than `List'
 Nat` or `List' Bool` or whatever; this is a step too far. 
+
+\todo[inline]{Added the implicit inference explanation here}
+There's another step towards conciseness that we can take in Idris -- drop the
+implicit argument completely in function definitions! Idris will automatically
+insert them for us when it encounters unknown variables. _Note that by convention
+this will only happen for variables starting on a lowercase letter_.
+ 
+> repeat'' : (x : x_ty) -> (count : Nat) -> List x_ty 
+> repeat'' x Z = Nil
+> repeat'' x (S count') = x :: repeat'' x count'
 
 Let's finish by re-implementing a few other standard list functions on our new
 polymorphic lists...
@@ -320,6 +336,9 @@ them as arguments in curly braces.
 ```idris
 λΠ> :let mynil' = Nil {elem=Nat}
 ```
+
+\todo[inline]{Describe here how to bring variables from the type into definition
+scope via implicits?}
 
 \todo[inline]{Explain that Idris has built-in notation for lists instead?}
 
@@ -549,11 +568,12 @@ For example, if we apply `filter` to the predicate `evenb` and a list of numbers
 > length_is_1 : (l : List x) -> Bool 
 > length_is_1 l = beq_nat (length l) 1
 
-\todo[inline]{Why doesn't this work?}
+\todo[inline]{Why doesn't this work without {x=Nat}?}
 
-> --test_filter2 : filter (length_is_1) [ [1,2], [3], [4], [5,6,7], [], [8] ] 
-> --                                  = [        [3], [4],              [8] ]
-> --test_filter2 = Refl
+> test_filter2 : filter (length_is_1 {x=Nat})
+>                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
+>                     = [        [3], [4],              [8] ]
+> test_filter2 = Refl 
 
 We can use `filter` to give a concise version of the `countoddmembers` function
 from the `Lists` chapter.
@@ -583,7 +603,7 @@ give each of these functions a name would be tedious.
 Fortunately, there is a better way. We can construct a function "on the fly"
 without declaring it at the top level or giving it a name.
 
-\todo[inline]{Can't use `*` here due to the tuple sugar interference}
+\todo[inline]{Can't use `*` here due to the interference from our tuple sugar}
 
 > test_anon_fun': doit3times (\n => mult n n) 2 = 256
 > test_anon_fun' = Refl
@@ -595,7 +615,7 @@ Here is the `filter` example, rewritten to use an anonymous function.
 
 > test_filter2': filter (\l => beq_nat (length l) 1)
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
->                     = [ [3], [4], [8] ]
+>                     = [        [3], [4],              [8] ]
 > test_filter2' = Refl
 
 
@@ -813,7 +833,8 @@ supply just the first. This is called _partial application_.
 > test_plus3 : plus3 4 = 7
 > test_plus3 = Refl
 
-\todo[inline]{Why is this broken?}
+\todo[inline]{Why is this broken? `the (doit3times plus3 0 = 9) Refl` works in
+REPL}
 
 > -- test_plus3' : doit3times plus3 0 = 9
 > -- test_plus3' = Refl
@@ -1018,7 +1039,7 @@ Multiplication:
 
 Exponentiation: 
 
-\todo[inline]{Edit hint}
+\todo[inline]{Edit the hint.}
 
 (Hint: Polymorphism plays a crucial role here. However, choosing the right type
 to iterate over can be tricky. If you hit a "Universe inconsistency" error, try
