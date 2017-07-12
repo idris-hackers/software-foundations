@@ -39,5 +39,7 @@ clean-docs:
 site: docs/index.html
 
 
-docs/index.html: README.md
-	pandoc -f markdown_github -t html -s -o $@ $<
+docs/index.html: README.md CONTRIBUTING.md
+	pandoc -f markdown_github -t markdown_github \
+	-A CONTRIBUTING.md $< \
+		| pandoc -f markdown_github -t html -s -o $@
