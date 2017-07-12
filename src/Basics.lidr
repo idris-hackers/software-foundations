@@ -201,8 +201,8 @@ simplification."
 
 (For simple proofs like this, you can call \gls{idris-add-clause} with the point
 on the name (\idr{testNextWeekday}) in the type signature and then call
-\el{idris-proof-search} (\el{M-RET p}) with the point on the resultant hole to
-have Idris solve the proof for you.)
+\gls{idris-proof-search} with the point on the resultant hole to have Idris
+solve the proof for you.)
 
 \todo[inline]{Verify the "main uses" claim.}
 
