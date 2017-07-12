@@ -119,8 +119,8 @@ appropriate type parameter:
 > test_repeat2 = Refl
 
 
-\todo[inline]{Explain implicits and {x=foo} syntax first? Move after the
-"Supplying Type Arguments Explicitly" section?} 
+\todo[inline]{Explain implicits and \idr{{x=foo}} syntax first? Move after the
+"Supplying Type Arguments Explicitly" section?}
 
 ==== Exercise: 2 starsM (mumble_grumble) 
 
@@ -187,8 +187,8 @@ code).
 
 ==== Type Argument Synthesis
 
-\todo[inline]{We should mention the `_` parameters but it won't work like this
-in Idris}
+\todo[inline]{We should mention the \idr{_} parameters but it won't work like
+this in Idris}
 
 To use a polymorphic function, we need to pass it one or more types in addition
 to its other arguments. For example, the recursive call in the body of the
@@ -570,8 +570,8 @@ For example, if we apply `filter` to the predicate `evenb` and a list of numbers
 > length_is_1 : (l : List x) -> Bool 
 > length_is_1 l = beq_nat (length l) 1
 
-\todo[inline]{Why doesn't this work without {x=Nat}? Apparently it even works
-with {x=_}!}
+\todo[inline]{Why doesn't this work without \idr{{x=Nat}}? Apparently it even
+works with \idr{{x=_}}!}
 
 > test_filter2 : filter (length_is_1 {x=Nat})
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
