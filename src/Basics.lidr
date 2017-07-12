@@ -359,9 +359,9 @@ For example, the type of \idr{negb True} is \idr{Bool}.
 
 ```idris
 λΠ> :type True
--- True : Bool
+True : Bool
 λΠ> :t negb True
--- negb True : Bool
+negb True : Bool
 ```
 
 \todo[inline]{Confirm the "function types" wording.}
@@ -372,7 +372,7 @@ with arrows.
 
 ```idris
 λΠ> :t negb
--- negb : Bool -> Bool
+negb : Bool -> Bool
 ```
 
 The type of \idr{negb}, written \idr{Bool -> Bool} and pronounced "\idr{Bool}
@@ -458,9 +458,9 @@ default:
 
 ```idris
 λΠ> S (S (S (S Z)))
--- 4 : Nat
+4 : Nat
 λΠ> minusTwo 4
--- 2 : Nat
+2 : Nat
 ```
 
 The constructor \idr{S} has the type \idr{Nat -> Nat}, just like the functions
