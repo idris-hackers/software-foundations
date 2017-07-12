@@ -33,24 +33,24 @@ lists, etc. We _could_ just define a new inductive datatype for each of these,
 for example...
 
 > data BoolList : Type where
->   BoolNil : BoolList 
+>   BoolNil : BoolList
 >   BoolCons : Bool -> BoolList -> BoolList
 
 ... but this would quickly become tedious, partly because we have to make up
 different constructor names for each datatype, but mostly because we would also
 need to define new versions of all our list manipulating functions (`length`,
-`rev`, etc.) for each new datatype definition. 
+`rev`, etc.) for each new datatype definition.
 
 To avoid all this repetition, Idris supports _polymorphic_ inductive type
 definitions. For example, here is a _polymorphic list_ datatype.
 
 ```idris
 data List : (x : Type) -> Type where
-  Nil : List x 
+  Nil : List x
   Cons : x -> List x -> List x
 ```
 
-(This type is already defined in Idris' standard library, but the `Cons` 
+(This type is already defined in Idris' standard library, but the `Cons`
 constructor is named `(::)`).
 
 This is exactly like the definition of `NatList` from the previous chapter,
@@ -59,20 +59,20 @@ arbitrary type `x`, a binding for `x` has been added to the header, and the
 occurrences of `NatList` in the types of the constructors have been replaced by
 `List x`. (We can re-use the constructor names `Nil` and `Cons` because the
 earlier definition of `NatList` was inside of a `module` definition that is now
-out of scope.) 
+out of scope.)
 
 What sort of thing is `List` itself? One good way to think about it is that
 `List` is a _function_ from `Type`s to inductive definitions; or, to put it
 another way, `List` is a function from `Type`s to `Type`s. For any particular
 type `x`, the type `List x` is an inductively defined set of lists whose
-elements are of type `x`. 
+elements are of type `x`.
 
 With this definition, when we use the constructors `Nil` and `Cons` to build
 lists, we need to tell Idris the type of the elements in the lists we are
 building -- that is, `Nil` and `Cons` are now _polymorphic constructors_.
 Observe the types of these constructors:
 
-```idris 
+```idris
 λΠ> :t Nil
 -- Prelude.List.Nil : List elem
 λΠ> :t (::)
@@ -80,13 +80,13 @@ Observe the types of these constructors:
 ```
 
 \todo[inline]{How to edit these 3 paragraphs? Implicits are defined later in
-this chapter, and Idris doesn't require type parameters to constructors} 
+this chapter, and Idris doesn't require type parameters to constructors}
 (Side note on notation: In .v files, the "forall" quantifier is spelled out in
 letters. In the generated HTML files and in the way various IDEs show .v files
 (with certain settings of their display controls), ∀ is usually typeset as the
 usual mathematical "upside down A," but you'll still see the spelled-out
 "forall" in a few places. This is just a quirk of typesetting: there is no
-difference in meaning.) 
+difference in meaning.)
 
 The "∀ X" in these types can be read as an additional argument to the
 constructors that determines the expected types of the arguments that follow.
@@ -97,7 +97,7 @@ Check (cons nat 2 (cons nat 1 (nil nat))).
 
 (We've written `Nil` and `Cons` explicitly here because we haven't yet defined
 the `[]` and `::` notations for the new version of lists. We'll do that in a
-bit.) 
+bit.)
 
 We can now go back and make polymorphic versions of all the list-processing
 functions that we wrote before. Here is `repeat`, for example:
@@ -122,19 +122,19 @@ appropriate type parameter:
 \todo[inline]{Explain implicits and \idr{{x=foo}} syntax first? Move after the
 "Supplying Type Arguments Explicitly" section?}
 
-==== Exercise: 2 starsM (mumble_grumble) 
+==== Exercise: 2 starsM (mumble_grumble)
 
-> namespace MumbleGrumble 
+> namespace MumbleGrumble
 
 Consider the following two inductively defined types.
 
 >   data Mumble : Type where
->     A : Mumble 
+>     A : Mumble
 >     B : Mumble -> Nat -> Mumble
 >     C : Mumble
 
 >   data Grumble : (x : Type) -> Type where
->     D : Mumble -> Grumble x 
+>     D : Mumble -> Grumble x
 >     E : x -> Grumble x
 
 Which of the following are well-typed elements of `Grumble x` for some type `x`?
@@ -146,7 +146,7 @@ Which of the following are well-typed elements of `Grumble x` for some type `x`?
   - `E (B C 0) {x=Mumble}`
   - `E (B C 0) {x=Bool}`
   - `C`
-  
+
 > -- FILL IN HERE
 
 $\square$
@@ -154,7 +154,7 @@ $\square$
 \todo[inline]{Merge 3 following sections into one about Idris implicits? Mention
 the lowercase/uppercase distinction.}
 
-==== Type Annotation Inference 
+==== Type Annotation Inference
 
 \todo[inline]{This has already happened earlier at `repeat`, delete most of
 this?}
@@ -202,7 +202,7 @@ type argument we can write the "implicit argument" `_`, which can be read as
 Idris encounters a `_`, it will attempt to _unify_ all locally available
 information -- the type of the function being applied, the types of the other
 arguments, and the type expected by the context in which the application appears
--- to determine what concrete type should replace the `_`. 
+-- to determine what concrete type should replace the `_`.
 
 This may sound similar to type annotation inference -- indeed, the two
 procedures rely on the same underlying mechanisms. Instead of simply omitting
@@ -214,7 +214,7 @@ we can also replace the types with `_`
 
       repeat' (X : _) (x : _) (count : _) : list X :=
 
-to tell Idris to attempt to infer the missing information. 
+to tell Idris to attempt to infer the missing information.
 
 Using implicit arguments, the `count` function can be written like this:
 
@@ -254,12 +254,12 @@ Alternatively, we can declare an argument to be implicit when defining the
 function itself, by surrounding it in curly braces instead of parens. For
 example:
 
-> repeat' : {x_ty : Type} -> (x : x_ty) -> (count : Nat) -> List x_ty 
+> repeat' : {x_ty : Type} -> (x : x_ty) -> (count : Nat) -> List x_ty
 > repeat' x Z = Nil
 > repeat' x (S count') = x :: repeat' x count'
 
 (Note that we didn't even have to provide a type argument to the recursive call
-to `repeat'`; indeed, it would be invalid to provide one!) 
+to `repeat'`; indeed, it would be invalid to provide one!)
 
 We will use the latter style whenever possible, but we will continue to use
 explicit declarations in data types. The reason for this is that marking the
@@ -268,28 +268,28 @@ type itself, not just for its constructors. For instance, consider the following
 alternative definition of the `List` type:
 
 > data List' : {x : Type} -> Type where
->   Nil' : List' 
+>   Nil' : List'
 >   Cons' : x -> List' -> List'
 
 Because `x` is declared as implicit for the _entire_ inductive definition
 including `List'` itself, we now have to write just `List'` whether we are
 talking about lists of numbers or booleans or anything else, rather than `List'
-Nat` or `List' Bool` or whatever; this is a step too far. 
+Nat` or `List' Bool` or whatever; this is a step too far.
 
 \todo[inline]{Added the implicit inference explanation here}
 There's another step towards conciseness that we can take in Idris -- drop the
 implicit argument completely in function definitions! Idris will automatically
 insert them for us when it encounters unknown variables. _Note that by convention
 this will only happen for variables starting on a lowercase letter_.
- 
-> repeat'' : (x : x_ty) -> (count : Nat) -> List x_ty 
+
+> repeat'' : (x : x_ty) -> (count : Nat) -> List x_ty
 > repeat'' x Z = Nil
 > repeat'' x (S count') = x :: repeat'' x count'
 
 Let's finish by re-implementing a few other standard list functions on our new
 polymorphic lists...
 
-> app : (l1, l2 : List x) -> List x 
+> app : (l1, l2 : List x) -> List x
 > app Nil l2 = l2
 > app (h::t) l2 = h :: app t l2
 
@@ -297,7 +297,7 @@ polymorphic lists...
 > rev [] = []
 > rev (h::t) = app (rev t) (h::Nil)
 
-> length : (l : List x) -> Nat 
+> length : (l : List x) -> Nat
 > length [] = Z
 > length (_::l') = S (length l')
 
@@ -311,7 +311,7 @@ polymorphic lists...
 > test_length1 = Refl
 
 
-==== Supplying Type Arguments Explicitly 
+==== Supplying Type Arguments Explicitly
 
 One small problem with declaring arguments implicit is that, occasionally, Idris
 does not have enough local information to determine a type argument; in such
@@ -333,7 +333,7 @@ supply to `Nil`. We can help it by providing an explicit type declaration via
 ```
 
 Alternatively, we can force the implicit arguments to be explicit by supplying
-them as arguments in curly braces. 
+them as arguments in curly braces.
 
 ```idris
 λΠ> :let mynil' = Nil {elem=Nat}
@@ -377,7 +377,7 @@ practice with polymorphism. Complete the proofs below.
 $\square$
 
 
-==== Exercise: 2 stars, optional (more_poly_exercises) 
+==== Exercise: 2 stars, optional (more_poly_exercises)
 
 Here are some slightly more interesting ones...
 
@@ -410,12 +410,12 @@ product _types_:
 > syntax [x_ty] "*" [y_ty] = Prod x_ty y_ty
 
 (The annotation : type_scope tells Coq that this abbreviation should only be
-used when parsing types. This avoids a clash with the multiplication symbol.) 
+used when parsing types. This avoids a clash with the multiplication symbol.)
 
 It is easy at first to get `(x,y)` and `x_ty*y_ty` confused. Remember that
 `(x,y)` is a value built from two other values, while `x_ty*y_ty` is a type
 built from two other types. If `x` has type `x` and `y` has type `y`, then
-`(x,y)` has type `x_ty*y_ty`. 
+`(x,y)` has type `x_ty*y_ty`.
 
 The first and second projection functions now look pretty much as they would in
 any functional programming language.
@@ -425,7 +425,7 @@ any functional programming language.
 
 > snd : (p : x*y) -> y
 > snd (x,y) = y
-  
+
 The following function takes two lists and combines them into a list of pairs.
 In functional languages, it is usually called `zip` (though the Coq's standard
 library calls it `combine`).
@@ -439,23 +439,23 @@ library calls it `combine`).
 ==== Exercise: 1 star, optionalM (combine_checks)
 
 Try answering the following questions on paper and checking your answers in
-Idris: 
+Idris:
 
-- What is the type of `zip` (i.e., what does `:t zip` print?) 
+- What is the type of `zip` (i.e., what does `:t zip` print?)
 
 - What does
 
   `combine [1,2] [False,False,True,True]`
 
-  print? 
+  print?
 
 $\square$
 
 
-==== Exercise: 2 stars, recommended (split) 
+==== Exercise: 2 stars, recommended (split)
 
 The function `split` is the right inverse of `zip`: it takes a list of pairs and
-returns a pair of lists. In many functional languages, it is called `unzip`. 
+returns a pair of lists. In many functional languages, it is called `unzip`.
 
 Fill in the definition of `split` below. Make sure it passes the given unit
 test.
@@ -484,9 +484,9 @@ x` and `Nothing`.
 We can now rewrite the `nth_error` function so that it works with any type of
 lists.
 
-> nth_error : (l : List x) -> (n : Nat) -> Option x 
+> nth_error : (l : List x) -> (n : Nat) -> Option x
 > nth_error [] n = None
-> nth_error (a::l') n = if beq_nat n 0 
+> nth_error (a::l') n = if beq_nat n 0
 >                         then Some a
 >                         else nth_error l' (pred n)
 
@@ -567,7 +567,7 @@ For example, if we apply `filter` to the predicate `evenb` and a list of numbers
 > test_filter1 : filter Numbers.evenb [1,2,3,4] = [2,4]
 > test_filter1 = Refl
 
-> length_is_1 : (l : List x) -> Bool 
+> length_is_1 : (l : List x) -> Bool
 > length_is_1 l = beq_nat (length l) 1
 
 \todo[inline]{Why doesn't this work without \idr{{x=Nat}}? Apparently it even
@@ -576,7 +576,7 @@ works with \idr{{x=_}}!}
 > test_filter2 : filter (length_is_1 {x=Nat})
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
 >                     = [        [3], [4],              [8] ]
-> test_filter2 = Refl 
+> test_filter2 = Refl
 
 We can use `filter` to give a concise version of the `countoddmembers` function
 from the `Lists` chapter.
@@ -662,7 +662,7 @@ two sublists should be the same as their order in the original list.
 $\square$
 
 
-=== Map 
+=== Map
 
 Another handy higher-order function is called `map`.
 
@@ -734,7 +734,7 @@ Here is the definition of `map` for the `Option` type:
 The definitions and uses of `filter` and `map` use implicit arguments in many
 places. Add explicit type parameters where necessary and use Idris to check that
 you've done so correctly. (This exercise is not to be turned in; it is probably
-easiest to do it on a copy of this file that you can throw away afterwards.) 
+easiest to do it on a copy of this file that you can throw away afterwards.)
 
 $\square$
 
@@ -798,7 +798,7 @@ results of other functions. To begin, here is a function that takes a value `x`
 (drawn from some type `x`) and returns a function from `Nat` to `x` that yields
 `x` whenever it is called, ignoring its `Nat` argument.
 
-> constfun : (x : x_ty) -> Nat -> x_ty 
+> constfun : (x : x_ty) -> Nat -> x_ty
 > constfun x = \k => x
 
 > ftrue : Nat -> Bool
@@ -856,7 +856,7 @@ https://github.com/idris-lang/Idris-dev/issues/3908}
 Many common functions on lists can be implemented in terms of `fold`. For
 example, here is an alternative definition of `length`:
 
->   fold_length : (l : List x) -> Nat 
+>   fold_length : (l : List x) -> Nat
 >   fold_length l = fold (\_, n => S n) l 0
 
 >   test_fold_length1 : fold_length [4,7,0] = 3
@@ -892,7 +892,7 @@ is, if you give `f` a value of type `a`, it will give you function `f' : b ->
 c`. If you then give `f'` a value of type `b`, it will return a value of type
 `c`. This allows for partial application, as in `plus3`. Processing a list of
 arguments with functions that return functions is called _currying_, in honor of
-the logician Haskell Curry. 
+the logician Haskell Curry.
 
 Conversely, we can reinterpret the type `a -> b -> c` as `(a * b) -> c`. This is
 called _uncurrying_. With an uncurried binary function, both arguments must be
@@ -906,7 +906,7 @@ We can define currying as follows:
 As an exercise, define its inverse, `prod_uncurry`. Then prove the theorems
 below to show that the two are inverses.
 
->   prod_uncurry : (f : x -> y -> z) -> (p : x * y) -> z 
+>   prod_uncurry : (f : x -> y -> z) -> (p : x * y) -> z
 >   prod_uncurry f p = ?prod_uncurry_rhs
 
 As a (trivial) example of the usefulness of currying, we can use it to shorten
@@ -927,11 +927,11 @@ types of `prod_curry` and `prod_uncurry`?
 λΠ> :t prod_uncurry
 ```
 
->   uncurry_curry : (f : x -> y -> z) -> (x_val : x) -> (y_val : y) -> 
+>   uncurry_curry : (f : x -> y -> z) -> (x_val : x) -> (y_val : y) ->
 >                   prod_curry (prod_uncurry f) x_val y_val = f x_val y_val
 >   uncurry_curry f x_val y_val = ?uncurry_curry_rhs
 
->   curry_uncurry : (f : (x * y) -> z) -> (p : x * y) -> 
+>   curry_uncurry : (f : (x * y) -> z) -> (p : x * y) ->
 >                   prod_uncurry (prod_curry f) p = f p
 >   curry_uncurry f p = ?curry_uncurry_rhs
 
@@ -943,9 +943,9 @@ $\square$
 Recall the definition of the `nth_error` function:
 
 ```idris
-  nth_error : (l : List x) -> (n : Nat) -> Option x 
+  nth_error : (l : List x) -> (n : Nat) -> Option x
   nth_error [] n = None
-  nth_error (a::l') n = if beq_nat n 0 
+  nth_error (a::l') n = if beq_nat n 0
                           then Some a
                           else nth_error l' (pred n)
 ```
@@ -953,7 +953,7 @@ Recall the definition of the `nth_error` function:
 Write an informal proof of the following theorem:
 
   `n -> l -> length l = n -> nth_error l n = None`
-  
+
   -- FILL IN HERE
 
 $\square$
@@ -996,7 +996,7 @@ we've defined previously is actually just the Church representation of `3`.
 >   three = doit3times
 
 Complete the definitions of the following functions. Make sure that the
-corresponding unit tests pass by proving them with `Refl`. 
+corresponding unit tests pass by proving them with `Refl`.
 
 Successor of a natural number:
 
@@ -1040,7 +1040,7 @@ Multiplication:
 >   mult'_3 : mult' two three = plus' three three
 >   mult'_3 = ?mult'_3_rhs
 
-Exponentiation: 
+Exponentiation:
 
 \todo[inline]{Edit the hint. Can't make it work with `exp' : (n, m : Nat' {x})
 -> Nat' {x}`.}
