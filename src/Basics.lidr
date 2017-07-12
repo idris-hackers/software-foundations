@@ -407,6 +407,7 @@ follows:
 ```
 
 The clauses of this definition can be read:
+
 - \idr{Z} is a natural number.
 - \idr{S} is a "constructor" that takes a natural number and yields another one
   -- that is, if \idr{n} is a natural number, then \idr{S n} is too.
@@ -796,14 +797,11 @@ we believe will be useful for making some larger argument, use holes to delay
 defining them for the moment, and continue working on the main argument until we
 are sure it makes sense; then we can go back and fill in the proofs we skipped.
 
-\todo[inline]{
-Decide whether or not to discuss \idr{postulate}.
+\todo[inline]{Decide whether to discuss \idr{postulate}.}
 
-```idris
--- Be careful, though: every time you say `postulate` you are leaving a door open
--- for total nonsense to enter Idris's nice, rigorous, formally checked world!
-```
-}
+>   -- Be careful, though: every time you say `postulate` you are leaving a door
+>   -- open for total nonsense to enter Idris's nice, rigorous, formally checked
+>   -- world!
 
 We can also use the \idr{rewrite} tactic with a previously proved theorem
 instead of a hypothesis from the context. If the statement of the previously
