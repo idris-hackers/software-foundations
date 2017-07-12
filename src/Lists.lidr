@@ -1,5 +1,7 @@
 = Lists: Working with Structured Data
 
+> module Lists
+
 > import Basics
 
 > %hide Prelude.Basics.fst
@@ -52,7 +54,7 @@ definition of the `minus` function -- this works because the pair notation is
 also provided as part of the standard library):
 
 ```idris 
-λΠ> fst_pair (3,5)
+λΠ> fst (3,5)
 -- 3 : Nat
 ```
 
@@ -513,6 +515,7 @@ we remind them exactly what the induction hypothesis is in the second case.
 For comparison, here is an informal proof of the same theorem.
 
 _Theorem_: For all lists `l1`, `l2`, and `l3`,
+
            `(l1 ++ l2) ++ l3 = l1 ++ (l2 ++l3)`.
 
 _Proof_: By induction on `l1`.
@@ -631,17 +634,27 @@ _Theorem_: For all lists `l`, `length (rev l) = length l`.
 _Proof_: By induction on `l`.
 
   - First, suppose `l = []`. We must show
+
     `length (rev []) = length []`,
+
     which follows directly from the definitions of `length` and `rev`.
 
   - Next, suppose l = n :: l' , with
+
     `length (rev l') = length l'`.
+
     We must show
+
     `length (rev (n :: l')) = length (n :: l')`.
+
     By the definition of `rev`, this follows from
+
     `length ((rev l') ++ [n]) = S (length l')`
+
     which, by the previous lemma, is the same as
+
     `length (rev l') + length [n] = S (length l')`.
+
     This follows directly from the induction hypothesis and the definition of
     `length`. $\square$
 
@@ -664,6 +677,7 @@ audience will already be familiar with. The more pedantic style is a good
 default for our present purposes.
 
 \todo[inline]{Edit: `apropos`?}
+
 === Search
 
 We've seen that proofs can make use of other theorems we've already proved,

@@ -1,5 +1,7 @@
 = Induction: Proof by Induction
 
+> module Induction
+
 First, we import all of our definitions from the previous chapter.
 
 > import Basics
