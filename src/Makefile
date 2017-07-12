@@ -2,7 +2,7 @@
 
 
 # TODO: Find pandoc executable.
-PANDOC    ?= pandoc
+PANDOC ?= pandoc
 
 
 PANDOC_FLAGS := \
@@ -11,7 +11,7 @@ PANDOC_FLAGS := \
 	--top-level-division=chapter
 
 
-LIDRFILES := Preface.lidr \
+LIDR_FILES := Preface.lidr \
 	Basics.lidr \
 	Induction.lidr \
 	Lists.lidr \
@@ -19,14 +19,14 @@ LIDRFILES := Preface.lidr \
 # TODO: Add more chapters, in order, here.
 
 
-TEXFILES  := $(LIDRFILES:.lidr=.tex)
+TEX_FILES := $(LIDR_FILES:.lidr=.tex)
 
 
-.PHONY: all clean
+.PHONY: all clean clean-tex
 
 
 clean: clean-tex
-	rm -rf all.* auto _minted-all $(TEXFILES)
+	rm -rf all.* auto _minted-all $(TEX_FILES)
 
 
 clean-tex: all.tex
@@ -34,12 +34,12 @@ clean-tex: all.tex
 
 
 all.pdf: all.tex
-	latexmk -pdf $<
+	latexmk -gg -pdf $<
 
 
-all.tex: book.tex $(TEXFILES)
+all.tex: book.tex $(TEX_FILES)
 	$(PANDOC) $(PANDOC_FLAGS) -N --toc -o $@ \
-	$(foreach texfile,$(TEXFILES),-A $(texfile)) -A footer.tex $<
+	$(foreach texfile,$(TEX_FILES),-A $(texfile)) -A footer.tex $<
 
 
 %.tex: %.lidr
