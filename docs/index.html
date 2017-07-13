@@ -6,6 +6,43 @@
   <meta name="generator" content="pandoc" />
   <title></title>
   <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
 </head>
 <body>
 <h1 id="software-foundations-in-idris"><em><a href="http://www.cis.upenn.edu/%7Ebcpierce/sf/current/index.html">Software Foundations</a> in Idris</em></h1>
@@ -72,5 +109,86 @@
 <!-- Named Links -->
 <h2 id="contributing">Contributing</h2>
 <p><em>TBD</em> (see <a href="https://github.com/idris-hackers/software-foundations/issues/4">issue #4</a> for discussion)</p>
+<h3 id="general-workflow">General Workflow</h3>
+<p><em>TODO: write me</em></p>
+<h3 id="formatting">Formatting</h3>
+<p>When formatting the <a href="http://docs.idris-lang.org/en/latest/tutorial/miscellany.html#literate-programming">Literate Idris</a> source, we use <a href="https://wiki.haskell.org/Literate_programming#Bird_Style">bird tracks</a> for code meant<br />
+to be compiled and a combination of <a href="https://daringfireball.net/projects/markdown/">Markdown</a> and <a href="http://www.latex-project.org">LaTeX</a> for commentary and<br />
+illustrative examples that aren't meant to be compiled.</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown">= Example
+
+This is some commentary with **bold** and _italicized_ text.
+
+```idris
+-- This is an Idris code block which won&#39;t be read when compiling the file.
+foo : Nat
+foo = 42
+```
+
+
+== Code to Compile
+
+The following, however, will be compiled:
+
+&gt;<span class="dt"> module Example</span>
+<span class="dt">&gt;</span>
+<span class="dt">&gt; %access public export</span>
+<span class="dt">&gt;</span>
+<span class="dt">&gt; foo : String</span>
+<span class="dt">&gt; foo = &quot;bar&quot;</span>
+
+
+== Other Notes
+
+- <span class="fl">We can also highlight code inline, e.g. \idr{primes : Inf (List Nat)}.</span>
+<span class="fl">- To refer to glossary entries, use e.g. \mintinline[]{latex}{\gls{term}}.</span></code></pre></div>
+<h4 id="chapters-sections-et-al.">Chapters, Sections, et al.</h4>
+<p>To denote chapters, sections, and other subdivisions, use <code>=</code> as follows:</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown">= Chapter
+== Section
+=== Subsection
+==== Subsubsection</code></pre></div>
+<h4 id="bold-and-italicized-text">Bold and Italicized Text</h4>
+<p>We use the succinct Markdown syntax...</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown">... to format **bold** and _italicized_ text.</code></pre></div>
+<h4 id="lists">Lists</h4>
+<p>We prefer the Markdown syntax here too, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown">- <span class="fl">foo</span>
+<span class="fl">- bar</span>
+<span class="fl">- baz</span></code></pre></div>
+<h4 id="code-blocks">Code Blocks</h4>
+<p>Just as with bold and italicized text, we favor the more succinct Markdown<br />
+syntax for (fenced) code blocks:</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown">```idris
+addTwo : Nat -&gt; Nat
+addTwo x = x + 2
+```</code></pre></div>
+<p>For more information, refer to <a href="https://help.github.com/articles/creating-and-highlighting-code-blocks/">the relevant GitHub Help document</a>.</p>
+<h4 id="inline-code">Inline Code</h4>
+<p>For inline Idris code, use the custom <code>\mintinline</code> shortcut <code>\idr</code>, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode tex"><code class="sourceCode latex">To print ``Hello World!&#39;&#39; in Idris, write <span class="fu">\idr</span>{putStrLn &quot;Hello, World!&quot;}.</code></pre></div>
+<p>For convenience, we've also defined the shortcut <code>\el</code> for ineline Emacs Lisp<br />
+code, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode latex"><code class="sourceCode latex">Set the value of <span class="fu">\el</span>{foo} to <span class="fu">\el</span>{42}: <span class="fu">\el</span>{(setq foo 42)}.</code></pre></div>
+<p>Otherwise, use single backticks for inline monospace text, e.g.</p>
+<pre><code>This is some `inline monospaced text`.</code></pre>
+<p>In a certain cases, we might want syntax highlighting for a language other than<br />
+Idris or Emacs Lisp. For such cases, use the standard <code>\mintline</code> command, e.g.</p>
+<div class="sourceCode"><pre class="sourceCode tex"><code class="sourceCode latex">To declare a theorem in Coq, use <span class="fu">\mintinline</span>[]{coq}{Theorem}.</code></pre></div>
+<h4 id="glossary">Glossary</h4>
+<p>We use the <a href="https://www.ctan.org/pkg/glossaries">glossaries package</a> for defining terms<br />
+(in <a href="https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex"><code>src/glossary.tex</code></a>) and including a glossary in<br />
+the [generated PDF][PDF]. See the package documentation for more information,<br />
+but here's a quick example:</p>
+<div class="sourceCode"><pre class="sourceCode tex"><code class="sourceCode latex">What is the <span class="fu">\gls</span>{meaning of life}?
+
+
+<span class="fu">\newglossaryentry</span>{meaning of life}{
+  description={42}
+}</code></pre></div>
+<h3 id="generating-the-pdf">Generating the PDF</h3>
+<p>To generate the [PDF] we use [Pandoc] and [latexmk]. For more details, check out<br />
+the <code>all.pdf</code>, <code>all.tex</code> and <code>%.tex</code> rules in <a href="https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex"><code>src/Makefile</code></a>.</p>
+<!-- Named Links -->
 </body>
 </html>
