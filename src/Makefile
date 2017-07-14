@@ -16,7 +16,7 @@ LIDR_FILES := Preface.lidr \
 	Induction.lidr \
 	Lists.lidr \
 	Poly.lidr \
-        Tactics.lidr
+    Tactics.lidr
 # TODO: Add more chapters, in order, here.
 
 
