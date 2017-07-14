@@ -2,13 +2,13 @@
 
 This chapter introduces several additional proof strategies and tactics that
 allow us to begin proving more interesting properties of functional programs. We
-will see: 
+will see:
 
   - how to use auxiliary lemmas in both "forward-style" and "backward-style"
-    proofs; 
+    proofs;
 
   - how to reason about data constructors (in particular, how to use the fact
-    that they are injective and disjoint); 
+    that they are injective and disjoint);
 
   - how to strengthen an induction hypothesis (and when such strengthening is
     required); and
@@ -30,18 +30,17 @@ will see:
 
 > %language ElabReflection
 
-> %hide Basics.Playground2.beq_nat
 
-== The \idr{exact} Tactic 
+== The \idr{exact} Tactic
 
 We often encounter situations where the goal to be proved is _exactly_ the same
 as some hypothesis in the context or some previously proved lemma.
 
 > silly1 : (n, m, o, p : Nat) -> (n = m) -> [n,o] = [n,p] -> [n,o] = [m,p]
 
-Here, we could prove this with 
+Here, we could prove this with
 
-> silly1 n m o p eq1 eq2 = rewrite eq2 in 
+> silly1 n m o p eq1 eq2 = rewrite eq2 in
 >                          rewrite eq1 in Refl
 
 as we have done several times before. We can achieve the same effect by a series
@@ -51,17 +50,17 @@ of tactic applications, using \idr{exact} instead of the
 \todo[inline]{Explain \idr{intros} (move text from `Basics`?), \idr{Var} and
 \idr{rewriteWith}. Explain the "backwards" order.}
 
-\todo[inline]{Why does the tactic need to be a top level definition?}
-
-> partial
-> silly1Tactic : Elab () 
-> silly1Tactic = do 
->   [n,m,o,p,eq1,eq2] <- intros 
->   rewriteWith $ Var eq1
->   exact $ Var eq2
+\todo[inline]{\idr{| _ => fail []} is needed for totality}
 
 > silly1' : (n, m, o, p : Nat) -> (n = m) -> [n,o] = [n,p] -> [n,o] = [m,p]
-> silly1' = %runElab silly1Tactic
+> silly1' = %runElab silly1_tac
+> where
+>   silly1_tac : Elab ()
+>   silly1_tac = do
+>     [n,m,o,p,eq1,eq2] <- intros
+>       | _ => fail []
+>     rewriteWith $ Var eq1
+>     exact $ Var eq2
 
 (This tactic is called `apply` in Coq.)
 
@@ -72,25 +71,20 @@ The \idr{exact} tactic also works with _conditional_ hypotheses and lemmas: if t
 statement being applied is an implication, then the premises of this implication
 will be added to the list of subgoals needing to be proved.
 
-> beq_nat : (n, m : Nat) -> Bool
-> beq_nat  Z     Z    = True
-> beq_nat  Z    (S j) = False
-> beq_nat (S k)  Z    = False
-> beq_nat (S k) (S j) = beq_nat k j
 
-> partial
-> silly2Tactic : Elab ()
-> silly2Tactic = do 
->   [n,m,o,p,eq1,eq2] <- intros 
->   exact $ (((Var eq2) `RApp` (Var n)) `RApp` (Var m)) `RApp` (Var eq1)
-
-> silly2 : (n, m, o, p : Nat) -> (n = m) -> 
->          ((q, r : Nat) -> q = r -> [q,o] = [r,p]) -> 
+> silly2 : (n, m, o, p : Nat) -> (n = m) ->
+>          ((q, r : Nat) -> q = r -> [q,o] = [r,p]) ->
 >          [n,o] = [m,p]
-> silly2 = %runElab silly2Tactic
+> silly2 = %runElab silly2_tac
+> where
+>   silly2_tac : Elab ()
+>   silly2_tac = do
+>     [n,m,o,p,eq1,eq2] <- intros
+>       | _ => fail []
+>     exact $ (((Var eq2) `RApp` (Var n)) `RApp` (Var m)) `RApp` (Var eq1)
 
 You may find it instructive to experiment with this proof and see if there is a
-way to complete it using just \idr{rewrite} instead of \idr{exact}. 
+way to complete it using just \idr{rewrite} instead of \idr{exact}.
 
 \todo[inline]{Edit}
 
@@ -101,19 +95,20 @@ for these variables. For example, when we do \idr{exact $ Var eq2} in the
 following proof, the universal variable \idr{q} in \idr{eq2} gets instantiated
 with \idr{n} and \idr{r} gets instantiated with \idr{m}.
 
-> partial
-> silly2aTactic : Elab ()
-> silly2aTactic = do 
->   [n,m,eq1,eq2] <- intros 
->   exact $ (((Var eq2) `RApp` (Var n)) `RApp` (Var m)) `RApp` (Var eq1)
 
-> silly2a : (n, m : Nat) -> (n,n) = (m,m) -> 
->           ((q, r : Nat) -> (q,q) = (r,r) -> [q] = [r]) -> 
+> silly2a : (n, m : Nat) -> (n,n) = (m,m) ->
+>           ((q, r : Nat) -> (q,q) = (r,r) -> [q] = [r]) ->
 >           [n] = [m]
-> silly2a = %runElab silly2aTactic
+> silly2a = %runElab silly2a_tac
+> where
+>   silly2a_tac : Elab ()
+>   silly2a_tac = do
+>     [n,m,eq1,eq2] <- intros
+>       | _ => fail []
+>     exact $ (((Var eq2) `RApp` (Var n)) `RApp` (Var m)) `RApp` (Var eq1)
 
 
-==== Exercise: 2 stars, optional (silly_ex) 
+==== Exercise: 2 stars, optional (silly_ex)
 
 Complete the following proof without using `simpl`.
 
@@ -121,7 +116,7 @@ Complete the following proof without using `simpl`.
 >            -> evenb 3 = True -> oddb 4 = True
 > silly_ex = ?silly_ex_rhs
 
-$\square$ 
+$\square$
 
 To use the \idr{exact} tactic, the (conclusion of the) fact being applied must
 match the goal exactly — for example, \idr{exact} will not work if the left and
@@ -131,97 +126,115 @@ right sides of the equality are swapped.
 
 > symmetry : Elab ()
 > symmetry = do
->  [_,_,_,_,eq] <- apply (Var `{{sym}}) [True, True, True, True, False]
+>  [_,_,_,_,_] <- apply (Var `{{sym}}) [True, True, True, True, False]
 >    | _ => fail [TextPart "Failed while applying", NamePart `{symmetry} ]
 >  solve
 
-> partial
-> silly3_firsttryTactic : Elab ()
-> silly3_firsttryTactic = do
->  [_,h] <- intros
+> silly3_firsttry : (n : Nat) -> True = beq_nat n 5 ->
+>                   beq_nat (S (S n)) 7 = True
+> silly3_firsttry = %runElab silly3_firsttry_tac
+> where
+>   silly3_firsttry_tac : Elab ()
+>   silly3_firsttry_tac = do
+>    [_,h] <- intros
+>       | _ => fail []
 
 Here we cannot use \idr{exact} directly, but we can use the \idr{symmetry}
 tactic, which switches the left and right sides of an equality in the goal.
 
->  symmetry
->  exact $ Var h
-
-> silly3_firsttry : (n : Nat) -> True = beq_nat n 5 -> 
->                   beq_nat (S (S n)) 7 = True
-> silly3_firsttry = %runElab silly3_firsttryTactic
+>    symmetry
+>    exact $ Var h
 
 
-==== Exercise: 3 stars (apply_exercise1) 
+
+==== Exercise: 3 stars (apply_exercise1)
 
 (_Hint_: You can use \idr{exact} with previously defined lemmas, not just
 hypotheses in the context. Remember that `:search` is your friend.)
 
 > rev_exercise1 : (l, l' : List Nat) -> l = rev l' -> l' = rev l
-> rev_exercise1 = ?rev_exercise1_rhs
-
-$\square$ 
-
-
-==== Exercise: 1 star, optionalM (apply_rewrite) 
-
-Briefly explain the difference between the tactics \idr{exact} and
-\idr{rewriteWith}. What are the situations where both can usefully be applied? 
-
-> -- FILL IN HERE 
+> rev_exercise1 = ?remove_me1 -- %runElab rev_exercise1_tac
+> where
+>   rev_exercise1_tac : Elab ()
+>   rev_exercise1_tac = ?rev_exercise1_tac_rhs
 
 $\square$
 
 
-== The apply ... with ... Tactic 
+==== Exercise: 1 star, optionalM (apply_rewrite)
 
-The following silly example uses two rewrites in a row to get from [a,b] to
-[e,f].
+Briefly explain the difference between the tactics \idr{exact} and
+\idr{rewriteWith}. What are the situations where both can usefully be applied?
 
-Example trans_eq_example : ∀(a b c d e f : Nat),
-     [a,b] = [c,d] -> [c,d] = [e,f] -> [a,b] = [e,f].
-Proof.
-  intros a b c d e f eq1 eq2. rewrite -> eq1. rewrite -> eq2. reflexivity. Qed.
+> -- FILL IN HERE
+
+$\square$
+
+
+== The \idr{apply} Tactic
+
+The following silly example uses two rewrites in a row to get from `[a,b]` to
+`[e,f]`.
+
+> trans_eq_example : (a, b, c, d, e, f : Nat) ->
+>                    [a,b] = [c,d] -> [c,d] = [e,f] -> [a,b] = [e,f]
+> trans_eq_example a b c d e f eq1 eq2 = rewrite eq1 in
+>                                        rewrite eq2 in Refl
 
 Since this is a common pattern, we might like to pull it out as a lemma
 recording, once and for all, the fact that equality is transitive.
 
-Theorem trans_eq : ∀(X:Type) (n m o : X),
-  n = m -> m = o -> n = o.
-Proof.
-  intros X n m o eq1 eq2. rewrite -> eq1. rewrite -> eq2. reflexivity. Qed.
+> trans_eq : (n, m, o : x) -> n = m -> m = o -> n = o
+> trans_eq n m o eq1 eq2 = rewrite eq1 in
+>                          rewrite eq2 in Refl
 
-Now, we should be able to use trans_eq to prove the above example. However, to
-do this we need a slight refinement of the apply tactic.
+(This lemma already exists in Idris' stdlib under the name of \idr{trans}.)
 
-Example trans_eq_example' : ∀(a b c d e f : Nat),
-     [a,b] = [c,d] -> [c,d] = [e,f] -> [a,b] = [e,f].
-Proof.
-  intros a b c d e f eq1 eq2.
+Now, we should be able to use \idr{trans_eq} to prove the above example.
+However, to do this we need a slight refinement of the \idr{exact} tactic.
 
-If we simply tell Coq apply trans_eq at this point, it can tell (by matching the
-goal against the conclusion of the lemma) that it should instantiate X with
-[Nat], n with [a,b], and o with [e,f]. However, the matching process doesn't
-determine an instantiation for m: we have to supply one explicitly by adding
-with (m:=[c,d]) to the invocation of apply.
+> trans_eq_example' : (a, b, c, d, e, f : Nat) ->
+>                     [a,b] = [c,d] -> [c,d] = [e,f] -> [a,b] = [e,f]
+> trans_eq_example' = %runElab trans_eq_example_tac
+> where
+>   trans_eq_example_tac : Elab ()
+>   trans_eq_example_tac = do
+>    [a,b,c,d,e,f,eq1,eq2] <- intros
+>      | _ => fail []
 
-  apply trans_eq with (m:=[c,d]). apply eq1. apply eq2. Qed.
+\todo[inline]{Edit: Idris apparently can figure things out itself via
+\idr{solve}. Explain the quotation syntax.}
 
-Actually, we usually don't have to include the name m in the with clause; Coq is
-often smart enough to figure out which instantiation we're giving. We could
-instead write: apply trans_eq with [c,d]. 
+If we simply tell Idris \idr{apply (Var `{trans_eq}) ..} at this point, it can
+tell (by matching the goal against the conclusion of the lemma) that it should
+instantiate \idr{x} with \idr{[Nat]}, \idr{n} with \idr{[a,b]}, and \idr{o} with
+\idr{[e,f]}. However, the matching process doesn't determine an instantiation
+for \idr{m}: we have to supply one explicitly by adding with (m:=[c,d]) to the
+invocation of \idr{apply}.
+
+>    [_,_,_,_,_,_] <- apply (Var `{trans_eq})
+>                     [True, True, True, True, False, False]
+>      | _ => fail []
+>    solve
+>    exact $ Var eq1
+>    exact $ Var eq2
 
 
-==== Exercise: 3 stars, optional (apply_with_exercise) 
+==== Exercise: 3 stars, optional (apply_with_exercise)
 
-Example trans_eq_exercise : ∀(n m o p : Nat),
-     m = (minustwo o) -> (n + p) = m -> (n + p) = (minustwo o).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> trans_eq_exercise : (n, m, o, p : Nat) ->
+>                     m = (minusTwo o) ->
+>                     (n + p) = m ->
+>                     (n + p) = (minusTwo o)
+> trans_eq_exercise = ?remove_me2 -- %runElab trans_eq_exercise_tac
+> where
+>   trans_eq_exercise_tac : Elab ()
+>   trans_eq_exercise_tac = ?trans_eq_exercise_rhs
 
 $\square$
 
 
-== The inversion Tactic 
+== The inversion Tactic
 
 Recall the definition of natural numbers:
      Inductive Nat : Type :=
@@ -234,7 +247,7 @@ definition (and in our informal understanding of how datatype declarations work
 in other programming languages) are two more facts:
 
   - The constructor S is _injective_. That is, if S n = S m, it must be the case
-    that n = m. 
+    that n = m.
 
   - The constructors Z and S are _disjoint_. That is, Z is not equal to S n for
     any n.
@@ -287,7 +300,7 @@ Proof.
 
 (* FILL IN HERE *) Admitted.
 
-$\square$ 
+$\square$
 
 When used on a hypothesis involving an equality between different
 constructors (e.g., S n = Z), inversion solves the goal immediately. Consider
@@ -334,7 +347,7 @@ If you find the principle of explosion confusing, remember that these proofs are
 not actually showing that the conclusion of the statement holds. Rather, they
 are arguing that, if the nonsensical situation described by the premise did
 somehow arise, then the nonsensical conclusion would follow. We'll explore the
-principle of explosion of more detail in the next chapter. 
+principle of explosion of more detail in the next chapter.
 
 
 ==== Exercise: 1 star (inversion_ex6)
@@ -346,7 +359,7 @@ Proof.
 
   (* FILL IN HERE *) Admitted.
 
-$\square$ 
+$\square$
 
 To summarize this discussion, suppose H is a hypothesis in the context
 or a previously proven lemma of the form
@@ -358,13 +371,13 @@ inversion H has the following effect:
 
   - If c and d are the same constructor, then, by the injectivity of this
     constructor, we know that a1 = b1, a2 = b2, etc. The inversion H adds these
-    facts to the context and tries to use them to rewrite the goal. 
-  
+    facts to the context and tries to use them to rewrite the goal.
+
   - If c and d are different constructors, then the hypothesis H is
     contradictory, and the current goal doesn't have to be considered at all. In
     this case, inversion H marks the current goal as completed and pops it off
-    the goal stack. 
-  
+    the goal stack.
+
 The injectivity of constructors allows us to reason that ∀ (n m : Nat), S n = S
 m -> n = m. The converse of this implication is an instance of a more general
 fact about both constructors and functions, which we will find useful in a few
@@ -395,7 +408,7 @@ against L1 and, if successful, replaces it with L2.
 In other words, apply L in H gives us a form of "forward reasoning": from L1 ->
 L2 and a hypothesis matching L1, it produces a hypothesis matching L2. By
 contrast, apply L is "backward reasoning": it says that if we know L1->L2 and we
-are trying to prove L2, it suffices to prove L1. 
+are trying to prove L2, it suffices to prove L1.
 
 Here is a variant of a proof from above, using forward reasoning throughout
 instead of backward reasoning.
@@ -413,7 +426,7 @@ would imply the goal, until premises or previously proven theorems are reached.
 If you've seen informal proofs before (for example, in a math or computer
 science class), they probably used forward reasoning. In general, idiomatic use
 of Coq tends to favor backward reasoning, but in some situations the forward
-style can be easier to think about. 
+style can be easier to think about.
 
 
 ==== Exercise: 3 stars, recommended (plus_n_n_injective)
@@ -465,7 +478,7 @@ is an extra S in the way — so the goal is not provable.
 
       Abort.
 
-What went wrong? 
+What went wrong?
 
 The problem is that, at the point we invoke the induction hypothesis, we have
 already introduced m into the context — intuitively, we have told Coq, "Let's
@@ -473,45 +486,45 @@ consider some particular n and m..." and we now have to prove that, if double n
 = double m for these particular n and m, then n = m.
 
 The next tactic, induction n says to Coq: We are going to show the goal by
-induction on n. That is, we are going to prove, for all n, that the proposition 
+induction on n. That is, we are going to prove, for all n, that the proposition
 
-  - P n = "if double n = double m, then n = m" 
-  
-holds, by showing 
+  - P n = "if double n = double m, then n = m"
 
-  - P Z 
-    (i.e., "if double Z = double m then Z = m") and 
-    
+holds, by showing
+
+  - P Z
+    (i.e., "if double Z = double m then Z = m") and
+
   - P n -> P (S n)
     (i.e., "if double n = double m then n = m" implies "if double (S n) = double
-    m then S n = m"). 
-    
+    m then S n = m").
+
 If we look closely at the second statement, it is saying something rather
-strange: it says that, for a particular m, if we know 
+strange: it says that, for a particular m, if we know
 
   - "if double n = double m then n = m"
 
 then we can prove
 
-  - "if double (S n) = double m then S n = m". 
-  
+  - "if double (S n) = double m then S n = m".
+
 To see why this is strange, let's think of a particular m — say, 5. The
 statement is then saying that, if we know
-  
-  - Q = "if double n = 10 then n = 5" 
-  
-then we can prove 
-   
+
+  - Q = "if double n = 10 then n = 5"
+
+then we can prove
+
   - R = "if double (S n) = 10 then S n = 5".
-  
+
 But knowing Q doesn't give us any help at all with proving R! (If we tried to
 prove R from Q, we would start with something like "Suppose double (S n) =
 10..." but then we'd be stuck: knowing that double (S n) is 10 tells us nothing
-about whether double n is 10, so Q is useless.) 
+about whether double n is 10, so Q is useless.)
 
 Trying to carry out this proof by induction on n when m is already in the
 context doesn't work because we are then trying to prove a relation involving
-every n but just a single m. 
+every n but just a single m.
 
 The successful proof of double_injective leaves m in the goal statement at the
 point where the induction tactic is invoked on n:
@@ -556,7 +569,7 @@ exactly what we need to finish the proof.
 
 What you should take away from all this is that we need to be careful about
 using induction to try to prove something too specific: To prove a property of n
-and m by induction on n, it is sometimes important to leave m generic. 
+and m by induction on n, it is sometimes important to leave m generic.
 
 The following exercise requires the same pattern.
 
@@ -569,17 +582,17 @@ Proof.
 
   (* FILL IN HERE *) Admitted.
 
-$\square$ 
+$\square$
 
 
-==== Exercise: 2 stars, advancedM (beq_nat_true_informal) 
+==== Exercise: 2 stars, advancedM (beq_nat_true_informal)
 
 Give a careful informal proof of beq_nat_true, being as explicit as possible
 about quantifiers.
 
-(* FILL IN HERE *) 
+(* FILL IN HERE *)
 
-$\square$ 
+$\square$
 
 The strategy of doing fewer intros before an induction to obtain a more general
 IH doesn't always work by itself; sometimes some rearrangement of quantified
@@ -599,7 +612,7 @@ Abort.
 
 The problem is that, to do induction on m, we must first introduce n. (If we
 simply say induction m without introducing anything first, Coq will
-automatically introduce n for us!) 
+automatically introduce n for us!)
 
 What can we do about this? One possibility is to rewrite the statement of the
 lemma so that m is quantified before n. This works, but it's not nice: We don't
@@ -626,37 +639,37 @@ Proof.
 
 Let's look at an informal proof of this theorem. Note that the proposition we
 prove by induction leaves n quantified, corresponding to the use of generalize
-dependent in our formal proof. 
+dependent in our formal proof.
 
 _Theorem_: For any nats n and m, if double n = double m, then n = m.
 
 _Proof_: Let m be a Nat. We prove by induction on m that, for any n, if double n
-= double m then n = m. 
+= double m then n = m.
 
   - First, suppose m = 0, and suppose n is a number such that double n = double
-    m. We must show that n = 0. 
-    
+    m. We must show that n = 0.
+
     Since m = 0, by the definition of double we have double n = 0. There are two
     cases to consider for n. If n = 0 we are done, since m = 0 = n, as required.
     Otherwise, if n = S n' for some n', we derive a contradiction: by the
     definition of double, we can calculate double n = S (S (double n')), but
-    this contradicts the assumption that double n = 0. 
+    this contradicts the assumption that double n = 0.
 
   - Second, suppose m = S m' and that n is again a number such that double n =
     double m. We must show that n = S m', with the induction hypothesis that for
-    every number s, if double s = double m' then s = m'. 
-    
-    By the fact that m = S m' and the definition of double, we have double n = S
-    (S (double m')). There are two cases to consider for n. 
+    every number s, if double s = double m' then s = m'.
 
-    If n = 0, then by definition double n = 0, a contradiction. 
-    
+    By the fact that m = S m' and the definition of double, we have double n = S
+    (S (double m')). There are two cases to consider for n.
+
+    If n = 0, then by definition double n = 0, a contradiction.
+
     Thus, we may assume that n = S n' for some n', and again by the definition
     of double we have S (S (double n')) = S (S (double m')), which implies by
     inversion that double n' = double m'. Instantiating the induction hypothesis
     with n' thus allows us to conclude that n' = m', and it follows immediately
     that S n' = S m'. Since S n' = n and S m' = m, this is just what we wanted
-    to show. $\square$ 
+    to show. $\square$
 
 Before we close this section and move on to some exercises, let's digress
 briefly and use beq_nat_true to prove a similar property of identifiers that
@@ -696,7 +709,7 @@ Lemma square_mult : ∀n m, square (n * m) = square n * square m. Proof.
 
 ... we get stuck: simpl doesn't simplify anything at this point, and since we
 haven't proved any other facts about square, there is nothing we can apply or
-rewrite with. 
+rewrite with.
 
 To make progress, we can manually unfold the definition of square:
 
@@ -746,7 +759,7 @@ notice that the two branches of the match are identical.) So it gives up on
 unfolding bar m and leaves it alone. Similarly, tentatively unfolding bar (m+1)
 leaves a match whose scrutinee is a function application (that, itself, cannot
 be simplified, even after unfolding the definition of +), so simpl leaves it
-alone. 
+alone.
 
 At this point, there are two ways to make progress. One is to use destruct m to
 break the proof into two cases, each focusing on a more concrete choice of m (Z
@@ -767,8 +780,8 @@ Fact silly_fact_2' : ∀m, bar m + 1 = bar (m + 1) + 1. Proof.
 Now it is apparent that we are stuck on the match expressions on both sides of
 the =, and we can use destruct to finish the proof without thinking too hard.
 
-  destruct m. 
-  - reflexivity. 
+  destruct m.
+  - reflexivity.
   - reflexivity.
 Qed.
 
@@ -777,7 +790,7 @@ Qed.
 
 We have seen many examples where destruct is used to perform case analysis of
 the value of some variable. But sometimes we need to reason by cases on the
-result of some expression. We can also do this with destruct. 
+result of some expression. We can also do this with destruct.
 
 Here are some examples:
 
@@ -795,23 +808,23 @@ Proof.
 
 After unfolding sillyfun in the above proof, we find that we are stuck on if
 (beq_nat n 3) then ... else .... But either n is equal to 3 or it isn't, so we
-can use destruct (beq_nat n 3) to let us reason about the two cases. 
+can use destruct (beq_nat n 3) to let us reason about the two cases.
 
 In general, the destruct tactic can be used to perform case analysis of the
 results of arbitrary computations. If e is an expression whose type is some
 inductively defined type T, then, for each constructor c of T, destruct e
 generates a subgoal in which all occurrences of e (in the goal and in the
-context) are replaced by c. 
+context) are replaced by c.
 
 
-==== Exercise: 3 stars, optional (combine_split) 
+==== Exercise: 3 stars, optional (combine_split)
 
 Theorem combine_split : ∀X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) -> combine l1 l2 = l.
 Proof.
   (* FILL IN HERE *) Admitted.
 
-$\square$ 
+$\square$
 
 However, destructing compound expressions requires a bit of care, as
 such destructs can sometimes erase information we need to complete a proof. For
@@ -845,7 +858,7 @@ equation, giving it a name that we choose.
 Theorem sillyfun1_odd : ∀(n : Nat),
      sillyfun1 n = True -> oddb n = True.
 Proof.
-  intros n eq. unfold sillyfun1 in eq. destruct (beq_nat n 3) eqn:Heqe3. 
+  intros n eq. unfold sillyfun1 in eq. destruct (beq_nat n 3) eqn:Heqe3.
   (* Now
   we have the same state as at the point where we got
      stuck above, except that the context contains an extra equality assumption,
@@ -860,7 +873,7 @@ Proof.
         + (* e5 = False *) inversion eq. Qed.
 
 
-==== Exercise: 2 stars (destruct_eqn_practice) 
+==== Exercise: 2 stars (destruct_eqn_practice)
 
 Theorem bool_fn_applied_thrice :
   ∀(f : bool -> bool) (b : bool), f (f (f b)) = f b.
@@ -875,49 +888,49 @@ $\square$
 We've now seen many of Coq's most fundamental tactics. We'll introduce a few
 more in the coming chapters, and later on we'll see some more powerful
 automation tactics that make Coq help us with low-level details. But basically
-we've got what we need to get work done. 
+we've got what we need to get work done.
 
-Here are the ones we've seen: 
+Here are the ones we've seen:
 
-  - intros: move hypotheses/variables from goal to context 
+  - intros: move hypotheses/variables from goal to context
 
-  - reflexivity: finish the proof (when the goal looks like e = e) 
+  - reflexivity: finish the proof (when the goal looks like e = e)
 
-  - apply: prove goal using a hypothesis, lemma, or constructor 
+  - apply: prove goal using a hypothesis, lemma, or constructor
 
   - apply... in H: apply a hypothesis, lemma, or constructor to a hypothesis in
-    the context (forward reasoning) 
+    the context (forward reasoning)
 
   - apply... with...: explicitly specify values for variables that cannot be
     determined by pattern matching
 
-  - simpl: simplify computations in the goal 
+  - simpl: simplify computations in the goal
 
   - simpl in H: ... or a hypothesis
 
   - rewrite: use an equality hypothesis (or lemma) to rewrite the goal
 
-  - rewrite ... in H: ... or a hypothesis 
+  - rewrite ... in H: ... or a hypothesis
 
   - symmetry: changes a goal of the form t=u into u=t
 
-  - symmetry in H: changes a hypothesis of the form t=u into u=t 
+  - symmetry in H: changes a hypothesis of the form t=u into u=t
 
-  - unfold: replace a defined constant by its right-hand side in the goal 
+  - unfold: replace a defined constant by its right-hand side in the goal
 
-  - unfold... in H: ... or a hypothesis 
+  - unfold... in H: ... or a hypothesis
 
-  - destruct... as...: case analysis on values of inductively defined types 
+  - destruct... as...: case analysis on values of inductively defined types
 
   - destruct... eqn:...: specify the name of an equation to be added to the
-    context, recording the result of the case analysis 
+    context, recording the result of the case analysis
 
-  - induction... as...: induction on values of inductively defined types 
+  - induction... as...: induction on values of inductively defined types
 
-  - inversion: reason by injectivity and distinctness of constructors 
+  - inversion: reason by injectivity and distinctness of constructors
 
   - assert (H: e) (or assert (e) as H): introduce a "local lemma" e and call it
-    H 
+    H
 
   - generalize dependent x: move the variable x (and anything else that depends
     on it) from the context back to an explicit hypothesis in the goal formula
@@ -931,19 +944,19 @@ Here are the ones we've seen:
 Theorem beq_nat_sym : ∀(n m: Nat),
   beq_nat n m = beq_nat m n.
 Proof.
-  (* FILL IN HERE *) 
+  (* FILL IN HERE *)
 
-$\square$ 
+$\square$
 
 
-==== Exercise: 3 stars, advancedM? (beq_nat_sym_informal) 
+==== Exercise: 3 stars, advancedM? (beq_nat_sym_informal)
 
 Give an informal proof of this lemma that corresponds to your formal proof
-above: 
+above:
 
-Theorem: For any nats n m, beq_nat n m = beq_nat m n. 
+Theorem: For any nats n m, beq_nat n m = beq_nat m n.
 
-Proof: (* FILL IN HERE *) 
+Proof: (* FILL IN HERE *)
 
 $\square$
 
@@ -955,10 +968,10 @@ Theorem beq_nat_trans : ∀n m p,
 Proof.
   (* FILL IN HERE *)
 
-$\square$ 
+$\square$
 
 
-==== Exercise: 3 stars, advancedM (split_combine) 
+==== Exercise: 3 stars, advancedM (split_combine)
 
 We proved, in an exercise above, that for all lists of pairs, combine is the
 inverse of split. How would you formalize the statement that split is the
@@ -978,10 +991,10 @@ Definition split_combine_statement : Prop
 Theorem split_combine : split_combine_statement. Proof. (* FILL IN HERE *)
 Admitted.
 
-$\square$ 
+$\square$
 
 
-==== Exercise: 3 stars, advanced (filter_exercise) 
+==== Exercise: 3 stars, advanced (filter_exercise)
 
 This one is a bit challenging. Pay attention to the form of your induction
 hypothesis.
@@ -993,7 +1006,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 
 $\square$
- 
+
 
 ==== Exercise: 4 stars, advanced, recommended (forall_exists_challenge)
 
@@ -1025,6 +1038,6 @@ forallb and negb.
 Finally, prove a theorem existsb_existsb' stating that existsb' and existsb have
 the same behavior.
 
-(* FILL IN HERE *) 
+(* FILL IN HERE *)
 
 $\square$
