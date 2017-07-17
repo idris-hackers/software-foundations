@@ -303,7 +303,7 @@ derived at once.
 \todo[inline]{Make prettier and contribute to Pruviloj?}
 
 > symmetryIn : Raw -> TTName -> Elab ()
-> symmetryIn t n = do 
+> symmetryIn t n = do
 >   tt <- getTTType t
 >   case tt of
 >     `((=) {A=~A} {B=~B} ~l ~r) => do
@@ -315,11 +315,11 @@ derived at once.
 >       tsymty <- forget !(getTTType tsym)
 >       letbind n tsymty tsym
 >     _ => fail [TermPart tt, TextPart "is not an equality"]
-> where 
+> where
 >   getTTType : Raw -> Elab TT
 >   getTTType r = do
->     env <- getEnv                             
->     rty <- check env r           
+>     env <- getEnv
+>     rty <- check env r
 >     pure $ snd rty
 
 \todo[inline]{Works quite fast in Elab shell but hangs the compiler}
@@ -333,21 +333,21 @@ derived at once.
 > --       | _ => fail []
 > --     eqinj <- gensym "eqinj"
 > --     injective (Var eq) eqinj
-> --     
+> --
 > --     eqinj2 <- gensym "eqinj2"                    -- manual destructuring
 > --     both (Var eqinj) !(gensym "natnat") eqinj2
 > --     neqo <- gensym "neqo"
 > --     eqinj3 <- gensym "eqinj3"
 > --     both (Var eqinj2) no eqinj3
 > --     meqos <- gensym "meqos"
-> --     both (Var eqinj3) mos !(gensym "uu")         
+> --     both (Var eqinj3) mos !(gensym "uu")
 > --
 > --     oeqn <- gensym "oeqn"
 > --     symmetryIn (Var neqo) oeqn
-> --     symmetry                                    
+> --     symmetry
 > --     rewriteWith $ Var oeqn
-> --     exact $ Var meqos                      
-> --     solve                            
+> --     exact $ Var meqos
+> --     solve
 
 Note that we need to pass the parameter \idr{eqinj} which will be bound to
 equations that \idr{injective} generates.
@@ -355,9 +355,9 @@ equations that \idr{injective} generates.
 
 ==== Exercise: 1 star (inversion_ex3)
 
-> inversion_ex3 : (x, y, z : a) -> (l, j : List a) -> 
->                 x :: y :: l = z :: j -> 
->                 y :: l = x :: j -> 
+> inversion_ex3 : (x, y, z : a) -> (l, j : List a) ->
+>                 x :: y :: l = z :: j ->
+>                 y :: l = x :: j ->
 >                 x = y
 > inversion_ex3 = ?remove_me3 -- %runElab inversion_ex3_tac
 > where
@@ -400,11 +400,11 @@ things!
 > inversion_ex4 : (n : Nat) -> S n = Z -> 2 + 2 = 5
 > inversion_ex4 n prf = absurd $ SIsNotZ prf
 
+> FalseNotTrue : False = True -> Void
+> FalseNotTrue Refl impossible
+
 > inversion_ex5 : (n, m : Nat) -> False = True -> [n] = [m]
 > inversion_ex5 n m prf = absurd $ FalseNotTrue prf
->   where
->   FalseNotTrue : False = True -> Void
->   FalseNotTrue Refl impossible
 
 If you find the principle of explosion confusing, remember that these proofs are
 not actually showing that the conclusion of the statement holds. Rather, they
@@ -415,9 +415,9 @@ principle of explosion of more detail in the next chapter.
 
 ==== Exercise: 1 star (inversion_ex6)
 
-> inversion_ex6 : (x, y, z : a) -> (l, j : List a) -> 
->                 x :: y :: l = [] -> 
->                 y :: l = z :: j -> 
+> inversion_ex6 : (x, y, z : a) -> (l, j : List a) ->
+>                 x :: y :: l = [] ->
+>                 y :: l = z :: j ->
 >                 x = z
 > inversion_ex6 x y z l j prf prf1 = ?inversion_ex6_rhs
 
@@ -452,18 +452,30 @@ a few places below:
 > f_equal : (f : a -> b) -> (x, y : a) -> x = y -> f x = f y
 > f_equal f x y eq = rewrite eq in Refl
 
+(This is called \idr{cong} in Idris' stdlib.)
+
 
 == Using Tactics on Hypotheses
 
+\todo[inline]{Edit, Idris runs \idr{compute} on hypotheses automatically}
+
 By default, most tactics work on the goal formula and leave the context
 unchanged. However, most tactics also have a variant that performs a similar
-operation on a statement in the context. For example, the tactic simpl in H
-performs simplification in the hypothesis named H in the context.
+operation on a statement in the context. For example, the tactic \idr{compute}
+in H performs simplification in the hypothesis named \idr{h} in the context.
 
-Theorem S_inj : ∀(n m : Nat) (b : bool),
-     beq_nat (S n) (S m) = b -> beq_nat n m = b.
-Proof.
-  intros n m b H. simpl in H. apply H. Qed.
+> S_inj : (n, m : Nat) -> (b : Bool) ->
+>         beq_nat (S n) (S m) = b -> beq_nat n m = b
+> S_inj = %runElab S_inj_tac
+> where
+>   S_inj_tac : Elab ()
+>   S_inj_tac = do
+>     [n, m, b, eq] <- intros
+>       | _ => fail []
+>     exact $ Var eq
+
+\todo[inline]{Write \idr{applyIn} and reformulate the example as it's trivial in
+Idris}
 
 Similarly, apply L in H matches some conditional statement L (of the form L1 ->
 L2, say) against a hypothesis H in the context. However, unlike ordinary apply
@@ -478,31 +490,26 @@ are trying to prove L2, it suffices to prove L1.
 Here is a variant of a proof from above, using forward reasoning throughout
 instead of backward reasoning.
 
-Theorem silly3' : ∀(n : Nat),
-  (beq_nat n 5 = True -> beq_nat (S (S n)) 7 = True) -> True = beq_nat n 5 -> True
-  = beq_nat (S (S n)) 7.
-Proof.
-  intros n eq H. symmetry in H. apply eq in H. symmetry in H. apply H. Qed.
+> silly3' : (n : Nat) -> (beq_nat n 5 = True -> beq_nat (S (S n)) 7 = True) ->
+>           True = beq_nat n 5 ->
+>           True = beq_nat (S (S n)) 7
 
-Forward reasoning starts from what is given (premises, previously proven
+Forward reasoning starts from what is _given_ (premises, previously proven
 theorems) and iteratively draws conclusions from them until the goal is reached.
-Backward reasoning starts from the goal, and iteratively reasons about what
+Backward reasoning starts from the _goal_, and iteratively reasons about what
 would imply the goal, until premises or previously proven theorems are reached.
 If you've seen informal proofs before (for example, in a math or computer
 science class), they probably used forward reasoning. In general, idiomatic use
-of Coq tends to favor backward reasoning, but in some situations the forward
-style can be easier to think about.
+of Idris elab scripts tends to favor backward reasoning, but in some situations
+the forward style can be easier to think about.
 
 
 ==== Exercise: 3 stars, recommended (plus_n_n_injective)
 
-Practice using "in" variants in this exercise. (Hint: use plus_n_Sm.)
+Practice using "in" variants in this exercise. (Hint: use \idr{plus_n_Sm}.)
 
-Theorem plus_n_n_injective : ∀n m,
-     n + n = m + m -> n = m.
-Proof.
-  intros n. induction n as [| n'].
-    (* FILL IN HERE *) Admitted.
+> plus_n_n_injective : n + n = m + m -> n = m
+> plus_n_n_injective = ?plus_n_n_injective_rhs
 
 $\square$
 
@@ -510,14 +517,25 @@ $\square$
 == Varying the Induction Hypothesis
 
 Sometimes it is important to control the exact form of the induction hypothesis
-when carrying out inductive proofs in Coq. In particular, we need to be careful
-about which of the assumptions we move (using intros) from the goal to the
-context before invoking the induction tactic. For example, suppose we want to
-show that the double function is injective — i.e., that it maps different
-arguments to different results:
+when carrying out inductive proofs in Idris elab script. In particular, we need
+to be careful about which of the assumptions we move (using \idr{intros}) from
+the goal to the context before invoking the \idr{induction} tactic. For example,
+suppose we want to show that the \idr{double} function is injective — i.e., that
+it maps different arguments to different results:
 
-    Theorem double_injective: ∀n m,
-      double n = double m -> n = m.
+> double : (n : Nat) -> Nat
+> double  Z    = Z
+> double (S k) = S (S (double k))
+
+> double_injective : double n = double m -> n = m
+> double_injective {n=Z} {m=Z} _ = Refl
+> double_injective {n=Z} {m=(S _)} Refl impossible
+> double_injective {n=(S _)} {m=Z} Refl impossible
+> double_injective {n=(S n')} {m=(S m')} eq =
+>   let eqss = succInjective _ _ $ succInjective _ _ eq
+>   in rewrite double_injective {n=n'} {m=m'} eqss in Refl
+
+\todo[inline]{Edit the rest of the section to use \idr{induction}?}
 
 The way we _start_ this proof is a bit delicate: if we begin with
 
@@ -641,23 +659,25 @@ The following exercise requires the same pattern.
 
 ==== Exercise: 2 stars (beq_nat_true)
 
-Theorem beq_nat_true : ∀n m,
-    beq_nat n m = True -> n = m.
-Proof.
-
-  (* FILL IN HERE *) Admitted.
+> beq_nat_true : beq_nat n m = True -> n = m
+> beq_nat_true {n=Z} {m=Z} _ = Refl
+> beq_nat_true {n=(S _)} {m=Z} Refl impossible
+> beq_nat_true {n=Z} {m=(S _)} Refl impossible
+> beq_nat_true {n=(S n')} {m=(S m')} eq = rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
 
 $\square$
 
 
 ==== Exercise: 2 stars, advancedM (beq_nat_true_informal)
 
-Give a careful informal proof of beq_nat_true, being as explicit as possible
+Give a careful informal proof of \idr{beq_nat_true}, being as explicit as possible
 about quantifiers.
 
 (* FILL IN HERE *)
 
 $\square$
+
+\todo[inline]{What to do with the rest of this?}
 
 The strategy of doing fewer intros before an induction to obtain a more general
 IH doesn't always work by itself; sometimes some rearrangement of quantified
@@ -737,40 +757,63 @@ _Proof_: Let m be a Nat. We prove by induction on m that, for any n, if double n
     to show. $\square$
 
 Before we close this section and move on to some exercises, let's digress
-briefly and use beq_nat_true to prove a similar property of identifiers that
-we'll need in later chapters:
+briefly and use \idr{beq_nat_true} to prove a similar property of identifiers
+that we'll need in later chapters:
 
-Theorem beq_id_true : ∀x y,
-  beq_id x y = True -> x = y.
-Proof.
-  intros [m] [n]. simpl. intros H. assert (H' : m = n). { apply beq_nat_true.
-  apply H. } rewrite H'. reflexivity.
-Qed.
+> data Id : Type where
+>   MkId : Nat -> Id
+
+> beq_id : (x1, x2 : Id) -> Bool
+> beq_id (MkId n1) (MkId n2) = beq_nat n1 n2
+
+\todo[inline]{This won't work unless \idr{beq_nat_true} is proven above...}
+
+> beq_id_true : beq_id x y = True -> x = y
+> beq_id_true {x=MkId x'} {y=MkId y'} prf =
+>   rewrite beq_nat_true {n=x'} {m=y'} prf in Refl
 
 
 === Exercise: 3 stars, recommended (gen_dep_practice)
 
-Prove this by induction on l.
+Prove this by induction on \idr{l}.
 
-Theorem nth_error_after_last: ∀(n : Nat) (X : Type) (l : list X),
-     length l = n -> nth_error l n = None.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> data Option : (x : Type) -> Type where
+>  Some : x -> Option x
+>  None : Option x
+
+> nth_error : (l : List x) -> (n : Nat) -> Option x
+> nth_error [] n = None
+> nth_error (a::l') n = if beq_nat n 0
+>                         then Some a
+>                         else nth_error l' (Nat.pred n)
+
+> nth_error_after_last: (n : Nat) -> (l : List x) ->
+>                       length l = n -> nth_error l n = None
 
 $\square$
 
 
 == Unfolding Definitions
 
-It sometimes happens that we need to manually unfold a Definition so that we can
+\todo[inline]{Edit}
+
+It sometimes happens that we need to manually unfold a definition so that we can
 manipulate its right-hand side. For example, if we define...
 
-Definition square n := n * n.
+> square : Nat -> Nat
+> square n = n * n
 
 ... and try to prove a simple fact about square...
 
-Lemma square_mult : ∀n m, square (n * m) = square n * square m. Proof.
-  intros n m. simpl.
+> square_mult : (n, m : Nat) -> square (n * m) = square n * square m
+> square_mult n m = rewrite multAssociative (n*m) n m in
+>                   rewrite multCommutative (n*m) n in
+>                   rewrite multAssociative (n*n) m m in
+>                   rewrite multAssociative n n m in Refl
+
+... we succeed because Idris unfolds everything for us automatically.
+
+\todo[inline]{Remove the next part?}
 
 ... we get stuck: simpl doesn't simplify anything at this point, and since we
 haven't proved any other facts about square, there is nothing we can apply or
@@ -791,53 +834,58 @@ Qed.
 
 At this point, a deeper discussion of unfolding and simplification is in order.
 
-You may already have observed that tactics like simpl, reflexivity, and apply
-will often unfold the definitions of functions automatically when this allows
-them to make progress. For example, if we define foo m to be the constant 5...
+You may already have observed that \idr{Refl} will often unfold the definitions
+of functions automatically when this allows them to make progress. For example,
+if we define \idr{foo m} to be the constant \idr{5}...
 
-Definition foo (x: Nat) := 5.
+> foo : Nat -> Nat
+> foo x = 5
 
-then the simpl in the following proof (or the reflexivity, if we omit the simpl)
-will unfold foo m to (fun x ⇒ 5) m and then further simplify this expression to
-just 5.
+then \idr{Refl} in the following proof will unfold \idr{foo m} to \idr{(\x => 5)
+m} and then further simplify this expression to just \idr{5}.
 
-Fact silly_fact_1 : ∀m, foo m + 1 = foo (m + 1) + 1. Proof.
-  intros m. simpl. reflexivity.
-Qed.
+> silly_fact_1 : foo m + 1 = foo (m + 1) + 1
+> silly_fact_1 = Refl
 
 However, this automatic unfolding is rather conservative. For example, if we
 define a slightly more complicated function involving a pattern match...
 
-Definition bar x :=
-  match x with | Z ⇒ 5 | S _ ⇒ 5 end.
+> bar : Nat -> Nat
+> bar Z = 5
+> bar (S _) = 5
 
 ...then the analogous proof will get stuck:
 
-Fact silly_fact_2_FAILED : ∀m, bar m + 1 = bar (m + 1) + 1. Proof.
-  intros m. simpl. (* Does nothing! *)
-Abort.
+```idris
+silly_fact_2_FAILED : bar m + 1 = bar (m + 1) + 1
+silly_fact_2_FAILED = Refl
+```
 
-The reason that simpl doesn't make progress here is that it notices that, after
-tentatively unfolding bar m, it is left with a match whose scrutinee, m, is a
-variable, so the match cannot be simplified further. (It is not smart enough to
-notice that the two branches of the match are identical.) So it gives up on
-unfolding bar m and leaves it alone. Similarly, tentatively unfolding bar (m+1)
-leaves a match whose scrutinee is a function application (that, itself, cannot
-be simplified, even after unfolding the definition of +), so simpl leaves it
-alone.
+The reason that \idr{Refl} doesn't make progress here is that it notices that,
+after tentatively unfolding \idr{bar m}, it is left with a match whose
+scrutinee, \idr{m}, is a variable, so the match cannot be simplified further.
+(It is not smart enough to notice that the two branches of the match are
+identical.) So it gives up on unfolding \idr{bar m} and leaves it alone.
+Similarly, tentatively unfolding \idr{bar (m+1)} leaves a match whose scrutinee
+is a function application (that, itself, cannot be simplified, even after
+unfolding the definition of \idr{+}), so \idr{Refl} leaves it alone.
+
+\todo[inline]{Edit}
 
 At this point, there are two ways to make progress. One is to use destruct m to
 break the proof into two cases, each focusing on a more concrete choice of m (Z
 vs S _). In each case, the match inside of bar can now make progress, and the
 proof is easy to complete.
 
-Fact silly_fact_2 : ∀m, bar m + 1 = bar (m + 1) + 1. Proof.
-  intros m. destruct m. - simpl. reflexivity. - simpl. reflexivity.
-Qed.
+> silly_fact_2 : bar m + 1 = bar (m + 1) + 1
+> silly_fact_2 {m=Z} = Refl
+> silly_fact_2 {m=(S _)} = Refl
 
 This approach works, but it depends on our recognizing that the match hidden
 inside bar is what was preventing us from making progress. A more
-straightforward way to make progress is to explicitly tell Coq to unfold bar.
+straightforward way to make progress is to explicitly tell Idris to unfold bar.
+
+\todo[inline]{Can we destruct in Elab script? Maybe with \idr{deriveElim}?}
 
 Fact silly_fact_2' : ∀m, bar m + 1 = bar (m + 1) + 1. Proof.
   intros m. unfold bar.
@@ -851,29 +899,37 @@ the =, and we can use destruct to finish the proof without thinking too hard.
 Qed.
 
 
-== Using destruct on Compound Expressions
+== Using \idr{destruct} on Compound Expressions
+
+\todo[inline]{Edit}
 
 We have seen many examples where destruct is used to perform case analysis of
 the value of some variable. But sometimes we need to reason by cases on the
-result of some expression. We can also do this with destruct.
+result of some _expression_. We can also do this with destruct.
 
 Here are some examples:
 
-Definition sillyfun (n : Nat) : bool :=
-  if beq_nat n 3 then False else if beq_nat n 5 then False else False.
+> sillyfun : Nat -> Bool
+> sillyfun n = if beq_nat n 3
+>                 then False
+>                 else if beq_nat n 5
+>                         then False
+>                         else False
 
-Theorem sillyfun_false : ∀(n : Nat),
-  sillyfun n = False.
-Proof.
-  intros n. unfold sillyfun. destruct (beq_nat n 3).
-    - (* beq_nat n 3 = True *) reflexivity. - (* beq_nat n 3 = False *) destruct
-    (beq_nat n 5).
-      + (* beq_nat n 5 = True *) reflexivity. + (* beq_nat n 5 = False *)
-      reflexivity. Qed.
+> sillyfun_false : (n : Nat) -> sillyfun n = False
+> sillyfun_false n with (beq_nat n 3)
+>   sillyfun_false (S (S (S Z))) | True = Refl
+>   sillyfun_false n | False with (beq_nat n 5)
+>     sillyfun_false (S (S (S (S (S Z))))) | False | True = Refl
+>     sillyfun_false n | False | False = Refl
 
-After unfolding sillyfun in the above proof, we find that we are stuck on if
-(beq_nat n 3) then ... else .... But either n is equal to 3 or it isn't, so we
-can use destruct (beq_nat n 3) to let us reason about the two cases.
+
+After unfolding \idr{sillyfun} in the above proof, we find that we are stuck on
+\idr{if (beq_nat n 3) then ... else ...}. But either \idr{n} is equal to \idr{3}
+or it isn't, so we can use \idr{with (beq_nat n 3)} to let us reason about the
+two cases.
+
+\todo[inline]{Edit}
 
 In general, the destruct tactic can be used to perform case analysis of the
 results of arbitrary computations. If e is an expression whose type is some
@@ -884,29 +940,36 @@ context) are replaced by c.
 
 ==== Exercise: 3 stars, optional (combine_split)
 
-Theorem combine_split : ∀X Y (l : list (X * Y)) l1 l2,
-  split l = (l1, l2) -> combine l1 l2 = l.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> combine_split : (l : List (x,y)) -> (l1 : List x) -> (l2 : List y) ->
+>                 unzip l = (l1, l2) -> zip l1 l2 = l
+> combine_split l l1 l2 prf = ?combine_split_rhs
 
 $\square$
 
 However, destructing compound expressions requires a bit of care, as
 such destructs can sometimes erase information we need to complete a proof. For
-example, suppose we define a function sillyfun1 like this:
+example, suppose we define a function \idr{sillyfun1} like this:
 
-Definition sillyfun1 (n : Nat) : bool :=
-  if beq_nat n 3 then True else if beq_nat n 5 then True else False.
+> sillyfun1 : Nat -> Bool
+> sillyfun1 n = if beq_nat n 3
+>                  then True
+>                  else if beq_nat n 5
+>                          then True
+>                          else False
 
-Now suppose that we want to convince Coq of the (rather obvious) fact that
-sillyfun1 n yields True only when n is odd. By analogy with the proofs we did
-with sillyfun above, it is natural to start the proof like this:
+Now suppose that we want to convince Idris of the (rather obvious) fact that
+\idr{sillyfun1 n} yields \idr{True} only when \idr{n} is odd. By analogy with
+the proofs we did with \idr{sillyfun} above, it is natural to start the proof
+like this:
 
-Theorem sillyfun1_odd_FAILED : ∀(n : Nat),
-     sillyfun1 n = True -> oddb n = True.
-Proof.
-  intros n eq. unfold sillyfun1 in eq. destruct (beq_nat n 3). (* stuck... *)
-Abort.
+> sillyfun1_odd : (n : Nat) -> sillyfun1 n = True -> oddb n = True
+> sillyfun1_odd n prf with (beq_nat n 3)
+>   sillyfun1_odd (S (S (S Z))) Refl | True = Refl
+>   sillyfun1_odd n prf | False with (beq_nat n 5)
+>     sillyfun1_odd (S (S (S (S (S Z))))) Refl | False | True = Refl
+>     sillyfun1_odd n prf | False | False = absurd $ FalseNotTrue prf
+
+\todo[inline]{Edit the following, since \idr{with} works fine here as well}
 
 We get stuck at this point because the context does not contain enough
 information to prove the goal! The problem is that the substitution performed by
@@ -940,65 +1003,69 @@ Proof.
 
 ==== Exercise: 2 stars (destruct_eqn_practice)
 
-Theorem bool_fn_applied_thrice :
-  ∀(f : bool -> bool) (b : bool), f (f (f b)) = f b.
-Proof.
-  (* FILL IN HERE *)
+> bool_fn_applied_thrice : (f : Bool -> Bool) -> (b : Bool) -> f (f (f b)) = f b
+> bool_fn_applied_thrice f b = ?bool_fn_applied_thrice_rhs
 
 $\square$
 
 
 == Review
 
-We've now seen many of Coq's most fundamental tactics. We'll introduce a few
+We've now seen many of Idris's most fundamental tactics. We'll introduce a few
 more in the coming chapters, and later on we'll see some more powerful
-automation tactics that make Coq help us with low-level details. But basically
+automation tactics that make Idris help us with low-level details. But basically
 we've got what we need to get work done.
 
 Here are the ones we've seen:
 
-  - intros: move hypotheses/variables from goal to context
+\todo[inline]{Edit}
 
-  - reflexivity: finish the proof (when the goal looks like e = e)
+  - \idr{intros}: move hypotheses/variables from goal to context
 
-  - apply: prove goal using a hypothesis, lemma, or constructor
+  - \idr{reflexivity}: finish the proof (when the goal looks like \idr{e = e})
 
-  - apply... in H: apply a hypothesis, lemma, or constructor to a hypothesis in
-    the context (forward reasoning)
+  - \idr{exact}: prove goal using a hypothesis, lemma, or constructor
 
-  - apply... with...: explicitly specify values for variables that cannot be
-    determined by pattern matching
+  - \idr{apply... in H}: apply a hypothesis, lemma, or constructor to a
+    hypothesis in the context (forward reasoning)
 
-  - simpl: simplify computations in the goal
+  - \idr{apply... with...}: explicitly specify values for variables that cannot
+    be determined by pattern matching
 
-  - simpl in H: ... or a hypothesis
+  - \idr{compute}: simplify computations in the goal
 
-  - rewrite: use an equality hypothesis (or lemma) to rewrite the goal
+  - \idr{simpl in H}: ... or a hypothesis
 
-  - rewrite ... in H: ... or a hypothesis
+  - \idr{rewriteWith}: use an equality hypothesis (or lemma) to rewrite the goal
 
-  - symmetry: changes a goal of the form t=u into u=t
+  - \idr{rewrite ... in H}: ... or a hypothesis
 
-  - symmetry in H: changes a hypothesis of the form t=u into u=t
+  - \idr{symmetry}: changes a goal of the form \idr{t=u} into \idr{u=t}
 
-  - unfold: replace a defined constant by its right-hand side in the goal
+  - \idr{symmetryIn h}: changes a hypothesis of the form \idr{t=u} into
+    \idr{u=t}
 
-  - unfold... in H: ... or a hypothesis
+  - \idr{unfold}: replace a defined constant by its right-hand side in the goal
 
-  - destruct... as...: case analysis on values of inductively defined types
+  - \idr{unfold... in H}: ... or a hypothesis
 
-  - destruct... eqn:...: specify the name of an equation to be added to the
-    context, recording the result of the case analysis
+  - \idr{destruct... as...}: case analysis on values of inductively defined
+    types
 
-  - induction... as...: induction on values of inductively defined types
+  - \idr{destruct... eqn:...}: specify the name of an equation to be added to
+    the context, recording the result of the case analysis
 
-  - inversion: reason by injectivity and distinctness of constructors
+  - \idr{induction... as...}: induction on values of inductively defined types
 
-  - assert (H: e) (or assert (e) as H): introduce a "local lemma" e and call it
-    H
+  - \idr{injective}: reason by injectivity of constructors
 
-  - generalize dependent x: move the variable x (and anything else that depends
-    on it) from the context back to an explicit hypothesis in the goal formula
+  - \idr{disjoint}: reason by distinctness of constructors
+
+  - \idr{assert (H: e)} (or \idr{assert (e) as H}): introduce a "local lemma"
+    \idr{e} and call it \idr{H}
+
+  - \idr{generalize dependent x}: move the variable \idr{x} (and anything else
+    that depends on it) from the context back to an explicit hypothesis in the goal formula
 
 
 == Additional Exercises
@@ -1006,10 +1073,8 @@ Here are the ones we've seen:
 
 ==== Exercise: 3 stars (beq_nat_sym)
 
-Theorem beq_nat_sym : ∀(n m: Nat),
-  beq_nat n m = beq_nat m n.
-Proof.
-  (* FILL IN HERE *)
+> beq_nat_sym : (n, m : Nat) -> beq_nat n m = beq_nat m n
+> beq_nat_sym n m = ?beq_nat_sym_rhs
 
 $\square$
 
@@ -1019,42 +1084,36 @@ $\square$
 Give an informal proof of this lemma that corresponds to your formal proof
 above:
 
-Theorem: For any nats n m, beq_nat n m = beq_nat m n.
+Theorem: For any \idr{Nat}s \idr{n}, idr{m}, \idr{beq_nat n m = beq_nat m n}
 
-Proof: (* FILL IN HERE *)
+Proof:
+
+> --FILL IN HERE
 
 $\square$
 
 
 ==== Exercise: 3 stars, optional (beq_nat_trans)
 
-Theorem beq_nat_trans : ∀n m p,
-  beq_nat n m = True -> beq_nat m p = True -> beq_nat n p = True.
-Proof.
-  (* FILL IN HERE *)
+> beq_nat_trans : beq_nat n m = True -> beq_nat m p = True -> beq_nat n p = True
+> beq_nat_trans prf prf1 = ?beq_nat_trans_rhs
 
 $\square$
 
 
 ==== Exercise: 3 stars, advancedM (split_combine)
 
-We proved, in an exercise above, that for all lists of pairs, combine is the
-inverse of split. How would you formalize the statement that split is the
-inverse of combine? When is this property True?
+We proved, in an exercise above, that for all lists of pairs, \idr{zip} is the
+inverse of \idr{unzip}. How would you formalize the statement that \idr{unzip}
+is the inverse of \idr{zip}? When is this property true?
 
-Complete the definition of split_combine_statement below with a property that
-states that split is the inverse of combine. Then, prove that the property
-holds. (Be sure to leave your induction hypothesis general by not doing intros
-on more things than necessary. Hint: what property do you need of l1 and l2 for
-split combine l1 l2 = (l1,l2) to be True?)
+Complete the definition of \idr{split_combine} below with a property that states
+that \idr{unzip} is the inverse of \idr{zip}. Then, prove that the property
+holds. (Be sure to leave your induction hypothesis general by not doing
+\idr{intros} on more things than necessary. Hint: what property do you need of
+\idr{l1} and \idr{l2} for \idr{unzip (zip l1 l2) = (l1,l2)} to be true?)
 
-Definition split_combine_statement : Prop
-  (* (": Prop" means that we are giving a name to a
-     logical proposition here.) *)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
-
-Theorem split_combine : split_combine_statement. Proof. (* FILL IN HERE *)
-Admitted.
+> split_combine : ?split_combine
 
 $\square$
 
@@ -1064,45 +1123,44 @@ $\square$
 This one is a bit challenging. Pay attention to the form of your induction
 hypothesis.
 
-Theorem filter_exercise : ∀(X : Type) (test : X -> bool)
-                             (x : X) (l lf : list X),
-     filter test l = x :: lf -> test x = True.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> filter_exercise : (test : a -> Bool) -> (x : a) -> (l, lf : List a) ->
+>                   filter test l = x :: lf ->
+>                   test x = True
+> filter_exercise test x l lf prf = ?filter_exercise_rhs
 
 $\square$
 
 
 ==== Exercise: 4 stars, advanced, recommended (forall_exists_challenge)
 
-Define two recursive Fixpoints, forallb and existsb. The first checks whether
-every element in a list satisfies a given predicate:
+Define two recursive functions, \idr{forallb} and \idr{existsb}. The first
+checks whether every element in a list satisfies a given predicate:
 
-      forallb oddb [1,3,5,7,9] = True
+      \idr{forallb oddb [1,3,5,7,9] = True}
 
-      forallb negb [False,False] = True
+      \idr{forallb negb [False,False] = True}
 
-      forallb evenb [0,2,4,5] = False
+      \idr{forallb evenb [0,2,4,5] = False}
 
-      forallb (beq_nat 5) [] = True
+      \idr{forallb (beq_nat 5) [] = True}
 
 The second checks whether there exists an element in the list that satisfies a
 given predicate:
 
-      existsb (beq_nat 5) [0,2,3,6] = False
+      \idr{existsb (beq_nat 5) [0,2,3,6] = False}
 
-      existsb (andb True) [True,True,False] = True
+      \idr{existsb (andb True) [True,True,False] = True}
 
-      existsb oddb [1,0,0,0,0,3] = True
+      \idr{existsb oddb [1,0,0,0,0,3] = True}
 
-      existsb evenb [] = False
+      \idr{existsb evenb [] = False}
 
-Next, define a _nonrecursive_ version of existsb — call it existsb' — using
-forallb and negb.
+Next, define a _nonrecursive_ version of \idr{existsb} — call it \idr{existsb'}
+— using \idr{forallb} and \idr{negb}.
 
-Finally, prove a theorem existsb_existsb' stating that existsb' and existsb have
-the same behavior.
+Finally, prove a theorem \idr{existsb_existsb'} stating that \idr{existsb'} and
+\idr{existsb} have the same behavior.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
 $\square$
