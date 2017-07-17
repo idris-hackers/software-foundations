@@ -18,7 +18,8 @@ will see:
 > module Tactics
 
 > import Basics
-> import Poly
+
+ import Poly
 
 \todo[inline]{Describe \idr{Pruviloj} and \idr{%runElab}}
 
@@ -29,6 +30,9 @@ will see:
 > %default total
 
 > %language ElabReflection
+
+ %hide Poly.MumbleGrumble.A
+ %hide Poly.MumbleGrumble.B
 
 
 == The \idr{exact} Tactic
@@ -114,7 +118,10 @@ Complete the following proof without using `simpl`.
 
 > silly_ex : ((n : Nat) -> evenb n = True -> oddb (S n) = True)
 >            -> evenb 3 = True -> oddb 4 = True
-> silly_ex = ?silly_ex_rhs
+> silly_ex = ?remove_me -- %runElab silly_ex_tac
+> where
+>   silly_ex_tac : Elab ()
+>   silly_ex_tac = ?silly_ex_tac_rhs
 
 $\square$
 
@@ -129,6 +136,7 @@ right sides of the equality are swapped.
 >  [_,_,_,_,_] <- apply (Var `{{sym}}) [True, True, True, True, False]
 >    | _ => fail [TextPart "Failed while applying", NamePart `{symmetry} ]
 >  solve
+>  attack
 
 > silly3_firsttry : (n : Nat) -> True = beq_nat n 5 ->
 >                   beq_nat (S (S n)) 7 = True
@@ -144,7 +152,7 @@ tactic, which switches the left and right sides of an equality in the goal.
 
 >    symmetry
 >    exact $ Var h
-
+>    solve
 
 
 ==== Exercise: 3 stars (apply_exercise1)
@@ -152,11 +160,11 @@ tactic, which switches the left and right sides of an equality in the goal.
 (_Hint_: You can use \idr{exact} with previously defined lemmas, not just
 hypotheses in the context. Remember that `:search` is your friend.)
 
-> rev_exercise1 : (l, l' : List Nat) -> l = rev l' -> l' = rev l
-> rev_exercise1 = ?remove_me1 -- %runElab rev_exercise1_tac
-> where
->   rev_exercise1_tac : Elab ()
->   rev_exercise1_tac = ?rev_exercise1_tac_rhs
+ rev_exercise1 : (l, l' : List Nat) -> l = rev l' -> l' = rev l
+ rev_exercise1 = ?remove_me1 -- %runElab rev_exercise1_tac
+ where
+   rev_exercise1_tac : Elab ()
+   rev_exercise1_tac = ?rev_exercise1_tac_rhs
 
 $\square$
 
@@ -234,114 +242,169 @@ invocation of \idr{apply}.
 $\square$
 
 
-== The inversion Tactic
+== The \idr{inversion} Tactic
 
 Recall the definition of natural numbers:
-     Inductive Nat : Type :=
-       | Z : Nat | S : Nat -> Nat.
+
+```idris
+  data Nat : Type where
+         Z : Nat
+         S : Nat -> Nat
+```
 
 It is obvious from this definition that every number has one of two forms:
-either it is the constructor Z or it is built by applying the constructor S to
-another number. But there is more here than meets the eye: implicit in the
-definition (and in our informal understanding of how datatype declarations work
-in other programming languages) are two more facts:
+either it is the constructor \idr{Z} or it is built by applying the constructor
+\idr{S} to another number. But there is more here than meets the eye: implicit
+in the definition (and in our informal understanding of how datatype
+declarations work in other programming languages) are two more facts:
 
-  - The constructor S is _injective_. That is, if S n = S m, it must be the case
-    that n = m.
+  - The constructor \idr{S} is _injective_. That is, if \idr{S n = S m}, it must
+    be the case that \idr{n = m}.
 
-  - The constructors Z and S are _disjoint_. That is, Z is not equal to S n for
-    any n.
+  - The constructors \idr{Z} and \idr{S} are _disjoint_. That is, \idr{Z} is not
+    equal to \idr{S n} for any \idr{n}.
 
 Similar principles apply to all inductively defined types: all constructors are
 injective, and the values built from distinct constructors are never equal. For
-lists, the cons constructor is injective and nil is different from every
-non-empty list. For booleans, True and False are different. (Since neither True
-nor False take any arguments, their injectivity is not interesting.) And so on.
+lists, the \idr{(::)} constructor is injective and \idr{Nil} is different from
+every non-empty list. For booleans, \idr{True} and \idr{False} are different.
+(Since neither \idr{True} nor \idr{False} take any arguments, their injectivity
+is not interesting.) And so on.
 
-Coq provides a tactic called inversion that allows us to exploit these
-principles in proofs. To see how to use it, let's show explicitly that the S
-constructor is injective:
+Idris provides a tactic called \idr{injective} that allows us to exploit these
+principles in proofs. To see how to use it, let's show explicitly that the
+\idr{S} constructor is injective:
 
-Theorem S_injective : ∀(n m : Nat),
-  S n = S m -> n = m.
-Proof.
-  intros n m H.
+> S_injective : (n, m : Nat) -> S n = S m -> n = m
+> S_injective = %runElab S_injective_tac
+> where
+>   covering
+>   S_injective_tac : Elab ()
+>   S_injective_tac = do
+>     [n, m, h] <- intros
+>       | _ => fail []
 
-By writing inversion H at this point, we are asking Coq to generate all
-equations that it can infer from H as additional hypotheses, replacing variables
-in the goal as it goes. In the present example, this amounts to adding a new
-hypothesis H1 : n = m and replacing n by m in the goal.
+By writing \idr{injective (Var h) res} at this point, we are asking Idris to
+generate all equations that it can infer from \idr{h} as additional hypotheses,
+replacing variables in the goal as it goes. In the present example, this amounts
+to adding a new hypothesis \idr{h1 : n = m} and replacing \idr{n} by \idr{m} in
+the goal.
 
-  inversion H. reflexivity.
-Qed.
+\todo[inline]{Explain \idr{gensym}, \idr{unproduct} and \idr{hypothesis}}
+
+>     res <- gensym "sInj"
+>     injective (Var h) res
+>     unproduct (Var res)
+>     hypothesis
 
 Here's a more interesting example that shows how multiple equations can be
 derived at once.
 
-Theorem inversion_ex1 : ∀(n m o : Nat),
-  [n, m] = [o, o] -> [n] = [m].
-Proof.
-  intros n m o H. inversion H. reflexivity. Qed.
+\todo[inline]{Make prettier and contribute to Pruviloj?}
 
-We can name the equations that inversion generates with an as ... clause:
+> symmetryIn : Raw -> TTName -> Elab ()
+> symmetryIn t n = do 
+>   tt <- getTTType t
+>   case tt of
+>     `((=) {A=~A} {B=~B} ~l ~r) => do
+>       af <- forget A
+>       bf <- forget B
+>       lf <- forget l
+>       rf <- forget r
+>       let tsym = the Raw $ `(sym {a=~af} {b=~bf} {left=~lf} {right=~rf} ~t)
+>       tsymty <- forget !(getTTType tsym)
+>       letbind n tsymty tsym
+>     _ => fail [TermPart tt, TextPart "is not an equality"]
+> where 
+>   getTTType : Raw -> Elab TT
+>   getTTType r = do
+>     env <- getEnv                             
+>     rty <- check env r           
+>     pure $ snd rty
 
-Theorem inversion_ex2 : ∀(n m : Nat),
-  [n] = [m] -> n = m.
-Proof.
-  intros n m H. inversion H as [Hnm]. reflexivity. Qed.
+\todo[inline]{Works quite fast in Elab shell but hangs the compiler}
+
+> -- inversion_ex1 : (n, m, o : Nat) -> [n, m] = [o, o] -> [n] = [m]
+> -- inversion_ex1 = %runElab inversion_ex1_tac
+> -- where
+> --   inversion_ex1_tac : Elab ()
+> --   inversion_ex1_tac = do
+> --     [n, m, o, eq] <- intros
+> --       | _ => fail []
+> --     eqinj <- gensym "eqinj"
+> --     injective (Var eq) eqinj
+> --     
+> --     eqinj2 <- gensym "eqinj2"                    -- manual destructuring
+> --     both (Var eqinj) !(gensym "natnat") eqinj2
+> --     neqo <- gensym "neqo"
+> --     eqinj3 <- gensym "eqinj3"
+> --     both (Var eqinj2) no eqinj3
+> --     meqos <- gensym "meqos"
+> --     both (Var eqinj3) mos !(gensym "uu")         
+> --
+> --     oeqn <- gensym "oeqn"
+> --     symmetryIn (Var neqo) oeqn
+> --     symmetry                                    
+> --     rewriteWith $ Var oeqn
+> --     exact $ Var meqos                      
+> --     solve                            
+
+Note that we need to pass the parameter \idr{eqinj} which will be bound to
+equations that \idr{injective} generates.
 
 
 ==== Exercise: 1 star (inversion_ex3)
 
-Example inversion_ex3 : ∀(X : Type) (x y z : X)
-(l j : list X),
-  x :: y :: l = z :: j -> y :: l = x :: j -> x = y.
-Proof.
-
-(* FILL IN HERE *) Admitted.
+> inversion_ex3 : (x, y, z : a) -> (l, j : List a) -> 
+>                 x :: y :: l = z :: j -> 
+>                 y :: l = x :: j -> 
+>                 x = y
+> inversion_ex3 = ?remove_me3 -- %runElab inversion_ex3_tac
+> where
+>   inversion_ex3_tac : Elab ()
+>   inversion_ex3_tac = ?inversion_ex3_tac_rhs
 
 $\square$
 
-When used on a hypothesis involving an equality between different
-constructors (e.g., S n = Z), inversion solves the goal immediately. Consider
-the following proof:
+\todo[inline]{Edit or remove}
 
-Theorem beq_nat_0_l : ∀n,
-   beq_nat 0 n = True -> n = 0.
-Proof.
-  intros n.
+When used on a hypothesis involving an equality between _different_ constructors
+(e.g., \idr{S n = Z}), \idr{injective} solves the goal immediately. Consider the
+following proof:
+
+> -- beq_nat_0_l : beq_nat 0 n = True -> n = 0
 
 We can proceed by case analysis on n. The first case is trivial.
 
-  destruct n as [| n']. - (* n = 0 *)
-    intros H. reflexivity.
+> -- beq_nat_0_l {n=Z} prf = %runElab reflexivity
+> -- beq_nat_0_l {n=(S _)} prf = %runElab (do
 
-However, the second one doesn't look so simple: assuming beq_nat 0 (S n') =
-True, we must show S n' = 0, but the latter clearly contradictory! The way
-forward lies in the assumption. After simplifying the goal state, we see that
-beq_nat 0 (S n') = True has become False = True:
+However, the second one doesn't look so simple: assuming \idr{beq_nat 0 (S n') =
+True}, we must show \idr{S n' = 0}, but the latter clearly contradictory! The
+way forward lies in the assumption. After simplifying the goal state, we see
+that \idr{beq_nat 0 (S n') = True} has become \idr{False = True}:
 
-  - (* n = S n' *)
-    simpl.
+> --                                      compute
 
-If we use inversion on this hypothesis, Coq notices that the subgoal we are
+\todo[inline]{Finish the script. Use \idr{disjoint}?}
+
+If we use inversion on this hypothesis, Idris notices that the subgoal we are
 working on is impossible, and therefore removes it from further consideration.
 
-    intros H. inversion H. Qed.
-
 This is an instance of a logical principle known as the principle of explosion,
-which asserts that a contradictory hypothesis entails anything, even False
+which asserts that a contradictory hypothesis entails anything, even false
 things!
 
-Theorem inversion_ex4 : ∀(n : Nat),
-  S n = Z -> 2 + 2 = 5.
-Proof.
-  intros n contra. inversion contra. Qed.
+\todo[inline]{How to show impossible cases from Elab?}
 
-Theorem inversion_ex5 : ∀(n m : Nat),
-  False = True -> [n] = [m].
-Proof.
-  intros n m contra. inversion contra. Qed.
+> inversion_ex4 : (n : Nat) -> S n = Z -> 2 + 2 = 5
+> inversion_ex4 n prf = absurd $ SIsNotZ prf
+
+> inversion_ex5 : (n, m : Nat) -> False = True -> [n] = [m]
+> inversion_ex5 n m prf = absurd $ FalseNotTrue prf
+>   where
+>   FalseNotTrue : False = True -> Void
+>   FalseNotTrue Refl impossible
 
 If you find the principle of explosion confusing, remember that these proofs are
 not actually showing that the conclusion of the statement holds. Rather, they
@@ -352,40 +415,42 @@ principle of explosion of more detail in the next chapter.
 
 ==== Exercise: 1 star (inversion_ex6)
 
-Example inversion_ex6 : ∀(X : Type)
-                          (x y z : X) (l j : list X),
-  x :: y :: l = [] -> y :: l = z :: j -> x = z.
-Proof.
-
-  (* FILL IN HERE *) Admitted.
+> inversion_ex6 : (x, y, z : a) -> (l, j : List a) -> 
+>                 x :: y :: l = [] -> 
+>                 y :: l = z :: j -> 
+>                 x = z
+> inversion_ex6 x y z l j prf prf1 = ?inversion_ex6_rhs
 
 $\square$
 
-To summarize this discussion, suppose H is a hypothesis in the context
+To summarize this discussion, suppose \idr{h} is a hypothesis in the context
 or a previously proven lemma of the form
 
-        c a1 a2 ... an = d b1 b2 ... bm
+        \idr{c a1 a2 ... an = d b1 b2 ... bm}
 
-for some constructors c and d and arguments a1 ... an and b1 ... bm. Then
-inversion H has the following effect:
+\todo[inline]{Edit, especially the \idr{disjoint} part}
 
-  - If c and d are the same constructor, then, by the injectivity of this
-    constructor, we know that a1 = b1, a2 = b2, etc. The inversion H adds these
-    facts to the context and tries to use them to rewrite the goal.
+for some constructors \idr{c} and \idr{d} and arguments \idr{a1 ... an} and
+\idr{b1 ... bm}. Then \idr{injective h} and \idr{disjoint h} have the following
+effects:
 
-  - If c and d are different constructors, then the hypothesis H is
-    contradictory, and the current goal doesn't have to be considered at all. In
-    this case, inversion H marks the current goal as completed and pops it off
-    the goal stack.
+  - If \idr{c} and \idr{d} are the same constructor, then, by the injectivity of
+    this constructor, we know that \idr{a1 = b1}, \idr{a2 = b2}, etc. The
+    \idr{injective h} adds these facts to the context and tries to use them to
+    rewrite the goal.
 
-The injectivity of constructors allows us to reason that ∀ (n m : Nat), S n = S
-m -> n = m. The converse of this implication is an instance of a more general
-fact about both constructors and functions, which we will find useful in a few
-places below:
+  - If \idr{c} and \idr{d} are different constructors, then the hypothesis
+    \idr{h} is contradictory, and the current goal doesn't have to be considered
+    at all. In this case, \idr{disjoint h} marks the current goal as completed
+    and pops it off the goal stack.
 
-Theorem f_equal : ∀(A B : Type) (f: A -> B) (x y: A),
-  x = y -> f x = f y.
-Proof. intros A B f x y eq. rewrite eq. reflexivity. Qed.
+The injectivity of constructors allows us to reason that \idr{(n, m : Nat) -> S
+n = S m -> n = m}. The converse of this implication is an instance of a more
+general fact about both constructors and functions, which we will find useful in
+a few places below:
+
+> f_equal : (f : a -> b) -> (x, y : a) -> x = y -> f x = f y
+> f_equal f x y eq = rewrite eq in Refl
 
 
 == Using Tactics on Hypotheses
