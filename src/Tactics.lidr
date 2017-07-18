@@ -19,7 +19,9 @@ will see:
 
 > import Basics
 
- import Poly
+\todo[inline]{If we \idr{import Poly} here, the pair sugar, among other things,
+will start messing things up, so we just copypaste the necessary definitions for
+now}
 
 \todo[inline]{Describe \idr{Pruviloj} and \idr{%runElab}}
 
@@ -31,9 +33,6 @@ will see:
 
 > %language ElabReflection
 
- %hide Poly.MumbleGrumble.A
- %hide Poly.MumbleGrumble.B
-
 
 == The \idr{exact} Tactic
 
@@ -42,10 +41,16 @@ as some hypothesis in the context or some previously proved lemma.
 
 > silly1 : (n, m, o, p : Nat) -> (n = m) -> [n,o] = [n,p] -> [n,o] = [m,p]
 
-Here, we could prove this with
+Here, we could prove this with rewrites:
 
 > silly1 n m o p eq1 eq2 = rewrite eq2 in
 >                          rewrite eq1 in Refl
+
+or the dependent pattern matching:
+
+```idris
+silly1 m m p p Refl Refl = Refl
+```
 
 as we have done several times before. We can achieve the same effect by a series
 of tactic applications, using \idr{exact} instead of the
@@ -160,11 +165,15 @@ tactic, which switches the left and right sides of an equality in the goal.
 (_Hint_: You can use \idr{exact} with previously defined lemmas, not just
 hypotheses in the context. Remember that `:search` is your friend.)
 
- rev_exercise1 : (l, l' : List Nat) -> l = rev l' -> l' = rev l
- rev_exercise1 = ?remove_me1 -- %runElab rev_exercise1_tac
- where
-   rev_exercise1_tac : Elab ()
-   rev_exercise1_tac = ?rev_exercise1_tac_rhs
+> rev : (l : List x) -> List x
+> rev [] = []
+> rev (h::t) = (rev t) ++ [h]
+
+> rev_exercise1 : (l, l' : List Nat) -> l = rev l' -> l' = rev l
+> rev_exercise1 = ?remove_me1 -- %runElab rev_exercise1_tac
+> where
+>   rev_exercise1_tac : Elab ()
+>   rev_exercise1_tac = ?rev_exercise1_tac_rhs
 
 $\square$
 
@@ -189,12 +198,17 @@ The following silly example uses two rewrites in a row to get from `[a,b]` to
 > trans_eq_example a b c d e f eq1 eq2 = rewrite eq1 in
 >                                        rewrite eq2 in Refl
 
+Note that this can also be proven with dependent pattern matching:
+
+```idris
+trans_eq_example a b a b a b Refl Refl = Refl
+```
+
 Since this is a common pattern, we might like to pull it out as a lemma
 recording, once and for all, the fact that equality is transitive.
 
 > trans_eq : (n, m, o : x) -> n = m -> m = o -> n = o
-> trans_eq n m o eq1 eq2 = rewrite eq1 in
->                          rewrite eq2 in Refl
+> trans_eq n n n Refl Refl = Refl
 
 (This lemma already exists in Idris' stdlib under the name of \idr{trans}.)
 
@@ -302,6 +316,12 @@ derived at once.
 
 \todo[inline]{Make prettier and contribute to Pruviloj?}
 
+> getTTType : Raw -> Elab TT
+> getTTType r = do
+>   env <- getEnv
+>   rty <- check env r
+>   pure $ snd rty
+
 > symmetryIn : Raw -> TTName -> Elab ()
 > symmetryIn t n = do
 >   tt <- getTTType t
@@ -315,12 +335,6 @@ derived at once.
 >       tsymty <- forget !(getTTType tsym)
 >       letbind n tsymty tsym
 >     _ => fail [TermPart tt, TextPart "is not an equality"]
-> where
->   getTTType : Raw -> Elab TT
->   getTTType r = do
->     env <- getEnv
->     rty <- check env r
->     pure $ snd rty
 
 \todo[inline]{Works quite fast in Elab shell but hangs the compiler}
 
@@ -398,13 +412,16 @@ things!
 \todo[inline]{How to show impossible cases from Elab?}
 
 > inversion_ex4 : (n : Nat) -> S n = Z -> 2 + 2 = 5
-> inversion_ex4 n prf = absurd $ SIsNotZ prf
+> -- we need "sym" because Prelude.Nat only disproves "Z = S n" for us 
+> inversion_ex4 n prf = absurd $ sym prf  
 
-> FalseNotTrue : False = True -> Void
-> FalseNotTrue Refl impossible
+\todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
+
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
 
 > inversion_ex5 : (n, m : Nat) -> False = True -> [n] = [m]
-> inversion_ex5 n m prf = absurd $ FalseNotTrue prf
+> inversion_ex5 n m prf = absurd prf
 
 If you find the principle of explosion confusing, remember that these proofs are
 not actually showing that the conclusion of the statement holds. Rather, they
@@ -450,7 +467,7 @@ general fact about both constructors and functions, which we will find useful in
 a few places below:
 
 > f_equal : (f : a -> b) -> (x, y : a) -> x = y -> f x = f y
-> f_equal f x y eq = rewrite eq in Refl
+> f_equal f x x Refl = Refl
 
 (This is called \idr{cong} in Idris' stdlib.)
 
@@ -474,25 +491,50 @@ in H performs simplification in the hypothesis named \idr{h} in the context.
 >       | _ => fail []
 >     exact $ Var eq
 
-\todo[inline]{Write \idr{applyIn} and reformulate the example as it's trivial in
-Idris}
+\todo[inline]{Contribute to Pruviloj}
 
-Similarly, apply L in H matches some conditional statement L (of the form L1 ->
-L2, say) against a hypothesis H in the context. However, unlike ordinary apply
-(which rewrites a goal matching L2 into a subgoal L1), apply L in H matches H
-against L1 and, if successful, replaces it with L2.
+> applyIn : Raw -> Raw -> TTName -> Elab ()
+> applyIn f x n = do
+>   ftt <- getTTType f
+>   case ftt of 
+>     `(~xty -> ~yty) => do
+>       let fx = RApp f x
+>       fxty <- forget !(getTTType fx)
+>       letbind n fxty fx
+>     _ => fail [TermPart ftt, TextPart "is not a function"]
 
-In other words, apply L in H gives us a form of "forward reasoning": from L1 ->
-L2 and a hypothesis matching L1, it produces a hypothesis matching L2. By
-contrast, apply L is "backward reasoning": it says that if we know L1->L2 and we
-are trying to prove L2, it suffices to prove L1.
+\todo[inline]{Edit}
+
+Similarly, \idr{applyIn l h} matches some conditional statement \idr{l} (of the
+form \idr{l1 -> l2}, say) against a hypothesis \idr{h} in the context. However,
+unlike ordinary \idr{exact} (which rewrites a goal matching \idr{l2} into a
+subgoal \idr{l1}), \idr{applyIn l h n} matches \idr{h} against \idr{l1} and, if
+successful, binds the result \idr{l2} to \idr{n}.
+
+In other words, \idr{applyIn l h} gives us a form of "forward reasoning": from
+\idr{l1 -> l2} and a hypothesis matching \idr{l1}, it produces a hypothesis
+matching \idr{l2}. By contrast, \idr{exact l} is "backward reasoning": it says
+that if we know \idr{l1->l2} and we are trying to prove \idr{l2}, it suffices to
+prove \idr{l1}.
 
 Here is a variant of a proof from above, using forward reasoning throughout
 instead of backward reasoning.
 
-> silly3' : (n : Nat) -> (beq_nat n 5 = True -> beq_nat (S (S n)) 7 = True) ->
->           True = beq_nat n 5 ->
->           True = beq_nat (S (S n)) 7
+> silly3' : (n, m : Nat) -> (beq_nat n 5 = True -> beq_nat m 7 = True) -> 
+>          True = beq_nat n 5 -> True = beq_nat m 7
+> silly3' = %runElab silly3_tac
+> where
+>   silly3_tac : Elab ()
+>   silly3_tac = do
+>     [n,m,eq,h] <- intros
+>       | _ => fail []
+>     hsym <- gensym "hsym"
+>     symmetryIn (Var h) hsym
+>     happ <- gensym "happ"
+>     applyIn (Var eq) (Var hsym) happ
+>     happsym <- gensym "happsym"
+>     symmetryIn (Var happ) happsym
+>     exact $ Var happsym
 
 Forward reasoning starts from what is _given_ (premises, previously proven
 theorems) and iteratively draws conclusions from them until the goal is reached.
@@ -659,11 +701,15 @@ The following exercise requires the same pattern.
 
 ==== Exercise: 2 stars (beq_nat_true)
 
+\todo[inline]{We can't leave this undefined as \idr{beq_id_true} later depends
+on it. Use \idr{really_believe_me}?}
+
 > beq_nat_true : beq_nat n m = True -> n = m
 > beq_nat_true {n=Z} {m=Z} _ = Refl
 > beq_nat_true {n=(S _)} {m=Z} Refl impossible
 > beq_nat_true {n=Z} {m=(S _)} Refl impossible
-> beq_nat_true {n=(S n')} {m=(S m')} eq = rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
+> beq_nat_true {n=(S n')} {m=(S m')} eq =
+>  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
 
 $\square$
 
@@ -673,7 +719,7 @@ $\square$
 Give a careful informal proof of \idr{beq_nat_true}, being as explicit as possible
 about quantifiers.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
 $\square$
 
@@ -870,16 +916,16 @@ Similarly, tentatively unfolding \idr{bar (m+1)} leaves a match whose scrutinee
 is a function application (that, itself, cannot be simplified, even after
 unfolding the definition of \idr{+}), so \idr{Refl} leaves it alone.
 
-\todo[inline]{Edit}
-
-At this point, there are two ways to make progress. One is to use destruct m to
-break the proof into two cases, each focusing on a more concrete choice of m (Z
-vs S _). In each case, the match inside of bar can now make progress, and the
-proof is easy to complete.
+At this point, there are two ways to make progress. One is to match on implicit
+parameter \idr{m} to break the proof into two cases, each focusing on a more
+concrete choice of \idr{m} (\idr{Z} vs \idr{S _}). In each case, the match
+inside of \idr{bar} can now make progress, and the proof is easy to complete.
 
 > silly_fact_2 : bar m + 1 = bar (m + 1) + 1
 > silly_fact_2 {m=Z} = Refl
 > silly_fact_2 {m=(S _)} = Refl
+
+\todo[inline]{Edit}
 
 This approach works, but it depends on our recognizing that the match hidden
 inside bar is what was preventing us from making progress. A more
@@ -901,7 +947,7 @@ Qed.
 
 == Using \idr{destruct} on Compound Expressions
 
-\todo[inline]{Edit}
+\todo[inline]{Edit. Explain \idr{with}}
 
 We have seen many examples where destruct is used to perform case analysis of
 the value of some variable. But sometimes we need to reason by cases on the
@@ -967,7 +1013,7 @@ like this:
 >   sillyfun1_odd (S (S (S Z))) Refl | True = Refl
 >   sillyfun1_odd n prf | False with (beq_nat n 5)
 >     sillyfun1_odd (S (S (S (S (S Z))))) Refl | False | True = Refl
->     sillyfun1_odd n prf | False | False = absurd $ FalseNotTrue prf
+>     sillyfun1_odd n prf | False | False = absurd prf
 
 \todo[inline]{Edit the following, since \idr{with} works fine here as well}
 
