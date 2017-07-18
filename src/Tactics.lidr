@@ -49,8 +49,11 @@ Here, we could prove this with rewrites:
 or the dependent pattern matching:
 
 ```idris
-silly1 m m p p Refl Refl = Refl
+silly1 n n o o Refl Refl = Refl
 ```
+
+\todo[inline]{Write more about dependent pattern matching techinque. Maybe move
+to an earlier chapter?}
 
 as we have done several times before. We can achieve the same effect by a series
 of tactic applications, using \idr{exact} instead of the
@@ -380,45 +383,42 @@ equations that \idr{injective} generates.
 
 $\square$
 
-\todo[inline]{Edit or remove}
+\todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
+
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
+
+\todo[inline]{Edit}
 
 When used on a hypothesis involving an equality between _different_ constructors
 (e.g., \idr{S n = Z}), \idr{injective} solves the goal immediately. Consider the
 following proof:
 
-> -- beq_nat_0_l : beq_nat 0 n = True -> n = 0
+> beq_nat_0_l : beq_nat 0 n = True -> n = 0
 
 We can proceed by case analysis on n. The first case is trivial.
 
-> -- beq_nat_0_l {n=Z} prf = %runElab reflexivity
-> -- beq_nat_0_l {n=(S _)} prf = %runElab (do
+> beq_nat_0_l {n=Z} _ = Refl
 
 However, the second one doesn't look so simple: assuming \idr{beq_nat 0 (S n') =
 True}, we must show \idr{S n' = 0}, but the latter clearly contradictory! The
 way forward lies in the assumption. After simplifying the goal state, we see
 that \idr{beq_nat 0 (S n') = True} has become \idr{False = True}:
 
-> --                                      compute
+\todo[inline]{How to show impossible cases from Elab?}
 
-\todo[inline]{Finish the script. Use \idr{disjoint}?}
+> beq_nat_0_l {n=(S _)} prf = absurd prf
 
-If we use inversion on this hypothesis, Idris notices that the subgoal we are
-working on is impossible, and therefore removes it from further consideration.
+If we use \idr{absurd} on this hypothesis, Idris allows us to safely infer any
+conclusion from it, in this case our goal of \idr{n = 0}.
 
 This is an instance of a logical principle known as the principle of explosion,
 which asserts that a contradictory hypothesis entails anything, even false
 things!
 
-\todo[inline]{How to show impossible cases from Elab?}
-
 > inversion_ex4 : (n : Nat) -> S n = Z -> 2 + 2 = 5
 > -- we need "sym" because Prelude.Nat only disproves "Z = S n" for us 
 > inversion_ex4 n prf = absurd $ sym prf  
-
-\todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
-
-> Uninhabited (False = True) where
->   uninhabited Refl impossible
 
 > inversion_ex5 : (n, m : Nat) -> False = True -> [n] = [m]
 > inversion_ex5 n m prf = absurd prf
