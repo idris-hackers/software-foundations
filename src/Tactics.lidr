@@ -134,7 +134,7 @@ Complete the following proof without using `simpl`.
 $\square$
 
 To use the \idr{exact} tactic, the (conclusion of the) fact being applied must
-match the goal exactly — for example, \idr{exact} will not work if the left and
+match the goal exactly -- for example, \idr{exact} will not work if the left and
 right sides of the equality are swapped.
 
 \todo[inline]{Contribute to Pruviloj}
@@ -417,11 +417,24 @@ which asserts that a contradictory hypothesis entails anything, even false
 things!
 
 > inversion_ex4 : (n : Nat) -> S n = Z -> 2 + 2 = 5
-> -- we need "sym" because Prelude.Nat only disproves "Z = S n" for us 
-> inversion_ex4 n prf = absurd $ sym prf  
+> -- we need "sym" because Prelude.Nat only disproves "Z = S n" for us
+> inversion_ex4 n prf = absurd $ sym prf
+
+In simple cases like this, we could've also solved this with matching on
+\idr{prf}:
+
+```idris
+inversion_ex4 _ Refl impossible
+```
 
 > inversion_ex5 : (n, m : Nat) -> False = True -> [n] = [m]
 > inversion_ex5 n m prf = absurd prf
+
+Again, here we can also write
+
+```idris
+inversion_ex5 _ _ Refl impossible
+```
 
 If you find the principle of explosion confusing, remember that these proofs are
 not actually showing that the conclusion of the statement holds. Rather, they
@@ -496,7 +509,7 @@ in H performs simplification in the hypothesis named \idr{h} in the context.
 > applyIn : Raw -> Raw -> TTName -> Elab ()
 > applyIn f x n = do
 >   ftt <- getTTType f
->   case ftt of 
+>   case ftt of
 >     `(~xty -> ~yty) => do
 >       let fx = RApp f x
 >       fxty <- forget !(getTTType fx)
@@ -520,7 +533,7 @@ prove \idr{l1}.
 Here is a variant of a proof from above, using forward reasoning throughout
 instead of backward reasoning.
 
-> silly3' : (n, m : Nat) -> (beq_nat n 5 = True -> beq_nat m 7 = True) -> 
+> silly3' : (n, m : Nat) -> (beq_nat n 5 = True -> beq_nat m 7 = True) ->
 >          True = beq_nat n 5 -> True = beq_nat m 7
 > silly3' = %runElab silly3_tac
 > where
@@ -562,7 +575,7 @@ Sometimes it is important to control the exact form of the induction hypothesis
 when carrying out inductive proofs in Idris elab script. In particular, we need
 to be careful about which of the assumptions we move (using \idr{intros}) from
 the goal to the context before invoking the \idr{induction} tactic. For example,
-suppose we want to show that the \idr{double} function is injective — i.e., that
+suppose we want to show that the \idr{double} function is injective -- i.e., that
 it maps different arguments to different results:
 
 > double : (n : Nat) -> Nat
@@ -598,15 +611,15 @@ Proof.
   - (* n = S n' *) intros eq. destruct m as [| m'].
     + (* m = Z *) inversion eq. + (* m = S m' *) apply f_equal.
 
-At this point, the induction hypothesis, IHn', does not give us n' = m' — there
-is an extra S in the way — so the goal is not provable.
+At this point, the induction hypothesis, IHn', does not give us n' = m' -- there
+is an extra S in the way -- so the goal is not provable.
 
       Abort.
 
 What went wrong?
 
 The problem is that, at the point we invoke the induction hypothesis, we have
-already introduced m into the context — intuitively, we have told Coq, "Let's
+already introduced m into the context -- intuitively, we have told Coq, "Let's
 consider some particular n and m..." and we now have to prove that, if double n
 = double m for these particular n and m, then n = m.
 
@@ -633,7 +646,7 @@ then we can prove
 
   - "if double (S n) = double m then S n = m".
 
-To see why this is strange, let's think of a particular m — say, 5. The
+To see why this is strange, let's think of a particular m -- say, 5. The
 statement is then saying that, if we know
 
   - Q = "if double n = 10 then n = 5"
@@ -1019,7 +1032,7 @@ like this:
 
 We get stuck at this point because the context does not contain enough
 information to prove the goal! The problem is that the substitution performed by
-destruct is too brutal — it threw away every occurrence of beq_nat n 3, but we
+destruct is too brutal -- it threw away every occurrence of beq_nat n 3, but we
 need to keep some memory of this expression and how it was destructed, because
 we need to be able to reason that, since beq_nat n 3 = True in this branch of
 the case analysis, it must be that n = 3, from which it follows that n is odd.
@@ -1201,8 +1214,8 @@ given predicate:
 
       \idr{existsb evenb [] = False}
 
-Next, define a _nonrecursive_ version of \idr{existsb} — call it \idr{existsb'}
-— using \idr{forallb} and \idr{negb}.
+Next, define a _nonrecursive_ version of \idr{existsb} -- call it \idr{existsb'}
+-- using \idr{forallb} and \idr{negb}.
 
 Finally, prove a theorem \idr{existsb_existsb'} stating that \idr{existsb'} and
 \idr{existsb} have the same behavior.
