@@ -293,7 +293,7 @@ polymorphic lists...
 > app Nil l2 = l2
 > app (h::t) l2 = h :: app t l2
 
-> rev : (l: List x) -> List x
+> rev : (l : List x) -> List x
 > rev [] = []
 > rev (h::t) = app (rev t) (h::Nil)
 

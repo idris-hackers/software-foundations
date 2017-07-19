@@ -4,6 +4,7 @@ modules    = Basics
            , Induction
            , Lists
            , Poly
+           , Tactics
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
@@ -18,4 +19,4 @@ sourceloc  = git://git@github.com:idris-hackers/software-foundations.git
 bugtracker = https://github.com/idris-hackers/software-foundations/issues
 
 sourcedir  = src
-opts       = "--check --total"
+opts       = "--check --total -p pruviloj"
