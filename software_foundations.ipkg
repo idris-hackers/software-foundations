@@ -11,7 +11,7 @@ version    = 0.0.1.0
 readme     = README.md
 -- NOTE: For license information see the file LICENSE.
 
-author     = "Eric Bailey, et al."
+author     = "The Idris community"
 maintainer = "Eric Bailey <eric@ericb.me>"
 
 homepage   = http://idris-hackers.github.io/software-foundations
