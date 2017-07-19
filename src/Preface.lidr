@@ -351,7 +351,7 @@ search engines.
 A tar file containing the full sources for the "release version" of these notes
 (as a collection of Coq scripts and HTML files) is available here:
 
-    http://www.cis.upenn.edu/~bcpierce/sf
+\url{http://www.cis.upenn.edu/~bcpierce/sf}
 
 If you are using the notes as part of a class, you may be given access to a
 locally extended version of the files, which you should use instead of the
@@ -361,5 +361,5 @@ release version.
 == Translations
 
 Thanks to the efforts of a team of volunteer translators, _Software Foundations_
-can now be enjoyed in Japanese at [http://proofcafe.org/sf]. A Chinese
+can now be enjoyed in Japanese at \url{http://proofcafe.org/sf}. A Chinese
 translation is underway.
