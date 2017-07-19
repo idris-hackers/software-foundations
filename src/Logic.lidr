@@ -94,10 +94,10 @@ their arguments.
 For instance, here's a (polymorphic) property defining the familiar notion of an
 _injective function_.
 
-> injective : (f : a -> b) -> Type
-> injective {a} {b} f = (x, y : a) -> f x = f y -> x = y
+> Injective : (f : a -> b) -> Type
+> Injective {a} {b} f = (x, y : a) -> f x = f y -> x = y
 
-> succ_inj : injective S
+> succ_inj : Injective S
 > succ_inj x x Refl = Refl
 
 The equality operator \idr{=} is also a function that returns a \idr{Type}.
@@ -545,9 +545,9 @@ $\square$
 
 Prove that existential quantification distributes over disjunction.
 
-> dist_exists_or : (p, q : a -> Type) -> (x ** (p x `Either` q x)) <-> 
+> dist_exists_or : {p, q : a -> Type} -> (x ** (p x `Either` q x)) <-> 
 >                                       ((x ** p x) `Either` (x ** q x))
-> dist_exists_or p q = ?dist_exists_or_rhs
+> dist_exists_or = ?dist_exists_or_rhs
 
 $\square$
 
@@ -634,9 +634,8 @@ definition should _not_ just restate the left-hand side of \idr{All_In}.)
 > All : (p : t -> Type) -> (l : List t) -> Type
 > All p l = ?All_rhs
 
-> All_In : (p : t -> Type) -> (l : List t) -> 
->          ((x:t) -> In x l -> p x) <-> (All p l)
-> All_In P l = ?All_In_rhs
+> All_In : ((x:t) -> In x l -> p x) <-> (All p l)
+> All_In = ?All_In_rhs
 
 $\square$
 
@@ -653,23 +652,23 @@ n} when \idr{n} is odd and equivalent to \idr{peven n} otherwise.
 
 To test your definition, prove the following facts:
 
-> combine_odd_even_intro : (podd, peven : Nat -> Type) -> (n : Nat) ->
+> combine_odd_even_intro : (n : Nat) ->
 >                          (oddb n = True -> podd n) ->
 >                          (oddb n = False -> peven n) ->
 >                          combine_odd_even podd peven n
-> combine_odd_even_intro podd peven n oddp evenp = ?combine_odd_even_intro_rhs
+> combine_odd_even_intro n oddp evenp = ?combine_odd_even_intro_rhs
 
-> combine_odd_even_elim_odd : (podd, peven : Nat -> Type) -> (n : Nat) ->
+> combine_odd_even_elim_odd : (n : Nat) ->
 >                             combine_odd_even podd peven n ->
 >                             oddb n = True ->
 >                             podd n
-> combine_odd_even_elim_odd podd peven n x prf = ?combine_odd_even_elim_odd_rhs
+> combine_odd_even_elim_odd n x prf = ?combine_odd_even_elim_odd_rhs
 
-> combine_odd_even_elim_even : (podd, peven : Nat -> Type) -> (n : Nat) ->
+> combine_odd_even_elim_even : (n : Nat) ->
 >                              combine_odd_even podd peven n ->
 >                              oddb n = False ->
 >                              peven n
-> combine_odd_even_elim_even podd peven n x prf = ?combine_odd_even_elim_even_rhs
+> combine_odd_even_elim_even n x prf = ?combine_odd_even_elim_even_rhs
 
 $\square$
 
@@ -719,8 +718,8 @@ wanted to prove the following result:
 \todo[inline]{Edit, we already have done this before}
 
 It appears at first sight that we ought to be able to prove this by rewriting
-with \idr{plusCommutative} twice to make the two sides match. The problem, however, is that
-the second \idr{rewrite} will undo the effect of the first.
+with \idr{plusCommutative} twice to make the two sides match. The problem,
+however, is that the second \idr{rewrite} will undo the effect of the first.
 
 Proof.
   intros n m p.
@@ -761,8 +760,10 @@ in the proof below.
 > lemma_application_ex : (n : Nat) -> (ns : List Nat) -> 
 >                        In n (map (\m => m * 0) ns) -> n = 0
 > lemma_application_ex _ [] prf = absurd prf
-> lemma_application_ex _ (y :: _) (Left prf) = rewrite sym $ multZeroRightZero y in sym prf
-> lemma_application_ex n (_ :: xs) (Right prf) = lemma_application_ex n xs prf
+> lemma_application_ex _ (y :: _) (Left prf) = 
+>   rewrite sym $ multZeroRightZero y in sym prf
+> lemma_application_ex n (_ :: xs) (Right prf) = 
+>   lemma_application_ex n xs prf
 
 We will see many more examples of the idioms from this section in later chapters.
 
@@ -893,7 +894,7 @@ to execute \idr{++} after the recursive call); a decent compiler will generate
 very efficient code in this case. Prove that the two definitions are indeed
 equivalent.
 
-> tr_rev_correct : tr_rev x = rev x
+> tr_rev_correct : (x : List a) -> tr_rev x = rev x
 > tr_rev_correct = ?tr_rev_correct_rhs
 
 $\square$
@@ -932,33 +933,44 @@ We often say that the boolean \idr{evenb n} _reflects_ the proposition \idr{(k
 
 $\square$
 
-\todo[inline]{Finish, use \idr{really_believe_me} for \idr{evenb_double_conv}?}
-
 > even_bool_prop : (evenb n = True) <-> (k ** n = double k)
-> even_bool_prop = ?even_bool_prop_rhs
+> even_bool_prop = (to, fro)
+> where
+>   to : evenb n = True -> (k ** n = double k)
+>   to {n} prf = let
+>     (k ** p) = evenb_double_conv {n} 
+>   in 
 
-Proof.
-  intros n. split.
-  - intros H. destruct (evenb_double_conv n) as [k Hk].
-    rewrite Hk. rewrite H. ∃k. reflexivity.
-  - intros [k Hk]. rewrite Hk. apply evenb_double.
-Qed.
+\todo[inline]{Is there a shorter way?}
+
+>     (k ** replace prf p {P = \x => n = if x then double k else S (double k)})
+>   fro : (k ** n = double k) -> evenb n = True
+>   fro {n} (k**prf) = rewrite prf in evenb_double {k}
 
 Similarly, to state that two numbers \idr{n} and \idr{m} are equal, we can say
 either (1) that \idr{beq_nat n m} returns \idr{True} or (2) that \idr{n = m}.
 These two notions are equivalent.
 
-\todo[inline]{Finish, implement \idr{beq_nat_true} and \idr{beq_nat_refl} from
-`Tactics`}
+\todo[inline]{Copy these 2 here for now}
 
-> beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
-> beq_nat_true_iff n1 n2 = ?beq_nat_true_iff_rhs
+>  beq_nat_true : beq_nat n m = True -> n = m
+>  beq_nat_true {n=Z} {m=Z} _ = Refl
+>  beq_nat_true {n=(S _)} {m=Z} Refl impossible
+>  beq_nat_true {n=Z} {m=(S _)} Refl impossible
+>  beq_nat_true {n=(S n')} {m=(S m')} eq =
+>   rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
+  
+>  beq_nat_refl : (n : Nat) -> True = beq_nat n n
+>  beq_nat_refl Z = Refl
+>  beq_nat_refl (S k) = beq_nat_refl k 
 
-Proof.
-  intros n1 n2. split.
-  - apply beq_nat_true.
-  - intros H. rewrite H. rewrite ← beq_nat_refl. reflexivity.
-Qed.
+>  beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
+>  beq_nat_true_iff n1 n2 = (to, fro n1 n2)
+>  where
+>    to : (beq_nat n1 n2 = True) -> (n1 = n2)
+>    to = beq_nat_true {n=n1} {m=n2}
+>    fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
+>    fro n1 n1 Refl = sym $ beq_nat_refl n1
 
 However, while the boolean and propositional formulations of a claim are
 equivalent from a purely logical perspective, they need not be equivalent
