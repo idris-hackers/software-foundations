@@ -54,15 +54,15 @@ type signatures.
 
 But propositions can be used in many other ways. For example, we can give a name
 to a proposition as a value on its own, just as we have given names to
-expressions of other sorts (don't forget that names starting with lowercase
-letters are considered implicits in Idris). 
+expressions of other sorts (you'll soon see why we start the name with a capital
+letter). 
 
 > Plus_fact : Type
 > Plus_fact = 2+2=4
 
 ```idris
-λΠ> :t plus_fact
-plus_fact : Type
+λΠ> :t Plus_fact
+Plus_fact : Type
 ```
 
 We can later use this name in any situation where a proposition is expected --
@@ -70,6 +70,10 @@ for example, in a function declaration.
 
 > plus_fact_is_true : Plus_fact
 > plus_fact_is_true = Refl
+
+(Here's the reason - recall that names starting with lowercase letters are
+considered implicits in Idris, so \idr{plus_fact} would be considered a free
+variable!)
 
 We can also write _parameterized_ propositions -- that is, functions that take
 arguments of some type and return a proposition. For instance, the following
@@ -113,26 +117,26 @@ is also polymorphic:
 === Conjunction
 
 The _conjunction_ (or _logical and_) of propositions \idr{a} and \idr{b} in
-Idris is the same as the pair of \idr{a} and \idr{b}, written \idr{(a,b)},
+Idris is the same as the pair of \idr{a} and \idr{b}, written \idr{(a, b)},
 representing the claim that both \idr{a} and \idr{b} are true.
 
-> and_example : (3 + 4 = 7 , 2 * 2 = 4)
+> and_example : (3 + 4 = 7, 2 * 2 = 4)
 
 To prove a conjunction, we can use value-level pair syntax:
 
-> and_example = (Refl,Refl)
+> and_example = (Refl, Refl)
 
 For any propositions \idr{a} and \idr{b}, if we assume that \idr{a} is true and
 we assume that \idr{a} is true, we can trivially conclude that \idr{(a,b)} is
 also true.
 
-> and_intro : a -> b -> (a,b)
+> and_intro : a -> b -> (a, b)
 > and_intro = MkPair
 
 
 ==== Exercise: 2 stars (and_exercise)
 
-> and_exercise : (n, m : Nat) -> n + m = 0 -> (n = 0 , m = 0)
+> and_exercise : (n, m : Nat) -> n + m = 0 -> (n = 0, m = 0)
 > and_exercise n m prf = ?and_exercise_rhs
 
 $\square$
@@ -145,7 +149,7 @@ employ pattern matching.
 If the proof context contains a hypothesis \idr{h} of the form \idr{(a,b)}, case
 splitting will replace it with a pair pattern \idr{(a,b)}.
 
-> and_example2 : (n, m : Nat) -> (n = 0 , m = 0) -> n + m = 0
+> and_example2 : (n, m : Nat) -> (n = 0, m = 0) -> n + m = 0
 > and_example2 Z Z (Refl,Refl) = Refl
 > and_example2 (S _) _ (Refl,_) impossible
 > and_example2 _ (S _) (_,Refl) impossible
@@ -175,13 +179,13 @@ Another common situation with conjunctions is that we know \idr{(a,b)} but in
 some context we need just \idr{a} (or just \idr{b}). The following lemmas are
 useful in such cases:
 
-> proj1 : (p,q) -> p
+> proj1 : (p, q) -> p
 > proj1 = fst
 
 
 ==== Exercise: 1 star, optional (proj2)
 
-> proj2 : (p,q) -> q
+> proj2 : (p, q) -> q
 > proj2 x = ?proj2_rhs
 
 $\square$
@@ -190,15 +194,15 @@ Finally, we sometimes need to rearrange the order of conjunctions and/or the
 grouping of multi-way conjunctions. The following commutativity and
 associativity theorems are handy in such cases.
 
-> and_commut : (p,q) -> (q,p)
-> and_commut (p,q) = (q,p)
+> and_commut : (p, q) -> (q, p)
+> and_commut (p, q) = (q, p)
 
 
 ==== Exercise: 2 stars (and_assoc)
 
 \todo[inline]{Remove or demote to 1 star?}
 
-> and_assoc : (p,(q,r)) -> ((p,q),r)
+> and_assoc : (p, (q, r)) -> ((p, q), r)
 > and_assoc x = ?and_assoc_rhs
 
 $\square$
@@ -217,10 +221,10 @@ as for \idr{Nat} or other data types, can be done with pattern matching. Here is
 an example:
 
 > or_example : (n, m : Nat) -> ((n = 0) `Either` (m = 0)) -> n * m = 0
-> or_example Z m (Left Refl) = Refl
-> or_example (S _) m (Left Refl) impossible
+> or_example Z _ (Left Refl) = Refl
+> or_example (S _) _ (Left Refl) impossible
 > or_example n Z (Right Refl) = multZeroRightZero n
-> or_example n (S _) (Right Refl) impossible
+> or_example _ (S _) (Right Refl) impossible
 
 Conversely, to show that a disjunction holds, we need to show that one of its
 sides does. This can be done via aforementioned \idr{Left} and \idr{Right}
@@ -305,10 +309,16 @@ $\square$
 This is how we use \idr{Not} to state that \idr{0} and \idr{1} are different
 elements of \idr{Nat}:
 
-\todo[inline]{Explain \idr{Refl}-lambda syntax}
+\todo[inline]{Explain \idr{Refl}-lambda syntax and \idr{Uninhabited}}
 
-> zero_not_one : Not (0 = 1)
+> zero_not_one : Not (Z = S _)
 > zero_not_one = \Refl impossible
+
+We could also rely on the \idr{Uninhabited} instance in stdlib and write this as
+
+```idris
+zero_not_one = uninhabited
+```
 
 It takes a little practice to get used to working with negation in Idris. Even
 though you can see perfectly well why a statement involving negation is true, it
@@ -355,7 +365,7 @@ $\square$
 
 ==== Exercise: 1 star, advancedM (informal_not_PNP)
 
-Write an informal proof (in English) of the proposition \idr{Not (p , Not p)}.
+Write an informal proof (in English) of the proposition \idr{Not (p, Not p)}.
 
 > -- FILL IN HERE 
 
@@ -496,16 +506,18 @@ Qed.
 
 Another important logical connective is existential quantification. To say that
 there is some \idr{x} of type \idr{t} such that some property \idr{p} holds of
-\idr{x}, we write \idr{(x : t) ** p}. The type annotation \idr{: t} can be
-omitted if Idris is able to infer from the context what the type of x should be.
+\idr{x}, we write \idr{(x : t ** p)}. The type annotation \idr{: t} can be
+omitted if Idris is able to infer from the context what the type of \idr{x}
+should be.
 
 \todo[inline]{Edit}
 
 To prove a statement of the form \idr{(x ** p)}, we must show that \idr{p} holds
 for some specific choice of value for \idr{x}, known as the _witness_ of the
 existential. This is done in two steps: First, we explicitly tell Idris which
-witness \idr{t} we have in mind by invoking the tactic ∃ t. Then we prove that
-\idr{p} holds after all occurrences of \idr{x} are replaced by \idr{t}.
+witness \idr{t} we have in mind by writing it on the left side of \idr{**}. Then
+we prove that \idr{p} holds after all occurrences of \idr{x} are replaced by
+\idr{t}.
 
 > four_is_even : (n : Nat ** 4 = n + n)
 > four_is_even = (2 ** Refl)
@@ -523,8 +535,8 @@ that \idr{p} holds of \idr{x}.
 Prove that "\idr{p} holds for all \idr{x}" implies "there is no \idr{x} for
 which \idr{p} does not hold."
 
-> dist_not_exists : (P : a -> Type) -> ((x:a) -> P x) -> Not (x ** Not $ P x)
-> dist_not_exists P f = ?dist_not_exists_rhs
+> dist_not_exists : {p : a -> Type} -> ((x:a) -> p x) -> Not (x ** Not $ p x)
+> dist_not_exists f = ?dist_not_exists_rhs
 
 $\square$
 
@@ -533,9 +545,9 @@ $\square$
 
 Prove that existential quantification distributes over disjunction.
 
-> dist_exists_or : (P, Q : a -> Type) -> (x ** (P x `Either` Q x)) <-> 
->                                       ((x ** P x) `Either` (x ** Q x))
-> dist_exists_or P Q = ?dist_exists_or_rhs
+> dist_exists_or : (p, q : a -> Type) -> (x ** (p x `Either` q x)) <-> 
+>                                       ((x ** p x) `Either` (x ** q x))
+> dist_exists_or p q = ?dist_exists_or_rhs
 
 $\square$
 
@@ -593,8 +605,8 @@ set of strengths and limitations.
 
 ==== Exercise: 2 stars (In_map_iff)
 
-> In_map_iff : (f : a -> b) -> (l : List a) -> (y : b) -> (In y (map f l)) <->
->                              (x ** (f x = y, In x l))
+> In_map_iff : (f : a -> b) -> (l : List a) -> (y : b) -> 
+>              (In y (map f l)) <-> (x ** (f x = y, In x l))
 > In_map_iff f l y = ?In_map_iff_rhs
 
 $\square$
@@ -619,11 +631,11 @@ that some property \idr{p} holds of all elements of a list \idr{l}. To make sure
 your definition is correct, prove the \idr{All_In} lemma below. (Of course, your
 definition should _not_ just restate the left-hand side of \idr{All_In}.)
 
-> All : (P : t -> Type) -> (l : List t) -> Type
-> All P l = ?All_rhs
+> All : (p : t -> Type) -> (l : List t) -> Type
+> All p l = ?All_rhs
 
-> All_In : (P : t -> Type) -> (l : List t) -> ((x:t) -> In x l -> P x) <->
->                             (All P l)
+> All_In : (p : t -> Type) -> (l : List t) -> 
+>          ((x:t) -> In x l -> p x) <-> (All p l)
 > All_In P l = ?All_In_rhs
 
 $\square$
@@ -632,32 +644,32 @@ $\square$
 ==== Exercise: 3 stars (combine_odd_even)
 
 Complete the definition of the \idr{combine_odd_even} function below. It takes
-as arguments two properties of numbers, \idr{Podd} and \idr{Peven}, and it
-should return a property \idr{p} such that \idr{p n} is equivalent to \idr{Podd
-n} when \idr{n} is odd and equivalent to \idr{Peven n} otherwise.
+as arguments two properties of numbers, \idr{podd} and \idr{peven}, and it
+should return a property \idr{p} such that \idr{p n} is equivalent to \idr{podd
+n} when \idr{n} is odd and equivalent to \idr{peven n} otherwise.
 
-> combine_odd_even : (Podd, Peven : Nat -> Type) -> (Nat -> Type)
-> combine_odd_even Podd Peven = ?combine_odd_even_rhs
+> combine_odd_even : (podd, peven : Nat -> Type) -> (Nat -> Type)
+> combine_odd_even podd peven = ?combine_odd_even_rhs
 
 To test your definition, prove the following facts:
 
-> combine_odd_even_intro : (Podd, Peven : Nat -> Type) -> (n : Nat) ->
->                          (oddb n = True -> Podd n) ->
->                          (oddb n = False -> Peven n) ->
->                          combine_odd_even Podd Peven n
-> combine_odd_even_intro Podd Peven n oddp evenp = ?combine_odd_even_intro_rhs
+> combine_odd_even_intro : (podd, peven : Nat -> Type) -> (n : Nat) ->
+>                          (oddb n = True -> podd n) ->
+>                          (oddb n = False -> peven n) ->
+>                          combine_odd_even podd peven n
+> combine_odd_even_intro podd peven n oddp evenp = ?combine_odd_even_intro_rhs
 
-> combine_odd_even_elim_odd : (Podd, Peven : Nat -> Type) -> (n : Nat) ->
->                             combine_odd_even Podd Peven n ->
+> combine_odd_even_elim_odd : (podd, peven : Nat -> Type) -> (n : Nat) ->
+>                             combine_odd_even podd peven n ->
 >                             oddb n = True ->
->                             Podd n
-> combine_odd_even_elim_odd Podd Peven n x prf = ?combine_odd_even_elim_odd_rhs
+>                             podd n
+> combine_odd_even_elim_odd podd peven n x prf = ?combine_odd_even_elim_odd_rhs
 
-> combine_odd_even_elim_even : (Podd, Peven : Nat -> Type) -> (n : Nat) ->
->                              combine_odd_even Podd Peven n ->
+> combine_odd_even_elim_even : (podd, peven : Nat -> Type) -> (n : Nat) ->
+>                              combine_odd_even podd peven n ->
 >                              oddb n = False ->
->                              Peven n
-> combine_odd_even_elim_even Podd Peven n x prf = ?combine_odd_even_elim_even_rhs
+>                              peven n
+> combine_odd_even_elim_even podd peven n x prf = ?combine_odd_even_elim_even_rhs
 
 $\square$
 
@@ -754,6 +766,7 @@ in the proof below.
 
 We will see many more examples of the idioms from this section in later chapters.
 
+
 == Idris vs. Set Theory
 
 \todo[inline]{Edit}
@@ -776,6 +789,7 @@ into Idris can be either cumbersome or sometimes even impossible, unless we
 enrich the core logic with additional axioms. We conclude this chapter with a
 brief discussion of some of the most significant differences between the two
 worlds.
+
 
 === Functional Extensionality
 
@@ -813,7 +827,7 @@ However, we can add functional extensionality to Idris's core logic using the
 Axiom command.
 
 Axiom functional_extensionality : ∀{X Y: Type}
-                                    {f g : X -> Y},
+                                   {f g : X -> Y},
   (∀(x:X), f x = g x) -> f = g.
 
 Using Axiom has the same effect as stating a theorem and skipping its proof
@@ -930,9 +944,9 @@ Proof.
   - intros [k Hk]. rewrite Hk. apply evenb_double.
 Qed.
 
-Similarly, to state that two numbers n and m are equal, we can say either (1)
-that beq_Nat n m returns true or (2) that n = m. These two notions are
-equivalent.
+Similarly, to state that two numbers \idr{n} and \idr{m} are equal, we can say
+either (1) that \idr{beq_nat n m} returns \idr{True} or (2) that \idr{n = m}.
+These two notions are equivalent.
 
 \todo[inline]{Finish, implement \idr{beq_nat_true} and \idr{beq_nat_refl} from
 `Tactics`}
@@ -1086,7 +1100,8 @@ of the above exercise.
 >                                    (All (\x => test x = True) l)
 > forallb_true_iff l = ?forallb_true_iff_rhs
 
-Are there any important properties of the function forallb which are not captured by this specification?
+Are there any important properties of the function \idr{forallb} which are not
+captured by this specification?
 
 > -- FILL IN HERE 
 
@@ -1095,78 +1110,173 @@ $\square$
 
 === Classical vs. Constructive Logic
 
-We have seen that it is not possible to test whether or not a proposition P holds while defining a Idris function. You may be surprised to learn that a similar restriction applies to proofs! In other words, the following intuitive reasoning principle is not derivable in Idris:
+We have seen that it is not possible to test whether or not a proposition
+\idr{p} holds while defining a Idris function. You may be surprised to learn
+that a similar restriction applies to _proofs_! In other words, the following
+intuitive reasoning principle is not derivable in Idris:
 
-Definition excluded_middle := ∀P : Type,
-  P `Either` ¬ P.
+```idris
+excluded_middle : p `Either` (Not p)
+```
 
-To understand operationally why this is the case, recall that, to prove a statement of the form P `Either` Q, we use the left and right tactics, which effectively require knowing which side of the disjunction holds. But the universally quantified P in excluded_middle is an arbitrary proposition, which we know nothing about. We don't have enough information to choose which of left or right to apply, just as Idris doesn't have enough information to mechanically decide whether P holds or not inside a function.
-However, if we happen to know that P is reflected in some boolean term b, then knowing whether it holds or not is trivial: we just have to check the value of b.
+To understand operationally why this is the case, recall that, to prove a
+statement of the form \idr{p `Either` q}, we use the \idr{Left} and \idr{Right}
+pattern matches, which effectively require knowing which side of the disjunction
+holds. But the universally quantified \idr{p} in \idr{excluded_middle} is an
+arbitrary proposition, which we know nothing about. We don't have enough
+information to choose which of \idr{Left} or \idr{Right} to apply, just as Idris
+doesn't have enough information to mechanically decide whether \idr{p} holds or
+not inside a function.
 
-Theorem restricted_excluded_middle : ∀P b,
-  (P ↔ b = true) -> P `Either` ¬ P.
-Proof.
-  intros P [] H.
-  - left. rewrite H. reflexivity.
-  - right. rewrite H. intros contra. inversion contra.
-Qed.
+However, if we happen to know that \idr{p} is reflected in some boolean term
+\idr{b}, then knowing whether it holds or not is trivial: we just have to check
+the value of \idr{b}.
 
-In particular, the excluded middle is valid for equations n = m, between Natural numbers n and m.
+\todo[inline]{Remove when a release with
+https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-Theorem restricted_excluded_middle_eq : ∀(n m : Nat),
-  n = m `Either` n ≠ m.
-Proof.
-  intros n m.
-  apply (restricted_excluded_middle (n = m) (beq_Nat n m)).
-  symmetry.
-  apply beq_Nat_true_iff.
-Qed.
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
 
-It may seem strange that the general excluded middle is not available by default in Idris; after all, any given claim must be either true or Void. Nonetheless, there is an advantage in not assuming the excluded middle: statements in Idris can make stronger claims than the analogous statements in standard mathematics. Notably, if there is a Idris proof of ∃ x, P x, it is possible to explicitly exhibit a value of x for which we can prove P x -- in other words, every proof of existence is necessarily constructive.
-Logics like Idris's, which do not assume the excluded middle, are referred to as constructive logics.
-More conventional logical systems such as ZFC, in which the excluded middle does hold for arbitrary propositions, are referred to as classical.
-The following example illustrates why assuming the excluded middle may lead to non-constructive proofs:
-Claim: There exist irrational numbers a and b such that a ^ b is rational.
-Proof: It is not difficult to show that sqrt 2 is irrational. If sqrt 2 ^ sqrt 2 is rational, it suffices to take a = b = sqrt 2 and we are done. Otherwise, sqrt 2 ^ sqrt 2 is irrational. In this case, we can take a = sqrt 2 ^ sqrt 2 and b = sqrt 2, since a ^ b = sqrt 2 ^ (sqrt 2 * sqrt 2) = sqrt 2 ^ 2 = 2. $\square$
-Do you see what happened here? We used the excluded middle to consider separately the cases where sqrt 2 ^ sqrt 2 is rational and where it is not, without knowing which one actually holds! Because of that, we wind up knowing that such a and b exist but we cannot determine what their actual values are (at least, using this line of argument).
-As useful as constructive logic is, it does have its limitations: There are many statements that can easily be proven in classical logic but that have much more complicated constructive proofs, and there are some that are known to have no constructive proof at all! FortuNately, like functional extensionality, the excluded middle is known to be compatible with Idris's logic, allowing us to add it safely as an axiom. However, we will not need to do so in this book: the results that we cover can be developed entirely within constructive logic at negligible extra cost.
-It takes some practice to understand which proof techniques must be avoided in constructive reasoning, but arguments by contradiction, in particular, are infamous for leading to non-constructive proofs. Here's a typical example: suppose that we want to show that there exists x with some property P, i.e., such that P x. We start by assuming that our conclusion is Void; that is, ¬ ∃ x, P x. From this premise, it is not hard to derive ∀ x, ¬ P x. If we manage to show that this intermediate fact results in a contradiction, we arrive at an existence proof without ever exhibiting a value of x for which P x holds!
-The technical flaw here, from a constructive standpoint, is that we claimed to prove ∃ x, P x using a proof of ¬ ¬ (∃ x, P x). Allowing ourselves to remove double negations from arbitrary statements is equivalent to assuming the excluded middle, as shown in one of the exercises below. Thus, this line of reasoning cannot be encoded in Idris without assuming additional axioms.
-Exercise: 3 stars (excluded_middle_irrefutable)
-The consistency of Idris with the general excluded middle axiom requires complicated reasoning that cannot be carried out within Idris itself. However, the following theorem implies that it is always safe to assume a decidability axiom (i.e., an instance of excluded middle) for any particular Type P. Why? Because we cannot prove the negation of such an axiom; if we could, we would have both ¬ (P `Either` ¬P) and ¬ ¬ (P `Either` ¬P), a contradiction.
+\todo[inline]{Explain `uninhabited`}
 
-Theorem excluded_middle_irrefutable: ∀(P:Type),
-  ¬ ¬ (P `Either` ¬ P).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> restricted_excluded_middle : (p <-> b = True) -> p `Either` Not p
+> restricted_excluded_middle {b = True} (_, bp) = Left $ bp Refl
+> restricted_excluded_middle {b = False} (pb, _) = Right $ uninhabited . pb
+
+In particular, the excluded middle is valid for equations \idr{n = m}, between
+natural numbers \idr{n} and \idr{m}.
+
+\todo[inline]{Is there a simpler way to write this? Maybe with setoids?}
+
+> restricted_excluded_middle_eq : (n, m : Nat) -> (n = m) `Either` Not (n = m)
+> restricted_excluded_middle_eq n m = restricted_excluded_middle (to n m, fro n m)
+> where 
+>   to : (n, m : Nat) -> (n=m) -> (n==m)=True
+>   to Z Z prf = Refl
+>   to Z (S _) Refl impossible
+>   to (S _) Z Refl impossible
+>   to (S k) (S j) prf = to k j (succInjective k j prf)
+>   fro : (n, m : Nat) -> (n==m)=True -> (n=m)
+>   fro Z Z Refl = Refl
+>   fro Z (S _) Refl impossible
+>   fro (S _) Z Refl impossible
+>   fro (S k) (S j) prf = rewrite fro k j prf in Refl
+
+(Idris has a built-in version of this, called \idr{decEq}.)
+
+It may seem strange that the general excluded middle is not available by default
+in Idris; after all, any given claim must be either true or false. Nonetheless,
+there is an advantage in not assuming the excluded middle: statements in Idris
+can make stronger claims than the analogous statements in standard mathematics.
+Notably, if there is a Idris proof of \idr{(x ** p x)}, it is possible to
+explicitly exhibit a value of \idr{x} for which we can prove \idr{p x} -- in
+other words, every proof of existence is necessarily _constructive_.
+
+Logics like Idris's, which do not assume the excluded middle, are referred to as
+_constructive logics_.
+
+More conventional logical systems such as ZFC, in which the excluded middle does
+hold for arbitrary propositions, are referred to as _classical_.
+
+The following example illustrates why assuming the excluded middle may lead to
+non-constructive proofs:
+
+_Claim_: There exist irrational numbers `a` and `b` such that `a ^ b` is rational.
+
+_Proof_: It is not difficult to show that `sqrt 2` is irrational. If `sqrt 2 ^
+sqrt 2` is rational, it suffices to take `a = b = sqrt 2` and we are done.
+Otherwise, `sqrt 2 ^ sqrt 2` is irrational. In this case, we can take `a = sqrt
+2 ^ sqrt 2` and `b = sqrt 2`, since `a ^ b = sqrt 2 ^ (sqrt 2 * sqrt 2)` = sqrt
+2 ^ 2 = 2`. $\square$
+
+Do you see what happened here? We used the excluded middle to consider
+separately the cases where `sqrt 2 ^ sqrt 2` is rational and where it is not,
+without knowing which one actually holds! Because of that, we wind up knowing
+that such `a` and `b` exist but we cannot determine what their actual values are
+(at least, using this line of argument).
+
+As useful as constructive logic is, it does have its limitations: There are many
+statements that can easily be proven in classical logic but that have much more
+complicated constructive proofs, and there are some that are known to have no
+constructive proof at all! Fortunately, like functional extensionality, the
+excluded middle is known to be compatible with Idris's logic, allowing us to add
+it safely as an axiom. However, we will not need to do so in this book: the
+results that we cover can be developed entirely within constructive logic at
+negligible extra cost.
+
+It takes some practice to understand which proof techniques must be avoided in
+constructive reasoning, but arguments by contradiction, in particular, are
+infamous for leading to non-constructive proofs. Here's a typical example:
+suppose that we want to show that there exists \idr{x} with some property
+\idr{p}, i.e., such that \idr{p x}. We start by assuming that our conclusion is
+false; that is, \idr{Not (x:a ** p x)}. From this premise, it is not hard to
+derive \idr{(x:a) -> Not $ p x}. If we manage to show that this intermediate
+fact results in a contradiction, we arrive at an existence proof without ever
+exhibiting a value of \idr{x} for which \idr{p x} holds!
+
+The technical flaw here, from a constructive standpoint, is that we claimed to
+prove \idr{(x ** p x)} using a proof of `Not $ Not (x ** p x)}. Allowing
+ourselves to remove double negations from arbitrary statements is equivalent to
+assuming the excluded middle, as shown in one of the exercises below. Thus, this
+line of reasoning cannot be encoded in Idris without assuming additional axioms.
+
+
+==== Exercise: 3 stars (excluded_middle_irrefutable)
+
+The consistency of Idris with the general excluded middle axiom requires
+complicated reasoning that cannot be carried out within Idris itself. However,
+the following theorem implies that it is always safe to assume a decidability
+axiom (i.e., an instance of excluded middle) for any _particular_ type \idr{p}.
+Why? Because we cannot prove the negation of such an axiom; if we could, we
+would have both \idr{Not (p `Either` Not p)} and \idr{Not $ Not (p `Either` Not
+p)}, a contradiction.
+
+> excluded_middle_irrefutable : Not $ Not (p `Either` Not p)
+> excluded_middle_irrefutable = ?excluded_middle_irrefutable_rhs
+
 $\square$
-Exercise: 3 stars, advanced (not_exists_dist)
+
+
+==== Exercise: 3 stars, advanced (not_exists_dist)
+
 It is a theorem of classical logic that the following two assertions are equivalent:
-    ¬ (∃x, ¬ P x)
-    ∀x, P x
-The dist_not_exists theorem above proves one side of this equivalence. Interestingly, the other direction cannot be proved in constructive logic. Your job is to show that it is implied by the excluded middle.
 
-Theorem not_exists_dist :
-  excluded_middle ->
-  ∀(X:Type) (P : X -> Type),
-    ¬ (∃x, ¬ P x) -> (∀x, P x).
-Proof.
-  (* FILL IN HERE *) Admitted.
+```idris
+    Not (x:a ** Not p x)
+    (x:a) -> p x
+```
+
+The \idr{dist_not_exists} theorem above proves one side of this equivalence.
+Interestingly, the other direction cannot be proved in constructive logic. Your
+job is to show that it is implied by the excluded middle.
+
+\todo[inline]{Use \idr{really_believe_me}?}
+
+ not_exists_dist : excluded_middle -> Not (x ** Not $ P x) -> ((x:a) -> P x)
+
 $\square$
-Exercise: 5 stars, optional (classical_axioms)
-For those who like a challenge, here is an exercise taken from the Idris'Art book by Bertot and Casteran (p. 123). Each of the following four statements, together with excluded_middle, can be considered as characterizing classical logic. We can't prove any of them in Idris, but we can consistently add any one of them as an axiom if we wish to work in classical logic.
-Prove that all five propositions (these four plus excluded_middle) are equivalent.
 
-Definition peirce := ∀P Q: Type,
-  ((P→Q)→P)→P.
 
-Definition double_negation_elimiNation := ∀P:Type,
-  ~~P -> P.
+==== Exercise: 5 stars, optional (classical_axioms)
 
-Definition de_morgan_not_and_not := ∀P Q:Type,
-  ~(~P , ¬Q) -> P`Either`Q.
+For those who like a challenge, here is an exercise taken from the Coq'Art book
+by Bertot and Casteran (p. 123). Each of the following four statements, together
+with \idr{excluded_middle}, can be considered as characterizing classical logic.
+We can't prove any of them in Idris, but we can consistently add any one of them
+as an axiom if we wish to work in classical logic.
 
-Definition implies_to_or := ∀P Q:Type,
-  (P→Q) -> (¬P`Either`Q).
+Prove that all five propositions (these four plus \idr{excluded_middle}) are
+equivalent.
+
+> peirce : ((p -> q) -> p) -> p
+
+> double_negation_elimination : Not $ Not p -> p
+
+> de_morgan_not_and_not : Not (Not p, Not q) -> p `Either` q
+
+> implies_to_or : (p -> q) -> ((Not p) `Either` q)
+
+> -- FILL IN HERE
 
 $\square$
