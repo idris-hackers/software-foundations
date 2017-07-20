@@ -1015,15 +1015,13 @@ Now suppose that we want to convince Idris of the (rather obvious) fact that
 the proofs we did with \idr{sillyfun} above, it is natural to start the proof
 like this:
 
-\todo[inline]{Make this \idr{total}, or at least describe why it's not in its
-current implementation. Should we introduce \idr{Decidable.Equality} here?}
-
-> partial
 > sillyfun1_odd : (n : Nat) -> sillyfun1 n = True -> oddb n = True
-> sillyfun1_odd n prf with (beq_nat n 3)
->   sillyfun1_odd (S (S (S Z))) Refl | True = Refl
->   sillyfun1_odd n prf | False with (beq_nat n 5)
->     sillyfun1_odd (S (S (S (S (S Z))))) Refl | False | True = Refl
+> sillyfun1_odd n prf with (beq_nat n 3) proof eq3
+>   sillyfun1_odd n Refl | True =
+>     rewrite beq_nat_true (sym eq3) {n} {m=3} in Refl
+>   sillyfun1_odd n prf | False with (beq_nat n 5) proof eq5
+>     sillyfun1_odd n Refl | False | True =
+>       rewrite beq_nat_true (sym eq5) {n} {m=5} in Refl
 >     sillyfun1_odd n prf | False | False = absurd prf
 
 \todo[inline]{Edit the following, since \idr{with} works fine here as well}
