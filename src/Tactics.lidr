@@ -16,22 +16,16 @@ will see:
   - more details on how to reason by case analysis.
 
 > module Tactics
-
+>
 > import Basics
-
-\todo[inline]{If we \idr{import Poly} here, the pair sugar, among other things,
-will start messing things up, so we just copypaste the necessary definitions for
-now}
-
-\todo[inline]{Describe \idr{Pruviloj} and \idr{%runElab}}
-
 > import Pruviloj
-
+>
 > %access public export
-
+>
 > %default total
-
+>
 > %language ElabReflection
+>
 
 
 == The \idr{exact} Tactic
@@ -977,9 +971,9 @@ Here are some examples:
 
 > sillyfun_false : (n : Nat) -> sillyfun n = False
 > sillyfun_false n with (beq_nat n 3)
->   sillyfun_false (S (S (S Z))) | True = Refl
+>   sillyfun_false n | True = Refl
 >   sillyfun_false n | False with (beq_nat n 5)
->     sillyfun_false (S (S (S (S (S Z))))) | False | True = Refl
+>     sillyfun_false n | False | True = Refl
 >     sillyfun_false n | False | False = Refl
 
 
@@ -1022,10 +1016,12 @@ the proofs we did with \idr{sillyfun} above, it is natural to start the proof
 like this:
 
 > sillyfun1_odd : (n : Nat) -> sillyfun1 n = True -> oddb n = True
-> sillyfun1_odd n prf with (beq_nat n 3)
->   sillyfun1_odd (S (S (S Z))) Refl | True = Refl
->   sillyfun1_odd n prf | False with (beq_nat n 5)
->     sillyfun1_odd (S (S (S (S (S Z))))) Refl | False | True = Refl
+> sillyfun1_odd n prf with (beq_nat n 3) proof eq3
+>   sillyfun1_odd n Refl | True =
+>     rewrite beq_nat_true (sym eq3) {n} {m=3} in Refl
+>   sillyfun1_odd n prf | False with (beq_nat n 5) proof eq5
+>     sillyfun1_odd n Refl | False | True =
+>       rewrite beq_nat_true (sym eq5) {n} {m=5} in Refl
 >     sillyfun1_odd n prf | False | False = absurd prf
 
 \todo[inline]{Edit the following, since \idr{with} works fine here as well}
