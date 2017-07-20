@@ -978,8 +978,10 @@ Here are some examples:
 > sillyfun_false : (n : Nat) -> sillyfun n = False
 > sillyfun_false n with (beq_nat n 3)
 >   sillyfun_false (S (S (S Z))) | True = Refl
+>   sillyfun_false n | True = Refl
 >   sillyfun_false n | False with (beq_nat n 5)
 >     sillyfun_false (S (S (S (S (S Z))))) | False | True = Refl
+>     sillyfun_false n | False | True = Refl
 >     sillyfun_false n | False | False = Refl
 
 
