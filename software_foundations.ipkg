@@ -19,5 +19,5 @@ sourceloc  = git://git@github.com:idris-hackers/software-foundations.git
 bugtracker = https://github.com/idris-hackers/software-foundations/issues
 
 sourcedir  = src
-opts       = "--check --total"
+opts       = "--check --total -X ElabReflection"
 pkgs       = pruviloj
