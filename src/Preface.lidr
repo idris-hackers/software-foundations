@@ -47,18 +47,20 @@ together five conceptual threads:
 
 1. basic tools from _logic_ for making and justifying precise claims about
    programs;
-2. the use of _proof assistants_ to construct rigorous logical arguments;
 
-3. the idea of _functional programming_, both as a method of programming that
-   simplifies reasoning about programs and as a bridge between programming and
-   logic;
+2. the use of \glspl{proof assistant} to construct rigorous logical
+   arguments;
+
+3. the idea of \gls{functional programming}, both as a method of programming
+   that simplifies reasoning about programs and as a bridge between programming
+   and logic;
 
 4. formal techniques for _reasoning about the properties of specific programs_
    (e.g., the fact that a sorting function or a compiler obeys some formal
    specification); and
 
-5. the use of _type systems_ for establishing well-behavedness guarantees for
-   _all_ programs in a given programming language (e.g., the fact that
+5. the use of \glspl{type system} for establishing well-behavedness guarantees
+   for _all_ programs in a given programming language (e.g., the fact that
    well-typed Java programs cannot be subverted at runtime).
 
 Each of these topics is easily rich enough to fill a whole course in its own
@@ -72,16 +74,15 @@ information for all cited works can be found in the \nameref{bib} chapter.
 
 === Logic
 
-Logic is the field of study whose subject matter is _proofs_ -- unassailable
-arguments for the truth of particular propositions. Volumes have been written
-about the central role of logic in computer science. Manna and Waldinger called
-it "the calculus of computer science," while Halpern et al.'s paper _On the
-Unusual Effectiveness of Logic in Computer Science_ catalogs scores of ways in
-which logic offers critical tools and insights. Indeed, they observe that "As a
-matter of fact, logic has turned out to be significantly more effective in
-computer science than it has been in mathematics. This is quite remarkable,
-especially since much of the impetus for the development of logic during the
-past one hundred years came from mathematics."
+Logic is the field of study whose subject matter is \glspl{proof}. Volumes have
+been written about the central role of logic in computer science. Manna and
+Waldinger called it "the calculus of computer science," while Halpern et al.'s
+paper _On the Unusual Effectiveness of Logic in Computer Science_ catalogs
+scores of ways in which logic offers critical tools and insights. Indeed, they
+observe that "As a matter of fact, logic has turned out to be significantly more
+effective in computer science than it has been in mathematics. This is quite
+remarkable, especially since much of the impetus for the development of logic
+during the past one hundred years came from mathematics."
 
 In particular, the fundamental notion of inductive proofs is ubiquitous in all
 of computer science. You have surely seen them before, in contexts from discrete
@@ -103,20 +104,28 @@ propositions. These tools fall into two broad categories:
     in a huge variety of settings. Examples of such tools include SAT solvers,
     SMT solvers, and model checkers.
 
-  - _Proof assistants_ are hybrid tools that automate the more routine aspects
-    of building proofs while depending on human guidance for more difficult
-    aspects. Widely used proof assistants include Isabelle, Agda, Twelf, ACL2,
-    PVS, Coq, and Idris among many others.
+  - \Glspl{proof assistant} are hybrid tools that automate the more routine
+    aspects of building proofs while depending on human guidance for more
+    difficult aspects. Widely used \glspl{proof assistant} include Isabelle,
+    Agda, Twelf, ACL2, PVS, Coq, and Idris among many others.
 
-This course is based around Coq, a proof assistant that has been under
-development, mostly in France, since 1983 and that in recent years has attracted
-a large community of users in both research and industry. Coq provides a rich
-environment for interactive development of machine-checked formal reasoning. The
-kernel of the Coq system is a simple proof-checker, which guarantees that only
-correct deduction steps are performed. On top of this kernel, the Coq
+\todo[inline]{Edit the following}
+
+This course is based around Idris, a general purpose pure functional programming
+language with _dependent types_ that has been under development since 2006 and
+that in recent years has attracted a large community of users in both research
+and hobby. Idris provides a rich environment for interactive development of
+machine-checked formal reasoning. The kernel of the Idris system is full
+_dependent types_ with _dependent pattern matching_, which allow \glspl{type} to
+be predicated on _values_, enabling some aspects of a program's behavior to be
+specified precisely in the \gls{type}. On top of this kernel, the Idris
 environment provides high-level facilities for proof development, including
 powerful tactics for constructing complex proofs semi-automatically, and a large
-library of common definitions and lemmas.
+library of common definitions and lemmas. In some ways, Idris's theorem-proving
+is similar to Coq.
+
+\todo[inline]{Consider comparing Coq and Idris here, or at least qualifying
+"some ways"}
 
 Coq has been a critical enabler for a huge variety of work across computer
 science and mathematics:
@@ -158,6 +167,10 @@ initials of the Calculus of Constructions (CoC) on which it is based." The
 rooster is also the national symbol of France, and C-o-q are the first three
 letters of the name of Thierry Coquand, one of Coq's early developers.
 
+Idris, on the other hand, was named after the singing dragon character from
+\href{https://en.wikipedia.org/wiki/Ivor_the_Engine#Idris_the_Dragon}{Ivor the
+Engine}.
+
 
 === Functional Programming
 
@@ -165,7 +178,7 @@ The term _functional programming_ refers both to a collection of programming
 idioms that can be used in almost any programming language and to a family of
 programming languages designed to emphasize these idioms, including Haskell,
 OCaml, Standard ML, F#, Scala, Scheme, Racket, Common Lisp, Clojure, Erlang,
-and Coq.
+Coq, and Idris.
 
 Functional programming has been developed over many decades -- indeed, its roots
 go back to Church's lambda-calculus, which was invented in the 1930s, before
@@ -205,19 +218,19 @@ and is used by Google to index the entire web is a classic example of functional
 programming.
 
 For this course, functional programming has yet another significant attraction:
-it serves as a bridge between logic and computer science. Indeed, Coq itself can
-be viewed as a combination of a small but extremely expressive functional
-programming language plus with a set of tools for stating and proving logical
-assertions. Moreover, when we come to look more closely, we find that these two
-sides of Coq are actually aspects of the very same underlying machinery -- i.e.,
-_proofs are programs_.
+it serves as a bridge between logic and computer science. Indeed, Idris itself
+can be viewed as a combination of a small but extremely expressive functional
+programming language with full _dependent types_ and a set of tools for stating
+and proving logical assertions. Moreover, when we come to look more closely, we
+find that these two sides of Idris are actually aspects of the very same
+underlying machinery -- i.e., _proofs are programs_.
 
 
 === Program Verification
 
 Approximately the first third of the book is devoted to developing the
 conceptual framework of logic and functional programming and gaining enough
-fluency with Coq to use it for modeling and reasoning about nontrivial
+fluency with Idris to use it for modeling and reasoning about nontrivial
 artifacts. From this point on, we increasingly turn our attention to two broad
 topics of critical importance to the enterprise of building reliable software
 (and hardware): techniques for proving specific properties of particular
@@ -277,6 +290,9 @@ checkers, contract checkers, and run-time property monitoring techniques for
 detecting when some component of a system is not behaving according to
 specification.
 
+\todo[inline]{Edit the following: mention dependent types and maybe the
+underlying theory}
+
 This topic brings us full circle: the language whose properties we study in this
 part, the _simply typed lambda-calculus_, is essentially a simplified model of
 the core of Coq itself!
@@ -293,10 +309,14 @@ treatment of a particular topic will find suggestions for further reading in the
 
 === Chapter Dependencies
 
+\todo[inline]{Copy/recreate deps.html}
+
 A diagram of the dependencies between chapters and some suggested
 paths through the material can be found in the file [deps.html].
 
 === System Requirements
+
+\todo[inline]{Rewrite this for Idris}
 
 Coq runs on Windows, Linux, and OS X.  You will need:
 
@@ -346,7 +366,10 @@ readers not post solutions to the exercises anyplace where they can be found by
 search engines.
 
 
-=== Downloading the Coq Files
+=== Downloading the Idris Files
+
+\todo[inline]{Edit the following, generate HTML files (update pandoc-minted.hs
+accordingly) and update the URL.}
 
 A tar file containing the full sources for the "release version" of these notes
 (as a collection of Coq scripts and HTML files) is available here:
