@@ -66,8 +66,8 @@ right, so tackling all of them together naturally means that much will be left
 unsaid. Nevertheless, we hope readers will find that the themes illuminate and
 amplify each other and that bringing them together creates a foundation from
 which it will be easy to dig into any of them more deeply. Some suggestions for
-further reading can be found in the [Postscript] chapter. Bibliographic
-information for all cited works can be found in the [Bib] chapter.
+further reading can be found in the \nameref{postscript} chapter. Bibliographic
+information for all cited works can be found in the \nameref{bib} chapter.
 
 
 === Logic
@@ -286,7 +286,7 @@ the core of Coq itself!
 
 This text is intended to be self contained, but readers looking for a deeper
 treatment of a particular topic will find suggestions for further reading in the
-[Postscript] chapter.
+\nameref{postscript} chapter.
 
 
 == Practicalities
