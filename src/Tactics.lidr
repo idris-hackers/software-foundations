@@ -1023,6 +1023,10 @@ Now suppose that we want to convince Idris of the (rather obvious) fact that
 the proofs we did with \idr{sillyfun} above, it is natural to start the proof
 like this:
 
+\todo[inline]{Make this \idr{total}, or at least describe why it's not in its
+current implementation. Should we introduce \idr{Decidable.Equality} here?}
+
+> partial
 > sillyfun1_odd : (n : Nat) -> sillyfun1 n = True -> oddb n = True
 > sillyfun1_odd n prf with (beq_nat n 3)
 >   sillyfun1_odd (S (S (S Z))) Refl | True = Refl
