@@ -1,5 +1,7 @@
 = Logic : Logic in Idris
 
+> module Logic
+
 > import Basics
 
 > %hide Basics.Numbers.pred 
@@ -210,6 +212,7 @@ $\square$
 
 === Disjunction
 
+\todo[inline]{Make syntax synonyms for \idr{(,)} and \idr{Either}?}
 
 Another important connective is the _disjunction_, or _logical or_ of two
 propositions: \idr{a `Either` b} is true when either \idr{a} or \idr{b} is. The
@@ -440,6 +443,8 @@ $\square$
 
 $\square$
 
+\todo[inline]{Edit the rest of the section. What to do with Setoids? We could
+probably just use profunctors here}
 
 Some of Idris's tactics treat iff statements specially, avoiding the need for
 some low-level proof-state manipulation. In particular, rewrite and reflexivity
@@ -829,6 +834,8 @@ However, we can add functional extensionality to Idris's core logic using the
 > functional_extensionality = really_believe_me
 
 Using \idr{really_believe_me} has the same effect as stating a theorem and
+skipping its proof using a hole, but it alerts the reader (and type checker)
+that this isn't just something we're going to come back and fill in later!
 
 We can now invoke functional extensionality in proofs:
 
@@ -1137,8 +1144,8 @@ the value of \idr{b}.
 \todo[inline]{Remove when a release with
 https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
- Uninhabited (False = True) where
-   uninhabited Refl impossible
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
 
 > restricted_excluded_middle : (p <-> b = True) -> p `Either` Not p
 > restricted_excluded_middle {b = True} (_, bp) = Left $ bp Refl
