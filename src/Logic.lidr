@@ -210,7 +210,6 @@ $\square$
 
 === Disjunction
 
-\todo[inline]{Make syntax synonym?}
 
 Another important connective is the _disjunction_, or _logical or_ of two
 propositions: \idr{a `Either` b} is true when either \idr{a} or \idr{b} is. The
@@ -270,27 +269,22 @@ from the previous chapter; it asserts that, if we assume a contradiction, then
 any other proposition can be derived. Following this intuition, we could define
 \idr{Not p} as \idr{q -> (p -> q)}. Idris actually makes a slightly different
 choice, defining \idr{Not p} as \idr{p -> Void}, where \idr{Void} is a
-_particular_ contradictory proposition defined in the standard library.
-
-\todo[inline]{Edit}
-
-Module MyNot.
-
-Definition not (P:Type) := P -> Void.
-
-Notation "¬ x" := (not x) : type_scope.
+_particular_ contradictory proposition defined in the standard library as a
+data type with no constructors.
 
 ```idris
-λΠ> :t Not
+data Void : Type where
+
 Not : Type -> Type
+Not a = a -> Void
 ```
 
 Since \idr{Void} is a contradictory proposition, the principle of explosion also
 applies to it. If we get \idr{Void} into the proof context, we can call
-\idr{absurd} on it to complete any goal:
+\idr{void} or \idr{absurd} on it to complete any goal:
 
 > ex_falso_quodlibet : Void -> p
-> ex_falso_quodlibet = absurd
+> ex_falso_quodlibet = void
 
 The Latin _ex falso quodlibet_ means, literally, "from falsehood follows
 whatever you like"; this is another common name for the principle of explosion.
@@ -446,7 +440,6 @@ $\square$
 
 $\square$
 
-\todo[inline]{Edit, what to do wth Setoids?}
 
 Some of Idris's tactics treat iff statements specially, avoiding the need for
 some low-level proof-state manipulation. In particular, rewrite and reflexivity
@@ -483,23 +476,28 @@ We can now use these facts with rewrite and reflexivity to give smooth proofs of
 statements involving equivalences. Here is a ternary version of the previous
 mult_0 result:
 
->     mult_0_3 : (n * m * p = 0) <-> 
->                ((n = 0) `Either` ((m = 0) `Either` (p = 0)))
+>   mult_0_3 : (n * m * p = Z) <-> 
+>              ((n = Z) `Either` ((m = Z) `Either` (p = Z)))
+>   mult_0_3 = (to, fro)
+>   where 
+>     to : (n * m * p = Z) -> ((n = Z) `Either` ((m = Z) `Either` (p = Z)))
+>     to {n} {m} {p} prf = let 
+>       (nm_p_to, _) = mult_0 {n=(n*m)} {m=p}
+>       (n_m_to, _) = mult_0 {n} {m}
+>       (_, or_a_fro) = or_assoc {p=(n=Z)} {q=(m=Z)} {r=(p=Z)}
+>       in or_a_fro $ case nm_p_to prf of 
+>            Left prf => Left $ n_m_to prf
+>            Right prf => Right prf
+>     fro : ((n = Z) `Either` ((m = Z) `Either` (p = Z))) -> (n * m * p = Z)
+>     fro (Left Refl) = Refl
+>     fro {n} (Right (Left Refl)) = rewrite multZeroRightZero n in Refl
+>     fro {n} {m} (Right (Right Refl)) = rewrite multZeroRightZero (n*m) in Refl
 
-Proof.
-  intros n m p.
-  rewrite mult_0. rewrite mult_0. rewrite or_assoc.
-  reflexivity.
-Qed.
-
-The apply tactic can also be used with ↔. When given an equivalence as its
+The apply tactic can also be used with <->. When given an equivalence as its
 argument, apply tries to guess which side of the equivalence to use.
 
->    apply_iff_example : (n, m : Nat) -> n * m = 0 -> ((n = 0) `Either` (m = 0))
-
-Proof.
-  intros n m H. apply mult_0. apply H.
-Qed.
+>    apply_iff_example : (n, m : Nat) -> n * m = Z -> ((n = Z) `Either` (m = Z))  
+>    apply_iff_example n m = fst $ mult_0 {n} {m}
 
 
 === Existential Quantification
@@ -509,8 +507,6 @@ there is some \idr{x} of type \idr{t} such that some property \idr{p} holds of
 \idr{x}, we write \idr{(x : t ** p)}. The type annotation \idr{: t} can be
 omitted if Idris is able to infer from the context what the type of \idr{x}
 should be.
-
-\todo[inline]{Edit}
 
 To prove a statement of the form \idr{(x ** p)}, we must show that \idr{p} holds
 for some specific choice of value for \idr{x}, known as the _witness_ of the
@@ -715,7 +711,7 @@ wanted to prove the following result:
 
 > plus_comm3 : (n, m, p : Nat) -> n + (m + p) = (p + m) + n
 
-\todo[inline]{Edit, we already have done this before}
+\todo[inline]{Edit, we have already done this in previous chapters}
 
 It appears at first sight that we ought to be able to prove this by rewriting
 with \idr{plusCommutative} twice to make the two sides match. The problem,
@@ -770,7 +766,7 @@ We will see many more examples of the idioms from this section in later chapters
 
 == Idris vs. Set Theory
 
-\todo[inline]{Edit}
+\todo[inline]{Edit, Idris' core is likely some variant of MLTT}
 
 Idris's logical core, the Calculus of Inductive Constructions, differs in some
 important ways from other formal systems that are used by mathematicians for
@@ -804,6 +800,8 @@ we can write propositions claiming that two _functions_ are equal to each other:
 
 In common mathematical practice, two functions `f` and `g` are considered equal
 if they produce the same outputs:
+
+\todo[inline]{Use proper TeX here?}
     
     `(∀x, f x = g x) -> f = g`
 
@@ -822,38 +820,33 @@ function_equality_ex2 : (\x => plus x 1) = (\x => plus 1 x)
 function_equality_ex2 = ?stuck
 ```
 
-\todo[inline]{Edit, use \idr{really_believe_me}?}
+\todo[inline]{Explain \idr{believe_me} vs \idr{really_believe_me}?}
 
 However, we can add functional extensionality to Idris's core logic using the
-Axiom command.
+\idr{really_believe_me} command.
 
-Axiom functional_extensionality : ∀{X Y: Type}
-                                   {f g : X -> Y},
-  (∀(x:X), f x = g x) -> f = g.
+> functional_extensionality : ((x:a) -> f x = g x) -> f = g
+> functional_extensionality = really_believe_me
 
-Using Axiom has the same effect as stating a theorem and skipping its proof
-using Admitted, but it alerts the reader that this isn't just something we're
-going to come back and fill in later!
+Using \idr{really_believe_me} has the same effect as stating a theorem and
 
 We can now invoke functional extensionality in proofs:
 
-Example function_equality_ex2 :
-  (fun x ⇒ plus x 1) = (fun x ⇒ plus 1 x).
-Proof.
-  apply functional_extensionality. intros x.
-  apply plus_comm.
-Qed.
+> function_equality_ex2 : (\x => plus x 1) = (\x => plus 1 x)
+> function_equality_ex2 = functional_extensionality $ \x => plusCommutative x 1 
 
 Naturally, we must be careful when adding new axioms into Idris's logic, as they
-may render it inconsistent -- that is, they may make it possible to prove every
-proposition, including Void!
+may render it _inconsistent_ -- that is, they may make it possible to prove
+every proposition, including \idr{Void}!
 
 Unfortunately, there is no simple way of telling whether an axiom is safe to
 add: hard work is generally required to establish the consistency of any
 particular combination of axioms.
 
-However, it is known that adding functional extensionality, in particular, is
+However, it is known that adding functional extensionality, in particular, _is_
 consistent.
+
+\todo[inline]{Is there such a command in Idris?}
 
 To check whether a particular proof relies on any additional axioms, use the
 Print Assumptions command.
@@ -1035,12 +1028,8 @@ What is interesting is that, since the two notions are equivalent, we can use
 the boolean formulation to prove the other one without mentioning the value 500
 explicitly:
 
-\todo[inline]{Finish with \idr{even_bool_prop}}
-
 > even_1000'' : (k ** 1000 = double k)
-> even_1000'' = ?even_1000'_rhs
-
-Proof. apply even_bool_prop. reflexivity. Qed.
+> even_1000'' = (fst $ even_bool_prop {n=1000}) Refl
 
 Although we haven't gained much in terms of proof size in this case, larger
 proofs can often be made considerably simpler by the use of reflection. As an
@@ -1092,6 +1081,7 @@ function below. To make sure that your definition is correct, prove the lemma
 > beq_list_true_iff : (beq : a -> a -> Bool) -> 
 >                     ((a1, a2 : a) -> (beq a1 a2 = True) <-> (a1 = a2)) ->
 >       ((l1, l2 : List a) -> (beq_list beq l1 l2 = True) <-> (l1 = l2))
+> beq_list_true_iff beq f l1 l2 = ?beq_list_true_iff_rhs
 
 $\square$
 
@@ -1147,10 +1137,8 @@ the value of \idr{b}.
 \todo[inline]{Remove when a release with
 https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-> Uninhabited (False = True) where
->   uninhabited Refl impossible
-
-\todo[inline]{Explain `uninhabited`}
+ Uninhabited (False = True) where
+   uninhabited Refl impossible
 
 > restricted_excluded_middle : (p <-> b = True) -> p `Either` Not p
 > restricted_excluded_middle {b = True} (_, bp) = Left $ bp Refl
@@ -1162,7 +1150,8 @@ natural numbers \idr{n} and \idr{m}.
 \todo[inline]{Is there a simpler way to write this? Maybe with setoids?}
 
 > restricted_excluded_middle_eq : (n, m : Nat) -> (n = m) `Either` Not (n = m)
-> restricted_excluded_middle_eq n m = restricted_excluded_middle (to n m, fro n m)
+> restricted_excluded_middle_eq n m = 
+>   restricted_excluded_middle (to n m, fro n m)
 > where 
 >   to : (n, m : Nat) -> (n=m) -> (n==m)=True
 >   to Z Z prf = Refl
@@ -1194,7 +1183,10 @@ hold for arbitrary propositions, are referred to as _classical_.
 The following example illustrates why assuming the excluded middle may lead to
 non-constructive proofs:
 
-_Claim_: There exist irrational numbers `a` and `b` such that `a ^ b` is rational.
+\todo[inline]{Use proper TeX?}
+
+_Claim_: There exist irrational numbers `a` and `b` such that `a ^ b` is
+rational.
 
 _Proof_: It is not difficult to show that `sqrt 2` is irrational. If `sqrt 2 ^
 sqrt 2` is rational, it suffices to take `a = b = sqrt 2` and we are done.
@@ -1252,20 +1244,23 @@ $\square$
 
 ==== Exercise: 3 stars, advanced (not_exists_dist)
 
-It is a theorem of classical logic that the following two assertions are equivalent:
+It is a theorem of classical logic that the following two assertions are
+equivalent:
 
 ```idris
-    Not (x:a ** Not p x)
-    (x:a) -> p x
+    Not (x : a ** Not p x)
+    (x : a) -> p x
 ```
 
 The \idr{dist_not_exists} theorem above proves one side of this equivalence.
 Interestingly, the other direction cannot be proved in constructive logic. Your
 job is to show that it is implied by the excluded middle.
 
-\todo[inline]{Use \idr{really_believe_me}?}
-
- not_exists_dist : excluded_middle -> Not (x ** Not $ P x) -> ((x:a) -> P x)
+> not_exists_dist : {p : a -> Type} -> Not (x ** Not $ p x) -> ((x : a) -> p x)
+> not_exists_dist prf x = ?not_exists_dist_rhs
+>   where
+>   excluded_middle : (a : Type) -> a `Either` (Not a)
+>   excluded_middle p = really_believe_me p
 
 $\square$
 
