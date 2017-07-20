@@ -94,7 +94,7 @@ For inline Idris code, use the custom `\mintinline` shortcut `\idr`, e.g.
 To print ``Hello World!'' in Idris, write \idr{putStrLn "Hello, World!"}.
 ```
 
-For convenience, we've also defined the shortcut `\el` for ineline Emacs Lisp
+For convenience, we've also defined the shortcut `\el` for inline Emacs Lisp
 code, e.g.
 
 ```latex
@@ -108,7 +108,8 @@ This is some `inline monospaced text`.
 ```
 
 In a certain cases, we might want syntax highlighting for a language other than
-Idris or Emacs Lisp. For such cases, use the standard `\mintline` command, e.g.
+Idris or Emacs Lisp. For such cases, use the standard `\mintinline` command,
+e.g.
 
 ```tex
 To declare a theorem in Coq, use \mintinline[]{coq}{Theorem}.
