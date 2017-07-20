@@ -19,7 +19,7 @@ Idris.
 
 The files are organized into a sequence of core chapters, covering about one
 semester's worth of material and organized into a coherent linear narrative,
-plus a number of "appendices" covering additional topics. All the core chapters
+plus a number of "offshoot" covering additional topics. All the core chapters
 are suitable for both upper-level undergraduate and graduate students.
 
 
