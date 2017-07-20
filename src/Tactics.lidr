@@ -16,22 +16,16 @@ will see:
   - more details on how to reason by case analysis.
 
 > module Tactics
-
+>
 > import Basics
-
-\todo[inline]{If we \idr{import Poly} here, the pair sugar, among other things,
-will start messing things up, so we just copypaste the necessary definitions for
-now}
-
-\todo[inline]{Describe \idr{Pruviloj} and \idr{%runElab}}
-
 > import Pruviloj
-
+>
 > %access public export
-
+>
 > %default total
-
+>
 > %language ElabReflection
+>
 
 
 == The \idr{exact} Tactic
