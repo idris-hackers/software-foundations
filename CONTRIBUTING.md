@@ -4,7 +4,27 @@ _TBD_ (see [issue #4] for discussion)
 
 ### General Workflow
 
-_TODO: write me_
+1. [Fork the repository](https://github.com/idris-hackers/software-foundations/fork) if you haven't already.
+1. Check the [open pull requests](https://github.com/idris-hackers/software-foundations/pulls) for any related work in progress (WIP).
+1. Check out a new branch based on `develop`.
+1. Push some commits to your fork.
+   - The general workflow here is as follows:
+     - Copy/paste the original text, [reformatting](#formatting) as
+       appropriate.
+     - Translate Coq code into (idiomatic) Idris.
+     - Edit, augment and delete text as appropriate.
+       _N.B. This can be done in subsequent pull requests._
+1. Open a pull request (as soon as possible).
+   - If it's not ready to be merged, but you want to _claim_ a particular task,
+     prefix the pull request with `WIP:`.
+   - Make a comment and remove the `WIP:` when it's ready to be reviewed and
+     merged. _Remember: formatting the text and taking a first pass at
+     translating the Coq to Idris is enough for an initial pull request._
+1. Open subsequent pull requests following a similar pattern for and edits or
+   other updates
+
+The `develop` branch is the _working branch_ and `master` is for _releases_,
+i.e. rebuilt [PDF]s and [website](https://idris-hackers.github.io/software-foundations) updates.
 
 
 ### Formatting
