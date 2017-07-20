@@ -149,3 +149,6 @@ the `all.pdf`, `all.tex` and `%.tex` rules in [`src/Makefile`].
 [glossaries package]: https://www.ctan.org/pkg/glossaries
 [glossary.tex]: https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex
 [`src/Makefile`]: https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex
+[PDF]: https://idris-hackers.github.io/software-foundations/pdf/sf-idris-2016.pdf
+[Pandoc]: http://pandoc.org
+[latexmk]: https://www.ctan.org/pkg/latexmk/
