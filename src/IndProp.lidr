@@ -2,7 +2,10 @@
 
 > module IndProp
 
+> import Basics
 > import Induction
+
+> %hide Basics.Numbers.pred
 
 == Inductively Defined Propositions
 
@@ -258,12 +261,12 @@ implied by the two earlier ones (since, by \idr{even_bool_prop} in chapter
 `Logic`, we already know that those are equivalent to each other). To show that
 all three coincide, we just need the following lemma:
 
-> ev_even_firsttry : Ev n -> (k ** n = double k)
+> ev_even : Ev n -> (k ** n = double k)
 
 We proceed by case analysis on \idr{Ev n}. The first case can be solved
 trivially.
 
-> ev_even_firsttry Ev_0 = (Z ** Refl)
+> ev_even Ev_0 = (Z ** Refl)
 
 Unfortunately, the second case is harder. We need to show \idr{(k ** S (S n') =
 double k}, but the only available assumption is \idr{e'}, which states that
@@ -284,7 +287,7 @@ which is the same as the original statement, but with \idr{n'} instead of
 \idr{n}. Indeed, it is not difficult to convince Idris that this intermediate
 result suffices.
 
-> ev_even_firsttry (Ev_SS e') = I $ ev_even_firsttry e'
+> ev_even (Ev_SS e') = I $ ev_even e'
 > where
 >   I : (k' ** n' = double k') -> (k ** S (S n') = double k)
 >   I (k' ** prf) = (S k' ** cong {f=S} $ cong {f=S} prf)
@@ -292,7 +295,7 @@ result suffices.
 
 === Induction on Evidence
 
-\todo[inline]{Edit}
+\todo[inline]{Edit, we've already done an induction-style proof}
 
 If this looks familiar, it is no coincidence: We've encountered similar problems
 in the `Induction` chapter, when trying to use case analysis to prove results
@@ -318,261 +321,353 @@ Proof.
     rewrite Hk'. ∃(S k'). reflexivity.
 Qed.
 
-Here, we can see that Idris produced an IH that corresponds to E', the single recursive occurrence of ev in its own definition. Since E' mentions n', the induction hypothesis talks about n', as opposed to n or some other number.
-The equivalence between the second and third definitions of evenness now follows.
+Here, we can see that Idris produced an IH that corresponds to E', the single
+recursive occurrence of ev in its own definition. Since E' mentions n', the
+induction hypothesis talks about n', as opposed to n or some other number.
 
-Theorem ev_even_iff : ∀n,
-  ev n ↔ (k **  n = double k.
-Proof.
-  intros n. split.
-  - (* -> *) apply ev_even.
-  - (* <- *) intros [k Hk]. rewrite Hk. apply ev_double.
-Qed.
+The equivalence between the second and third definitions of evenness now
+follows.
 
-As we will see in later chapters, induction on evidence is a recurring technique across many areas, and in particular when formalizing the semantics of programming languages, where many properties of interest are defined inductively.
-The following exercises provide simple examples of this technique, to help you familiarize yourself with it.
-Exercise: 2 stars (ev_sum)
-Theorem ev_sum : ∀n m, ev n -> ev m -> ev (n + m).
-Proof.
-  (* FILL IN HERE *) Admitted.
+\todo[inline]{Copypasted for now}
+
+> iff : {p,q : Type} -> Type
+> iff {p} {q} = (p -> q, q -> p)
+
+> syntax [p] "<->" [q] = iff {p} {q}
+
+> ev_even_iff : (Ev n) <-> (k ** n = double k)
+> ev_even_iff = (ev_even, fro)
+> where 
+>   fro : (k ** n = double k) -> (Ev n)
+>   fro (k**prf) = rewrite prf in ev_double {n=k}
+
+As we will see in later chapters, induction on evidence is a recurring technique
+across many areas, and in particular when formalizing the semantics of
+programming languages, where many properties of interest are defined
+inductively.
+
+The following exercises provide simple examples of this technique, to help you
+familiarize yourself with it.
+
+
+==== Exercise: 2 stars (ev_sum)
+
+> ev_sum : Ev n -> Ev m -> Ev (n + m)
+> ev_sum x y = ?ev_sum_rhs
+
 $\square$
-Exercise: 4 stars, advanced, optional (ev_alternate)
-In general, there may be multiple ways of defining a property inductively. For example, here's a (slightly contrived) alternative definition for ev:
 
-Inductive ev' : Nat -> Type =
-| ev'_0 : ev' 0
-| ev'_2 : ev' 2
-| ev'_sum : ∀n m, ev' n -> ev' m -> ev' (n + m).
 
-Prove that this definition is logically equivalent to the old one. (You may want to look at the previous theorem when you get to the induction step.)
+=== Exercise: 4 stars, advanced, optional (ev_alternate)
 
-Theorem ev'_ev : ∀n, ev' n ↔ ev n.
-Proof.
- (* FILL IN HERE *) Admitted.
+In general, there may be multiple ways of defining a property inductively. For
+example, here's a (slightly contrived) alternative definition for \idr{Ev}:
+
+> data Ev' : Nat -> Type where
+>   Ev'_0 : Ev' Z
+>   Ev'_2 : Ev' 2
+>   Ev'_sum : Ev' n -> Ev' m -> Ev' (n + m)
+
+Prove that this definition is logically equivalent to the old one. (You may want
+to look at the previous theorem when you get to the induction step.)
+
+> ev'_ev : (Ev' n) <-> Ev n
+> ev'_ev = ?ev'_ev_rhs
+
 $\square$
-Exercise: 3 stars, advanced, recommended (ev_ev__ev)
+
+
+=== Exercise: 3 stars, advanced, recommended (ev_ev__ev)
+
 Finding the appropriate thing to do induction on is a bit tricky here:
 
-Theorem ev_ev__ev : ∀n m,
-  ev (n+m) -> ev n -> ev m.
-Proof.
-  (* FILL IN HERE *) Admitted.
-$\square$
-Exercise: 3 stars, optional (ev_plus_plus)
-This exercise just requires applying existing lemmas. No induction or even case analysis is needed, though some of the rewriting may be tedious.
+> ev_ev__ev : Ev (n+m) -> Ev n -> Ev m
+> ev_ev__ev x y = ?ev_ev__ev_rhs
 
-Theorem ev_plus_plus : ∀n m p,
-  ev (n+m) -> ev (n+p) -> ev (m+p).
-Proof.
-  (* FILL IN HERE *) Admitted.
 $\square$
 
-Inductive Relations
-A proposition parameterized by a number (such as ev) can be thought of as a property -- i.e., it defines a subset of Nat, namely those numbers for which the proposition is provable. In the same way, a two-argument proposition can be thought of as a relation -- i.e., it defines a set of pairs for which the proposition is provable.
 
-Module Playground.
+==== Exercise: 3 stars, optional (ev_plus_plus)
+
+This exercise just requires applying existing lemmas. No induction or even case
+analysis is needed, though some of the rewriting may be tedious.
+
+> ev_plus_plus : Ev (n+m) -> Ev (n+p) -> Ev (m+p)
+> ev_plus_plus x y = ?ev_plus_plus_rhs
+
+$\square$
+
+
+== Inductive Relations
+
+A proposition parameterized by a number (such as \idr{Ev}) can be thought of as
+a _property_ -- i.e., it defines a subset of \idr{Nat}, namely those numbers for
+which the proposition is provable. In the same way, a two-argument proposition
+can be thought of as a _relation_ -- i.e., it defines a set of pairs for which
+the proposition is provable.
 
 One useful example is the "less than or equal to" relation on numbers.
-The following definition should be fairly intuitive. It says that there are two ways to give evidence that one number is less than or equal to another: either observe that they are the same number, or give evidence that the first is less than or equal to the predecessor of the second.
 
-Inductive le : Nat -> Nat -> Type =
-  | le_n : ∀n, le n n
-  | le_S : ∀n m, (le n m) -> (le n (S m)).
+The following definition should be fairly intuitive. It says that there are two
+ways to give evidence that one number is less than or equal to another: either
+observe that they are the same number, or give evidence that the first is less
+than or equal to the predecessor of the second.
 
-Notation "m <= n" = (le m n).
+> data Le : Nat -> Nat -> Type where
+>   Le_n : Le n n
+>   Le_S : Le n m -> Le n (S m)
 
-Proofs of facts about <= using the constructors le_n and le_S follow the same patterns as proofs about properties, like ev above. We can apply the constructors to prove <= goals (e.g., to show that 3<=3 or 3<=6), and we can use tactics like inversion to extract information from <= hypotheses in the context (e.g., to prove that (2 <= 1) -> 2+2=5.)
-Here are some sanity checks on the definition. (Notice that, although these are the same kind of simple "unit tests" as we gave for the testing functions we wrote in the first few lectures, we must construct their proofs explicitly -- simpl and reflexivity don't do the job, because the proofs aren't just a matter of simplifying computations.)
+> syntax [m] "<='" [n] = Le m n
 
-Theorem test_le1 :
-  3 <= 3.
-Proof.
-  (* WORKED IN CLASS *)
-  apply le_n. Qed.
+\todo[inline]{Edit}
 
-Theorem test_le2 :
-  3 <= 6.
-Proof.
-  (* WORKED IN CLASS *)
-  apply le_S. apply le_S. apply le_S. apply le_n. Qed.
+Proofs of facts about \idr{<=} using the constructors \idr{Le_n} and \idr{Le_S}
+follow the same patterns as proofs about properties, like \idr{Ev} above. We can
+apply the constructors to prove \idr{<=} goals (e.g., to show that \idr{3<=3} or
+\idr{3<=6}), and we can use tactics like inversion to extract information from
+\idr{<=} hypotheses in the context (e.g., to prove that \idr{(2<=1) -> 2+2=5}.)
 
-Theorem test_le3 :
-  (2 <= 1) -> 2 + 2 = 5.
-Proof.
-  (* WORKED IN CLASS *)
-  intros H. inversion H. inversion H2. Qed.
+Here are some sanity checks on the definition. (Notice that, although these are
+the same kind of simple "unit tests" as we gave for the testing functions we
+wrote in the first few lectures, we must construct their proofs explicitly --
+simpl and reflexivity don't do the job, because the proofs aren't just a matter
+of simplifying computations.)
 
-The "strictly less than" relation n < m can now be defined in terms of le.
+> test_le1 : 3 <=' 3
+> test_le1 = Le_n
 
-End Playground.
+> test_le2 : 3 <=' 6
+> test_le2 = Le_S $ Le_S $ Le_S Le_n
 
-Definition lt (n m:Nat) = le (S n) m.
+> test_le3 : (2<='1) -> 2+2=5
+> test_le3 (Le_S Le_n) impossible
+> test_le3 (Le_S (Le_S _)) impossible
 
-Notation "m < n" = (lt m n).
+The "strictly less than" relation \idr{n < m} can now be defined in terms of
+\idr{Le}.
+
+> Lt : (n, m : Nat) -> Type 
+> Lt n m = Le (S n) m
+
+> syntax [m] "<'" [n] = Lt m n
 
 Here are a few more simple relations on numbers:
 
-Inductive square_of : Nat -> Nat -> Type =
-  | sq : ∀n:Nat, square_of n (n * n).
+> data Square_of : Nat -> Nat -> Type where
+>   Sq : Square_of n (n * n)
 
-Inductive next_nat : Nat -> Nat -> Type =
-  | nn : ∀n:Nat, next_nat n (S n).
+> data Next_nat : Nat -> Nat -> Type where
+>   Nn : Next_nat n (S n)
 
-Inductive next_even : Nat -> Nat -> Type =
-  | ne_1 : ∀n, ev (S n) -> next_even n (S n)
-  | ne_2 : ∀n, ev (S (S n)) -> next_even n (S (S n)).
+> data Next_even : Nat -> Nat -> Type where
+>   Ne_1 : Ev (S n) -> Next_even n (S n)
+>   Ne_2 : Ev (S (S n)) -> Next_even n (S (S n))
 
-Exercise: 2 stars, optional (total_relation)
-Define an inductive binary relation total_relation that holds between every pair of natural numbers.
 
-(* FILL IN HERE *)
+==== Exercise: 2 stars, optional (total_relation)
+
+Define an inductive binary relation \idr{Total_relation} that holds between every pair
+of natural numbers.
+
+> -- FILL IN HERE 
+
 $\square$
-Exercise: 2 stars, optional (empty_relation)
-Define an inductive binary relation empty_relation (on numbers) that never holds.
 
-(* FILL IN HERE *)
+
+=== Exercise: 2 stars, optional (empty_relation)
+
+Define an inductive binary relation \idr{Empty_relation} (on numbers) that never
+holds.
+
+> --FILL IN HERE
+
 $\square$
-Exercise: 3 stars, optional (le_exercises)
-Here are a number of facts about the <= and < relations that we are going to need later in the course. The proofs make good practice exercises.
 
-Lemma le_trans : ∀m n o, m <= n -> n <= o -> m <= o.
-Proof.
-  (* FILL IN HERE *) Admitted.
 
-Theorem O_le_n : ∀n,
-  0 <= n.
-Proof.
-  (* FILL IN HERE *) Admitted.
+==== Exercise: 3 stars, optional (le_exercises)
 
-Theorem n_le_m__Sn_le_Sm : ∀n m,
-  n <= m -> S n <= S m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+Here are a number of facts about the \idr{<='} and \idr{<'} relations that we
+are going to need later in the course. The proofs make good practice exercises.
 
-Theorem Sn_le_Sm__n_le_m : ∀n m,
-  S n <= S m -> n <= m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_trans : (m <=' n) -> (n <=' o) -> (m <=' o)
+> le_trans x y = ?le_trans_rhs
 
-Theorem le_plus_l : ∀a b,
-  a <= a + b.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> O_le_n : Z <=' n
+> O_le_n = ?O_le_n_rhs
 
-Theorem plus_lt : ∀n1 n2 m,
-  n1 + n2 < m ->
-  n1 < m ∧ n2 < m.
-Proof.
- unfold lt.
- (* FILL IN HERE *) Admitted.
+> n_le_m__Sn_le_Sm : (n <=' m) -> ((S n) <=' (S m))
+> n_le_m__Sn_le_Sm x = ?n_le_m__Sn_le_Sm_rhs
 
-Theorem lt_S : ∀n m,
-  n < m ->
-  n < S m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> Sn_le_Sm__n_le_m : ((S n) <=' (S m)) -> (n <=' m)
+> Sn_le_Sm__n_le_m x = ?Sn_le_Sm__n_le_m_rhs
 
-Theorem leb_complete : ∀n m,
-  leb n m = True -> n <= m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_plus_l : a <=' (a + b)
+> le_plus_l = ?le_plus_l_rhs
 
-Hint: The next one may be easiest to prove by induction on m.
+> plus_lt : ((n1 + n2) <' m) -> (n1 <' m, n2 <' m)
+> plus_lt x = ?plus_lt_rhs
 
-Theorem leb_correct : ∀n m,
-  n <= m ->
-  leb n m = True.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> lt_S : (n <' m) -> (n <' S m)
+> lt_S x = ?lt_S_rhs
+
+> leb_complete : leb n m = True -> (n <=' m)
+> leb_complete prf = ?leb_complete_rhs
+
+Hint: The next one may be easiest to prove by induction on \idr{m}.
+
+> leb_correct : (n <=' m) -> leb n m = True
+> leb_correct x = ?leb_correct_rhs
 
 Hint: This theorem can easily be proved without using induction.
 
-Theorem leb_true_trans : ∀n m o,
-  leb n m = True -> leb m o = True -> leb n o = True.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> leb_true_trans : leb n m = True -> leb m o = True -> leb n o = True
+> leb_true_trans prf prf1 = ?leb_true_trans_rhs
 
-Exercise: 2 stars, optional (leb_iff)
-Theorem leb_iff : ∀n m,
-  leb n m = True ↔ n <= m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+
+==== Exercise: 2 stars, optional (leb_iff)
+
+> leb_iff : (leb n m = True) <-> (n <=' m)
+> leb_iff = ?leb_iff_rhs
+
 $\square$
 
-Module R.
+> namespace R
 
-Exercise: 3 stars, recommendedM (R_provability)
-We can define three-place relations, four-place relations, etc., in just the same way as binary relations. For example, consider the following three-place relation on numbers:
 
-Inductive R : Nat -> Nat -> Nat -> Type =
-   | c1 : R 0 0 0
-   | c2 : ∀m n o, R m n o -> R (S m) n (S o)
-   | c3 : ∀m n o, R m n o -> R m (S n) (S o)
-   | c4 : ∀m n o, R (S m) (S n) (S (S o)) -> R m n o
-   | c5 : ∀m n o, R m n o -> R n m o.
+==== Exercise: 3 stars, recommendedM (R_provability)
+
+We can define three-place relations, four-place relations, etc., in just the
+same way as binary relations. For example, consider the following three-place
+relation on numbers:
+
+>   data R : Nat -> Nat -> Nat -> Type where
+>     C1 : R 0 0 0
+>     C2 : R m n o -> R (S m) n (S o)
+>     C3 : R m n o -> R m (S n) (S o)
+>     C4 : R (S m) (S n) (S (S o)) -> R m n o
+>     C5 : R m n o -> R n m o
 
 Which of the following propositions are provable?
-R 1 1 2
-R 2 2 6
-If we dropped constructor c5 from the definition of R, would the set of provable propositions change? Briefly (1 sentence) explain your answer.
-If we dropped constructor c4 from the definition of R, would the set of provable propositions change? Briefly (1 sentence) explain your answer.
-(* FILL IN HERE *)
+
+  - \idr{R 1 1 2}
+
+  - \idr{R 2 2 6}
+
+  - If we dropped constructor \idr{C5} from the definition of \idr{R}, would the
+    set of provable propositions change? Briefly (1 sentence) explain your
+    answer.
+  
+  - If we dropped constructor \idr{C4} from the definition of \idr{R}, would the
+    set of provable propositions change? Briefly (1 sentence) explain your
+    answer.
+
+> -- FILL IN HERE 
+
 $\square$
-Exercise: 3 stars, optional (R_fact)
-The relation R above actually encodes a familiar function. Figure out which function; then state and prove this equivalence in Idris?
 
-Definition fR : Nat -> Nat -> Nat
-  (* REPLACE THIS LINE WITH "= _your_definition_ ." *). Admitted.
 
-Theorem R_equiv_fR : ∀m n o, R m n o ↔ fR m n = o.
-Proof.
-(* FILL IN HERE *) Admitted.
+==== Exercise: 3 stars, optional (R_fact)
+
+The relation \idr{R} above actually encodes a familiar function. Figure out
+which function; then state and prove this equivalence in Idris?
+
+>   fR : Nat -> Nat -> Nat
+>   fR k j = ?fR_rhs
+
+
+>   R_equiv_fR : (R m n o) <-> (fR m n = o)
+>   R_equiv_fR = ?R_equiv_fR_rhs
+
 $\square$
 
-End R.
 
-Exercise: 4 stars, advanced (subsequence)
-A list is a subsequence of another list if all of the elements in the first list occur in the same order in the second list, possibly with some extra elements in between. For example,
-      [1;2;3]
+=== Exercise: 4 stars, advanced (subsequence)
+
+A list is a _subsequence_ of another list if all of the elements in the first
+list occur in the same order in the second list, possibly with some extra
+elements in between. For example,
+      
+```idris      
+      [1,2,3]
+```
+
 is a subsequence of each of the lists
-      [1;2;3]
-      [1;1;1;2;2;3]
-      [1;2;7;3]
-      [5;6;1;9;9;2;7;3;8]
+
+```idris
+      [1,2,3]
+      [1,1,1,2,2,3]
+      [1,2,7,3]
+      [5,6,1,9,9,2,7,3,8]
+```      
+
 but it is not a subsequence of any of the lists
-      [1;2]
-      [1;3]
-      [5;6;2;1;7;3;8].
-Define an inductive proposition subseq on list Nat that captures what it means to be a subsequence. (Hint: You'll need three cases.)
-Prove subseq_refl that subsequence is reflexive, that is, any list is a subsequence of itself.
-Prove subseq_app that for any lists l1, l2, and l3, if l1 is a subsequence of l2, then l1 is also a subsequence of l2 ++ l3.
-(Optional, harder) Prove subseq_trans that subsequence is transitive -- that is, if l1 is a subsequence of l2 and l2 is a subsequence of l3, then l1 is a subsequence of l3. Hint: choose your induction carefully!
 
-(* FILL IN HERE *)
+```idris
+      [1,2]
+      [1,3]
+      [5,6,2,1,7,3,8]
+```      
+
+  - Define an inductive type \idr{Subseq} on \idr{List Nat} that captures what
+    it means to be a subsequence. (Hint: You'll need three cases.)
+
+  - Prove \idr{subseq_refl} that subsequence is reflexive, that is, any list is
+    a subsequence of itself.
+
+  - Prove \idr{subseq_app} that for any lists \idr{l1}, \idr{l2}, and \idr{l3},
+    if \idr{l1} is a subsequence of \idr{l2}, then \idr{l1} is also a
+    subsequence of \idr{l2 ++ l3}.
+
+  - (Optional, harder) Prove \idr{subseq_trans} that subsequence is transitive
+    -- that is, if \idr{l1} is a subsequence of \idr{l2} and \idr{l2} is a
+    subsequence of \idr{l3}, then \idr{l1} is a subsequence of \idr{l3}. Hint:
+    choose your induction carefully!
+
+> -- FILL IN HERE 
+
 $\square$
-Exercise: 2 stars, optionalM (R_provability2)
+
+
+==== Exercise: 2 stars, optionalM (R_provability2)
+
 Suppose we give Idris the following definition:
-    Inductive R : Nat -> list Nat -> Type =
-      | c1 : R 0 []
-      | c2 : ∀n l, R n l -> R (S n) (n :: l)
-      | c3 : ∀n l, R (S n) l -> R n l.
+
+>   data R' : Nat -> List Nat -> Type where
+>     C1' : R' 0 []
+>     C2' : R' n l -> R' (S n) (n :: l)
+>     C3' : R' (S n) l -> R' n l
+
 Which of the following propositions are provable?
-R 2 [1;0]
-R 1 [1;2;1;0]
-R 6 [3;2;1;0]
+
+  - \idr{R' 2 [1,0]}
+
+  - \idr{R' 1 [1,2,1,0]}
+
+  - \idr{R' 6 [3,2,1,0]}
+
 $\square$
 
-Case Study: Regular Expressions
-The ev property provides a simple example for illustrating inductive definitions and the basic techniques for reasoning about them, but it is not terribly exciting -- after all, it is equivalent to the two non-inductive of evenness that we had already seen, and does not seem to offer any concrete benefit over them. To give a better sense of the power of inductive definitions, we now show how to use them to model a classic concept in computer science: regular expressions.
-Regular expressions are a simple language for describing strings, defined as follows:
 
-Inductive reg_exp (T : Type) : Type =
-| EmptySet : reg_exp T
-| EmptyStr : reg_exp T
-| Char : T -> reg_exp T
-| App : reg_exp T -> reg_exp T -> reg_exp T
-| Union : reg_exp T -> reg_exp T -> reg_exp T
-| Star : reg_exp T -> reg_exp T.
+== Case Study: Regular Expressions
+
+The \idr{Ev} property provides a simple example for illustrating inductive
+definitions and the basic techniques for reasoning about them, but it is not
+terribly exciting -- after all, it is equivalent to the two non-inductive of
+evenness that we had already seen, and does not seem to offer any concrete
+benefit over them. To give a better sense of the power of inductive definitions,
+we now show how to use them to model a classic concept in computer science:
+_regular expressions_.
+
+Regular expressions are a simple language for describing strings, defined as
+follows:
+
+> data Reg_exp : (t : Type) -> Type where
+>   EmptySet : Reg_exp t
+>   EmptyStr : Reg_exp t
+>   Chr : t -> Reg_exp t
+>   App : Reg_exp t -> Reg_exp t -> Reg_exp t
+>   Union : Reg_exp t -> Reg_exp t -> Reg_exp t
+>   Star : Reg_exp t -> Reg_exp t
 
 Arguments EmptySet {T}.
 Arguments EmptyStr {T}.
@@ -581,104 +676,149 @@ Arguments App {T} _ _.
 Arguments Union {T} _ _.
 Arguments Star {T} _.
 
-Note that this definition is polymorphic: Regular expressions in reg_exp T describe strings with characters drawn from T -- that is, lists of elements of T.
-(We depart slightly from standard practice in that we do not require the type T to be finite. This results in a somewhat different theory of regular expressions, but the difference is not significant for our purposes.)
-We connect regular expressions and strings via the following rules, which define when a regular expression matches some string:
-The expression EmptySet does not match any string.
-The expression EmptyStr matches the empty string [].
-The expression Char x matches the one-character string [x].
-If re1 matches s1, and re2 matches s2, then App re1 re2 matches s1 ++ s2.
-If at least one of re1 and re2 matches s, then Union re1 re2 matches s.
-Finally, if we can write some string s as the concatenation of a sequence of strings s = s_1 ++ ... ++ s_k, and the expression re matches each one of the strings s_i, then Star re matches s.
-As a special case, the sequence of strings may be empty, so Star re always matches the empty string [] no matter what re is.
-We can easily translate this informal definition into an Inductive one as follows:
+Note that this definition is _polymorphic_: Regular expressions in \idr{Reg_exp
+t} describe strings with characters drawn from\idr{t} -- that is, lists of
+elements of \idr{t}.
 
-Inductive exp_match {T} : list T -> reg_exp T -> Type =
-| MEmpty : exp_match [] EmptyStr
-| MChar : ∀x, exp_match [x] (Char x)
-| MApp : ∀s1 re1 s2 re2,
-           exp_match s1 re1 ->
-           exp_match s2 re2 ->
-           exp_match (s1 ++ s2) (App re1 re2)
-| MUnionL : ∀s1 re1 re2,
-              exp_match s1 re1 ->
-              exp_match s1 (Union re1 re2)
-| MUnionR : ∀re1 s2 re2,
-              exp_match s2 re2 ->
-              exp_match s2 (Union re1 re2)
-| MStar0 : ∀re, exp_match [] (Star re)
-| MStarApp : ∀s1 s2 re,
-               exp_match s1 re ->
-               exp_match s2 (Star re) ->
-               exp_match (s1 ++ s2) (Star re).
+(We depart slightly from standard practice in that we do not require the type
+\idr{t} to be finite. This results in a somewhat different theory of regular
+expressions, but the difference is not significant for our purposes.)
 
-Again, for readability, we can also display this definition using inference-rule notation. At the same time, let's introduce a more readable infix notation.
+We connect regular expressions and strings via the following rules, which define
+when a regular expression _matches_ some string:
 
-Notation "s =~ re" = (exp_match s re) (at level 80).
+  - The expression \idr{EmptySet} does not match any string.
 
-  	(MEmpty)  
-[] =~ EmptyStr	
-  	(MChar)  
-[x] =~ Char x	
-s1 =~ re1    s2 =~ re2	(MApp)  
+  - The expression \idr{EmptyStr} matches the empty string \idr{[]}.
+
+  - The expression \idr{Chr x} matches the one-character string \idr{[x]}.
+
+  - If \idr{re1} matches \idr{s1}, and \idr{re2} matches \idr{s2}, then \idr{App
+    re1 re2} matches \idr{s1 ++ s2}.
+
+  - If at least one of \idr{re1} and \idr{re2} matches \idr{s}, then \idr{Union
+    re1 re2} matches \idr{s}.
+
+  - Finally, if we can write some string \idr{s} as the concatenation of a
+    sequence of strings \idr{s = s_1 ++ ... ++ s_k}, and the expression \idr{re}
+    matches each one of the strings \idr{s_i}, then \idr{Star re} matches
+    \idr{s}.
+
+    As a special case, the sequence of strings may be empty, so \idr{Star re}
+    always matches the empty string \idr{[]} no matter what \idr{re} is.
+
+We can easily translate this informal definition into a \idr{data} one as
+follows:
+
+> data Exp_match : List t -> Reg_exp t -> Type where
+>   MEmpty : Exp_match [] EmptyStr
+>   MChar : Exp_match [x] (Chr x)
+>   MApp : Exp_match s1 re1 -> Exp_match s2 re2 -> 
+>          Exp_match (s1 ++ s2) (App re1 re2)
+>   MUnionL : Exp_match s1 re1 ->
+>             Exp_match s1 (Union re1 re2)
+>   MUnionR : Exp_match s2 re2 ->
+>             Exp_match s2 (Union re1 re2)
+>   MStar0 : Exp_match [] (Star re)
+>   MStarApp : Exp_match s1 re ->
+>              Exp_match s2 (Star re) ->
+>              Exp_match (s1 ++ s2) (Star re)
+
+Again, for readability, we can also display this definition using inference-rule
+notation. At the same time, let's introduce a more readable infix notation.
+
+> syntax [s] "=~" [re] = (Exp_match s re)
+
+\todo[inline]{Format properly}
+
+```idris
+-------------- (MEmpty)  
+[] =~ EmptyStr
+
+------------ (MChar)  
+[x] =~ Chr x
+
+s1 =~ re1    s2 =~ re2	
+----------------------- (MApp)  
 s1 ++ s2 =~ App re1 re2	
-s1 =~ re1	(MUnionL)  
-s1 =~ Union re1 re2	
-s2 =~ re2	(MUnionR)  
+
+s1 =~ re1	
+-------------------(MUnionL)  
+s1 =~ Union re1 re2
+
+s2 =~ re2	
+------------------- (MUnionR)  
 s2 =~ Union re1 re2	
-  	(MStar0)  
+
+------------- (MStar0)  
 [] =~ Star re	
-s1 =~ re    s2 =~ Star re	(MStarApp)  
+
+s1 =~ re    s2 =~ Star re
+------------------------- (MStarApp)  
 s1 ++ s2 =~ Star re	
-Notice that these rules are not quite the same as the informal ones that we gave at the beginning of the section. First, we don't need to include a rule explicitly stating that no string matches EmptySet; we just don't happen to include any rule that would have the effect of some string matching EmptySet. (Indeed, the syntax of inductive definitions doesn't even allow us to give such a "negative rule.")
-Second, the informal rules for Union and Star correspond to two constructors each: MUnionL / MUnionR, and MStar0 / MStarApp. The result is logically equivalent to the original rules but more convenient to use in Idris, since the recursive occurrences of exp_match are given as direct arguments to the constructors, making it easier to perform induction on evidence. (The exp_match_ex1 and exp_match_ex2 exercises below ask you to prove that the constructors given in the inductive declaration and the ones that would arise from a more literal transcription of the informal rules are indeed equivalent.)
+```
+
+Notice that these rules are not _quite_ the same as the informal ones that we
+gave at the beginning of the section. First, we don't need to include a rule
+explicitly stating that no string matches \idr{EmptySet}; we just don't happen
+to include any rule that would have the effect of some string matching
+\idr{EmptySet}. (Indeed, the syntax of inductive definitions doesn't even
+_allow_ us to give such a "negative rule.")
+
+Second, the informal rules for \idr{Union} and \idr{Star} correspond to two
+constructors each: \idr{MUnionL} / \idr{MUnionR}, and \idr{MStar0} /
+\idr{MStarApp}. The result is logically equivalent to the original rules but
+more convenient to use in Idris, since the recursive occurrences of
+\idr{Exp_match} are given as direct arguments to the constructors, making it
+easier to perform induction on evidence. (The \idr{exp_match_ex1} and
+\idr{exp_match_ex2} exercises below ask you to prove that the constructors given
+in the inductive declaration and the ones that would arise from a more literal
+transcription of the informal rules are indeed equivalent.)
+
 Let's illustrate these rules with a few examples.
 
-Example reg_exp_ex1 : [1] =~ Char 1.
-Proof.
-  apply MChar.
-Qed.
+> reg_exp_ex1 : [1] =~ (Chr 1)
+> reg_exp_ex1 = MChar
 
-Example reg_exp_ex2 : [1; 2] =~ App (Char 1) (Char 2).
-Proof.
-  apply (MApp [1] _ [2]).
-  - apply MChar.
-  - apply MChar.
-Qed.
+> reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
+> reg_exp_ex2 = MApp MChar MChar
 
-(Notice how the last example applies MApp to the strings [1] and [2] directly. Since the goal mentions [1; 2] instead of [1] ++ [2], Idris wouldn't be able to figure out how to split the string on its own.)
-Using inversion, we can also show that certain strings do not match a regular expression:
+\todo[inline]{Edit, Idris is actually smart enough for this}
 
-Example reg_exp_ex3 : ¬ ([1; 2] =~ Char 1).
-Proof.
-  intros H. inversion H.
-Qed.
+(Notice how the last example applies MApp to the strings [1] and [2] directly.
+Since the goal mentions [1,2] instead of [1] ++ [2], Idris wouldn't be able to
+figure out how to split the string on its own.)
 
-We can define helper functions to help write down regular expressions. The reg_exp_of_list function constructs a regular expression that matches exactly the list that it receives as an argument:
+Using pattern matching, we can also show that certain strings do not match a
+regular expression:
 
-Fixpoint reg_exp_of_list {T} (l : list T) =
-  match l with
-  | [] ⇒ EmptyStr
-  | x :: l' ⇒ App (Char x) (reg_exp_of_list l')
-  end.
+> reg_exp_ex3 : Not ([1,2] =~ (Chr 1))
+> reg_exp_ex3 MEmpty impossible
+> reg_exp_ex3 MChar impossible
+> reg_exp_ex3 (MApp _ _) impossible
+> reg_exp_ex3 (MUnionL _) impossible
+> reg_exp_ex3 (MUnionR _) impossible
+> reg_exp_ex3 MStar0 impossible
+> reg_exp_ex3 (MStarApp _ _) impossible
 
-Example reg_exp_ex4 : [1; 2; 3] =~ reg_exp_of_list [1; 2; 3].
-Proof.
-  simpl. apply (MApp [1]).
-  { apply MChar. }
-  apply (MApp [2]).
-  { apply MChar. }
-  apply (MApp [3]).
-  { apply MChar. }
-  apply MEmpty.
-Qed.
+We can define helper functions to help write down regular expressions. The
+\idr{reg_exp_of_list} function constructs a regular expression that matches
+exactly the list that it receives as an argument:
 
-We can also prove general facts about exp_match. For instance, the following lemma shows that every string s that matches re also matches Star re.
+> reg_exp_of_list : List t -> Reg_exp t
+> reg_exp_of_list [] = EmptyStr
+> reg_exp_of_list (x :: xs) = App (Chr x) (reg_exp_of_list xs)
 
-Lemma MStar1 :
-  ∀T s (re : reg_exp T) ,
-    s =~ re ->
-    s =~ Star re.
+> reg_exp_ex4 : [1,2,3] =~ (reg_exp_of_list [1,2,3])
+> reg_exp_ex4 = MApp MChar $ MApp MChar $ MApp MChar MEmpty
+
+We can also prove general facts about \idr{Exp_match}. For instance, the
+following lemma shows that every string \idr{s} that matches \idr{re} also
+matches \idr{Star re}.
+
+> MStar1 : (re : Reg_exp t) -> (s =~ re) -> (s =~ Star re)
+> MStar1 re x = ?MStar1_rhs
+
 Proof.
   intros T s re H.
   rewrite ← (app_nil_r _ s).
@@ -696,7 +836,7 @@ Lemma empty_is_empty : ∀T (s : list T),
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Lemma MUnion' : ∀T (s : list T) (re1 re2 : reg_exp T),
+Lemma MUnion' : ∀T (s : list T) (re1 re2 : Reg_exp T),
   s =~ re1 ∨ s =~ re2 ->
   s =~ Union re1 re2.
 Proof.
@@ -704,7 +844,7 @@ Proof.
 
 The next lemma is stated in terms of the fold function from the Poly chapter: If ss : list (list T) represents a sequence of strings s1, ..., sn, then fold app ss [] is the result of concatenating them all together.
 
-Lemma MStar' : ∀T (ss : list (list T)) (re : reg_exp T),
+Lemma MStar' : ∀T (ss : list (list T)) (re : Reg_exp T),
   (∀s, In s ss -> s =~ re) ->
   fold app ss [] =~ Star re.
 Proof.
@@ -718,9 +858,9 @@ Lemma reg_exp_of_list_spec : ∀T (s1 s2 : list T),
 Proof.
   (* FILL IN HERE *) Admitted.
 $\square$
-Since the definition of exp_match has a recursive structure, we might expect that proofs involving regular expressions will often require induction on evidence. For example, suppose that we wanted to prove the following intuitive result: If a regular expression re matches some string s, then all elements of s must occur somewhere in re. To state this theorem, we first define a function re_chars that lists all characters that occur in a regular expression:
+Since the definition of Exp_match has a recursive structure, we might expect that proofs involving regular expressions will often require induction on evidence. For example, suppose that we wanted to prove the following intuitive result: If a regular expression re matches some string s, then all elements of s must occur somewhere in re. To state this theorem, we first define a function re_chars that lists all characters that occur in a regular expression:
 
-Fixpoint re_chars {T} (re : reg_exp T) : list T =
+Fixpoint re_chars {T} (re : Reg_exp T) : list T =
   match re with
   | EmptySet ⇒ []
   | EmptyStr ⇒ []
@@ -732,7 +872,7 @@ Fixpoint re_chars {T} (re : reg_exp T) : list T =
 
 We can then phrase our theorem as follows:
 
-Theorem in_re_match : ∀T (s : list T) (re : reg_exp T) (x : T),
+Theorem in_re_match : ∀T (s : list T) (re : Reg_exp T) (x : T),
   s =~ re ->
   In x s ->
   In x (re_chars re).
@@ -764,7 +904,7 @@ Proof.
   - (* MStar0 *)
     destruct Hin.
 
-Something interesting happens in the MStarApp case. We obtain two induction hypotheses: One that applies when x occurs in s1 (which matches re), and a second one that applies when x occurs in s2 (which matches Star re). This is a good illustration of why we need induction on evidence for exp_match, as opposed to re: The latter would only provide an induction hypothesis for strings that match re, which would not allow us to reason about the case In x s2.
+Something interesting happens in the MStarApp case. We obtain two induction hypotheses: One that applies when x occurs in s1 (which matches re), and a second one that applies when x occurs in s2 (which matches Star re). This is a good illustration of why we need induction on evidence for Exp_match, as opposed to re: The latter would only provide an induction hypothesis for strings that match re, which would not allow us to reason about the case In x s2.
 
   - (* MStarApp *)
     simpl. rewrite in_app_iff in Hin.
@@ -778,10 +918,10 @@ Qed.
 Exercise: 4 stars (re_not_empty)
 Write a recursive function re_not_empty that tests whether a regular expression matches some string. Prove that your function is correct.
 
-Fixpoint re_not_empty {T : Type} (re : reg_exp T) : bool
+Fixpoint re_not_empty {T : Type} (re : Reg_exp T) : bool
   (* REPLACE THIS LINE WITH "= _your_definition_ ." *). Admitted.
 
-Lemma re_not_empty_correct : ∀T (re : reg_exp T),
+Lemma re_not_empty_correct : ∀T (re : Reg_exp T),
   (∃s, s =~ re) ↔ re_not_empty re = True.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -789,7 +929,7 @@ $\square$
 The remember Tactic
 One potentially confusing feature of the induction tactic is that it happily lets you try to set up an induction over a term that isn't sufficiently general. The effect of this is to lose information (much as destruct can do), and leave you unable to complete the proof. Here's an example:
 
-Lemma star_app: ∀T (s1 s2 : list T) (re : reg_exp T),
+Lemma star_app: ∀T (s1 s2 : list T) (re : Reg_exp T),
   s1 =~ Star re ->
   s2 =~ Star re ->
   s1 ++ s2 =~ Star re.
@@ -803,7 +943,7 @@ Just doing an inversion on H1 won't get us very far in the recursive cases. (Try
         |s1 re1 re2 Hmatch IH|re1 s2' re2 Hmatch IH
         |re''|s1 s2' re'' Hmatch1 IH1 Hmatch2 IH2].
 
-But now, although we get seven cases (as we would expect from the definition of exp_match), we have lost a very important bit of information from H1: the fact that s1 matched something of the form Star re. This means that we have to give proofs for all seven constructors of this definition, even though all but two of them (MStar0 and MStarApp) are contradictory. We can still get the proof to go through for a few constructors, such as MEmpty...
+But now, although we get seven cases (as we would expect from the definition of Exp_match), we have lost a very important bit of information from H1: the fact that s1 matched something of the form Star re. This means that we have to give proofs for all seven constructors of this definition, even though all but two of them (MStar0 and MStarApp) are contradictory. We can still get the proof to go through for a few constructors, such as MEmpty...
 
   - (* MEmpty *)
     simpl. intros H. apply H.
@@ -819,7 +959,7 @@ The problem is that induction over a Type hypothesis only works properly with hy
 (In this respect, induction on evidence behaves more like destruct than like inversion.)
 We can solve this problem by generalizing over the problematic expressions with an explicit equality:
 
-Lemma star_app: ∀T (s1 s2 : list T) (re re' : reg_exp T),
+Lemma star_app: ∀T (s1 s2 : list T) (re re' : Reg_exp T),
   s1 =~ re' ->
   re' = Star re ->
   s2 =~ Star re ->
@@ -830,7 +970,7 @@ This idiom is so common that Idris provides a tactic to automatically generate s
 Invoking the tactic remember e as x causes Idris to (1) replace all occurrences of the expression e by the variable x, and (2) add an equation x = e to the context. Here's how we can use it to show the above result:
 Abort.
 
-Lemma star_app: ∀T (s1 s2 : list T) (re : reg_exp T),
+Lemma star_app: ∀T (s1 s2 : list T) (re : Reg_exp T),
   s1 =~ Star re ->
   s2 =~ Star re ->
   s1 ++ s2 =~ Star re.
@@ -870,9 +1010,9 @@ The interesting cases are those that correspond to Star. Note that the induction
 Qed.
 
 Exercise: 4 stars (exp_match_ex2)
-The MStar'' lemma below (combined with its converse, the MStar' exercise above), shows that our definition of exp_match for Star is equivalent to the informal one given previously.
+The MStar'' lemma below (combined with its converse, the MStar' exercise above), shows that our definition of Exp_match for Star is equivalent to the informal one given previously.
 
-Lemma MStar'' : ∀T (s : list T) (re : reg_exp T),
+Lemma MStar'' : ∀T (s : list T) (re : Reg_exp T),
   s =~ Star re ->
   ∃ss : list (list T),
     s = fold app ss []
@@ -886,7 +1026,7 @@ To begin, we need to define "sufficiently long." Since we are working in a const
 
 Module Pumping.
 
-Fixpoint pumping_constant {T} (re : reg_exp T) : Nat =
+Fixpoint pumping_constant {T} (re : Reg_exp T) : Nat =
   match re with
   | EmptySet ⇒ 0
   | EmptyStr ⇒ 1
@@ -917,7 +1057,7 @@ Qed.
 
 Now, the pumping lemma itself says that, if s =~ re and if the length of s is at least the pumping constant of re, then s can be split into three substrings s1 ++ s2 ++ s3 in such a way that s2 can be repeated any number of times and the result, when combined with s1 and s3 will still match re. Since s2 is also guaranteed not to be the empty string, this gives us a (constructive!) way to generate strings matching re that are as long as we like.
 
-Lemma pumping : ∀T (re : reg_exp T) s,
+Lemma pumping : ∀T (re : Reg_exp T) s,
   s =~ re ->
   pumping_constant re <= length s ->
   ∃s1 s2 s3,
@@ -1162,5 +1302,6 @@ Theorem pigeonhole_principle: ∀(X:Type) (l1 l2:list X),
 Proof.
    intros X l1. induction l1 as [|x l1' IHl1'].
   (* FILL IN HERE *) Admitted.
+
 $\square$
-Index
+
