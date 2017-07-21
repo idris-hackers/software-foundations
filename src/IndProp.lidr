@@ -6,7 +6,7 @@
 > import Induction
 
 > %hide Basics.Numbers.pred
-> %hide Prelude.Strings.(++)
+
 
 == Inductively Defined Propositions
 
@@ -83,8 +83,10 @@ argument of \idr{Ev} appears unnamed, to the right of the colon, it is allowed
 to take different values in the types of different constructors: \idr{Z} in the
 type of \idr{Ev_0} and \idr{S (S n)} in the type of \idr{Ev_SS}.
 
-In contrast, the definition of \idr{List} names the \idr{x} parameter globally, forcing the result of \idr{Nil} and \idr{(::)} to be the same (\idr{List x}). Had we
-tried to name \idr{Nat} in defining \idr{Ev}, we would have seen an error:
+In contrast, the definition of \idr{List} names the \idr{x} parameter globally,
+forcing the result of \idr{Nil} and \idr{(::)} to be the same (\idr{List x}).
+Had we tried to name \idr{Nat} in defining \idr{Ev}, we would have seen an
+error:
 
 ```idris
 data Wrong_ev : (n : Nat) -> Type where
@@ -160,11 +162,12 @@ Let's look at a few examples to see what this means in practice.
 
 \todo[inline]{Edit}
 
-Suppose we are proving some fact involving a number \idr{n}, and we are given \idr{Ev n} as
-a hypothesis. We already know how to perform case analysis on \idr{n} using the
-\idr{inversion} tactic, generating separate subgoals for the case where \idr{n = Z} and the
-case where \idr{n = S n'} for some \idr{n'}. But for some proofs we may instead want to
-analyze the evidence that \idr{Ev n} directly.
+Suppose we are proving some fact involving a number \idr{n}, and we are given
+\idr{Ev n} as a hypothesis. We already know how to perform case analysis on
+\idr{n} using the \idr{inversion} tactic, generating separate subgoals for the
+case where \idr{n = Z} and the case where \idr{n = S n'} for some \idr{n'}. But
+for some proofs we may instead want to analyze the evidence that \idr{Ev n}
+directly.
 
 By the definition of \idr{Ev}, there are two cases to consider:
 
@@ -467,8 +470,8 @@ Here are a few more simple relations on numbers:
 
 ==== Exercise: 2 stars, optional (total_relation)
 
-Define an inductive binary relation \idr{Total_relation} that holds between every pair
-of natural numbers.
+Define an inductive binary relation \idr{Total_relation} that holds between
+every pair of natural numbers.
 
 > -- FILL IN HERE 
 
@@ -907,8 +910,10 @@ We can then phrase our theorem as follows:
 > -- some unfortunate implicit plumbing
 > destruct : In x (s1 ++ s2) -> (In x s1) `Either` (In x s2)
 > destruct {x} {s1} {s2} = fst $ in_app_iff {a=x} {l=s1} {l'=s2} 
-> construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) -> In x ((re_chars re1) ++ (re_chars re2))
-> construct {x} {re1} {re2} = snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)} 
+> construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) -> 
+>             In x ((re_chars re1) ++ (re_chars re2))
+> construct {x} {re1} {re2} = 
+>   snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)} 
 
 > in_re_match : (s =~ re) -> In x s -> In x (re_chars re)
 > in_re_match MEmpty prf = prf
@@ -1259,7 +1264,7 @@ the second).
 > beq_natP : Reflect (n = m) (beq_nat n m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
 
-\todo[inline]{Edit}
+\todo[inline]{Edit text and finish the theorem}
 
 The new proof of filter_not_empty_In now goes as follows. Notice how the calls
 to destruct and apply are combined into a single call to destruct.
@@ -1290,31 +1295,29 @@ Qed.
 
 ==== Exercise: 3 stars, recommended (beq_natP_practice)
 
-Use beq_natP as above to prove the following:
+Use \idr{beq_natP} as above to prove the following:
 
-Fixpoint count n l =
-  match l with
-  | [] ⇒ 0
-  | m :: l' ⇒ (if beq_nat n m then 1 else 0) + count n l'
-  end.
+> count : (n : Nat) -> (l : List Nat) -> Nat
+> count _ [] = 0
+> count n (x :: xs) = (if beq_nat n x then 1 else 0) + count n xs
 
-Theorem beq_natP_practice : ∀n l,
-  count n l = 0 -> ~(In n l).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> beq_natP_practice : count n l = 0 -> Not (In n l)
+> beq_natP_practice prf = ?beq_natP_practice_rhs
 
 $\square$
 
 This technique gives us only a small gain in convenience for the proofs we've
-seen here, but using reflect consistently often leads to noticeably shorter and
+seen here, but using \idr{Reflect} consistently often leads to noticeably shorter and
 clearer scripts as proofs get larger. We'll see many more examples in later
 chapters.
 
-The use of the reflect property was popularized by SSReflect, a Idris library
+\todo[inline]{Add http://math-comp.github.io/math-comp/ as a link}
+
+The use of the reflect property was popularized by `SSReflect`, a Coq library
 that has been used to formalize important results in mathematics, including as
-the 4-color theorem and the Feit-Thompson theorem. The name SSReflect stands for
-small-scale reflection, i.e., the pervasive use of reflection to simplify small
-proof steps with boolean computations.
+the 4-color theorem and the Feit-Thompson theorem. The name `SSReflect` stands
+for _small-scale reflection_, i.e., the pervasive use of reflection to simplify
+small proof steps with boolean computations.
 
 
 == Additional Exercises
@@ -1326,44 +1329,56 @@ Formulating inductive definitions of properties is an important skill you'll
 need in this course. Try to solve this exercise without any help at all.
 
 We say that a list "stutters" if it repeats the same element consecutively. The
-property "nostutter mylist" means that mylist does not stutter. Formulate an
-inductive definition for nostutter. (This is different from the NoDup property
-in the exercise above; the sequence 1;4;1 repeats but does not stutter.)
+property "\idr{Nostutter mylist}" means that \idr{mylist} does not stutter.
+Formulate an inductive definition for \idr{nostutter}. (This is different from
+the \idr{NoDup} property in the exercise below; the sequence \idr{[1,4,1]}
+repeats but does not stutter.)
 
-Inductive nostutter {X:Type} : list X -> Type =
- (* FILL IN HERE *)
-.
+> data Nostutter : List t -> Type where
+>   -- FILL IN HERE
+>   RemoveMe : Nostutter [] -- needed for typechecking, shouldn't be empty
 
 Make sure each of these tests succeeds, but feel free to change the suggested
 proof (in comments) if the given one doesn't work for you. Your definition might
 be different from ours and still be correct, in which case the examples might
 need a different proof. (You'll notice that the suggested proofs use a number of
 tactics we haven't talked about, to make them more robust to different possible
-ways of defining nostutter. You can probably just uncomment and use them as-is,
-but you can also prove each example with more basic tactics.)
+ways of defining \idr{Nostutter}. You can probably just uncomment and use them
+as-is, but you can also prove each example with more basic tactics.)
 
-Example test_nostutter_1: nostutter [3;1;4;1;5;6].
-(* FILL IN HERE *) Admitted.
+> test_nostutter_1 : Nostutter [3,1,4,1,5,6]
+> test_nostutter_1 = ?test_nostutter_1_rhs
+
+```coq
 (* 
   Proof. repeat constructor; apply beq_nat_false_iff; auto.
   Qed.
 *)
+```
 
-Example test_nostutter_2: nostutter (@nil Nat).
-(* FILL IN HERE *) Admitted.
+> test_nostutter_2 : Nostutter []
+> test_nostutter_2 = ?test_nostutter_2_rhs
+
+```coq
 (* 
   Proof. repeat constructor; apply beq_nat_false_iff; auto.
   Qed.
 *)
+```
 
-Example test_nostutter_3: nostutter [5].
-(* FILL IN HERE *) Admitted.
+> test_nostutter_3 : Nostutter [5]
+> test_nostutter_3 = ?test_nostutter_3_rhs
+
+```coq
 (* 
   Proof. repeat constructor; apply beq_nat_false; auto. Qed.
 *)
+```
 
-Example test_nostutter_4: not (nostutter [3;1;1;4]).
-(* FILL IN HERE *) Admitted.
+> test_nostutter_4 : Not (Nostutter [3,1,1,4])
+> test_nostutter_4 = ?test_nostutter_4_rhs
+
+```coq
 (* 
   Proof. intro.
   repeat match goal with
@@ -1371,32 +1386,46 @@ Example test_nostutter_4: not (nostutter [3;1;1;4]).
   end.
   contradiction H1; auto. Qed.
 *)
+```
+
 $\square$
 
 
 ==== Exercise: 4 stars, advanced (filter_challenge)
 
-Let's prove that our definition of filter from the Poly chapter matches an
-abstract specification. Here is the specification, written out informally in
-English:
+Let's prove that our definition of \idr{filter} from the \idr{Poly} chapter
+matches an abstract specification. Here is the specification, written out
+informally in English:
 
-A list l is an "in-order merge" of l1 and l2 if it contains all the same
-elements as l1 and l2, in the same order as l1 and l2, but possibly interleaved.
-For example,
-    [1;4;6;2;3]
+A list \idr{l} is an "in-order merge" of \idr{l1} and \idr{l2} if it contains
+all the same elements as \idr{l1} and \idr{l2}, in the same order as \idr{l1}
+and \idr{l2}, but possibly interleaved. For example,
+
+```idris
+    [1,4,6,2,3]
+```    
+
 is an in-order merge of
-    [1;6;2]
-and
-    [4;3].
 
-Now, suppose we have a set X, a function test: X->bool, and a list l of type
-list X. Suppose further that l is an in-order merge of two lists, l1 and l2,
-such that every item in l1 satisfies test and no item in l2 satisfies test. Then
-filter test l = l1.
+```idris
+    [1,6,2]
+```
+
+and
+
+```idris
+    [4,3]
+```
+
+Now, suppose we have a set \idr{x}, a function \idr{test : x->Bool}, and a list
+\idr{l} of type \idr{List x}. Suppose further that \idr{l} is an in-order merge
+of two lists, \idr{l1} and \idr{l2}, such that every item in \idr{l1} satisfies
+\idr{test} and no item in \idr{l2} satisfies \idr{test}. Then \idr{filter test l
+= l1}.
 
 Translate this specification into a Idris theorem and prove it. (You'll need to
 begin by defining what it means for one list to be a merge of two others. Do
-this with an inductive relation, not a Fixpoint.)
+this with an inductive \idr{data} type, not a function.)
 
 > -- FILL IN HERE
 
@@ -1405,9 +1434,10 @@ $\square$
 
 ==== Exercise: 5 stars, advanced, optional (filter_challenge_2)
 
-A different way to characterize the behavior of filter goes like this: Among all
-subsequences of l with the property that test evaluates to True on all their
-members, filter test l is the longest. Formalize this claim and prove it.
+A different way to characterize the behavior of \idr{filter} goes like this:
+Among all subsequences of \idr{l} with the property that \idr{test} evaluates to
+\idr{True} on all their members, \idr{filter test l} is the longest. Formalize
+this claim and prove it.
 
 > -- FILL IN HERE
 
@@ -1418,21 +1448,28 @@ $\square$
 
 A palindrome is a sequence that reads the same backwards as forwards.
 
-  - Define an inductive proposition pal on list X that captures what it means to
-    be a palindrome. (Hint: You'll need three cases. Your definition should be
-    based on the structure of the list; just having a single constructor like
+  - Define an inductive proposition \idr{Pal} on \idr{List t} that captures what
+    it means to be a palindrome. (Hint: You'll need three cases. Your definition
+    should be based on the structure of the list; just having a single
+    constructor like
 
-    c : ∀l, l = rev l -> pal l
+```idris
+    C : (l : List t) -> l = rev l -> Pal l
+```
 
     may seem obvious, but will not work very well.)
 
-  - Prove (pal_app_rev) that
+  - Prove (\idr{pal_app_rev}) that
 
-    ∀l, pal (l ++ rev l).
+```idris
+    (l : List t) -> Pal (l ++ rev l)
+```
 
-  - Prove (pal_rev that)
+  - Prove (\idr{pal_rev}) that
 
-    ∀l, pal l -> l = rev l.
+```idris
+    (l : List t) -> Pal l -> l = rev l
+```
 
 > -- FILL IN HERE
 
@@ -1442,9 +1479,12 @@ $\square$
 ==== Exercise: 5 stars, optional (palindrome_converse)
 
 Again, the converse direction is significantly more difficult, due to the lack
-of evidence. Using your definition of pal from the previous exercise, prove that
+of evidence. Using your definition of \idr{Pal} from the previous exercise,
+prove that
 
-     ∀l, l = rev l -> pal l.
+```idris
+    (l : List t) -> l = rev l -> Pal l
+```    
 
 > -- FILL IN HERE 
 
@@ -1453,31 +1493,32 @@ $\square$
 
 === Exercise: 4 stars, advanced, optional (NoDup)
 
-Recall the definition of the In property from the Logic chapter, which asserts
-that a value x appears at least once in a list l:
+Recall the definition of the \idr{In} property from the \idr{Logic} chapter, which asserts
+that a value \idr{x} appears at least once in a list \idr{l}:
 
-(* Fixpoint In (A : Type) (x : A) (l : list A) : Type =
-   match l with
-   |  => False
-   | x' :: l' => x' = x \/ In A x l'
-   end *)
+```idris
+In : (x : a) -> (l : List a) -> Type
+In x [] = Void
+In x (x' :: xs) = (x' = x) `Either` In x xs
+```
 
-Your first task is to use In to define a proposition disjoint X l1 l2, which
-should be provable exactly when l1 and l2 are lists (with elements of type X)
-that have no elements in common.
+Your first task is to use \idr{In} to define a proposition \idr{Disjoint {x} l1
+l2}, which should be provable exactly when \idr{l1} and \idr{l2} are lists (with
+elements of type \idr{x}) that have no elements in common.
 
 > -- FILL IN HERE
 
-Next, use In to define an inductive proposition NoDup X l, which should be
-provable exactly when l is a list (with elements of type X) where every member
-is different from every other. For example, NoDup Nat [1;2;3;4] and NoDup bool
-[] should be provable, while NoDup Nat [1;2;1] and NoDup bool [True;True] should
+Next, use \idr{In} to define an inductive proposition \idr{NoDup {x} l}, which
+should be provable exactly when \idr{l} is a list (with elements of type
+\idr{x}) where every member is different from every other. For example,
+\idr{NoDup {x=Nat} [1,2,3,4]} and \idr{NoDup {x=Bool} []} should be provable,
+while \idr{NoDup {x=Nat} [1,2,1]} and \idr{NoDup {x=Bool} [True,True]} should
 not be.
 
 > -- FILL IN HERE
 
-Finally, state and prove one or more interesting theorems relating disjoint,
-NoDup and ++ (list append).
+Finally, state and prove one or more interesting theorems relating
+\idr{Disjoint}, \idr{NoDup} and \idr{(++)} (list append).
 
 > -- FILL IN HERE
 
@@ -1487,42 +1528,40 @@ $\square$
 ==== Exercise: 4 stars, advanced, optional (pigeonhole principle)
 
 The _pigeonhole principle_ states a basic fact about counting: if we distribute
-more than n items into n pigeonholes, some pigeonhole must contain at least two
-items. As often happens, this apparently trivial fact about numbers requires
-non-trivial machinery to prove, but we now have enough...
+more than \idr{n} items into \idr{n} pigeonholes, some pigeonhole must contain
+at least two items. As often happens, this apparently trivial fact about numbers
+requires non-trivial machinery to prove, but we now have enough...
 
 First prove an easy useful lemma.
 
-Lemma in_split : ∀(X:Type) (x:X) (l:list X),
-  In x l ->
-  ∃l1 l2, l = l1 ++ x :: l2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> in_split : In x l -> (l1 ** l2 ** l = l1 ++ x :: l2)
+> in_split prf = ?in_split_rhs
 
-Now define a property repeats such that repeats X l asserts that l contains at
-least one repeated element (of type X).
+Now define a property \idr{Repeats} such that \idr{Repeats {x} l} asserts that
+\idr{l} contains at least one repeated element (of type \idr{x}).
 
-Inductive repeats {X:Type} : list X -> Type =
-  (* FILL IN HERE *)
-.
+> data Repeats : {x : Type} -> List x -> Type where
+>   -- FILL IN HERE
+>   RemoveMe' : Repeats [] -- needed for typechecking, shouldn't be empty
 
-Now, here's a way to formalize the pigeonhole principle. Suppose list l2
-represents a list of pigeonhole labels, and list l1 represents the labels
+Now, here's a way to formalize the pigeonhole principle. Suppose list \idr{l2}
+represents a list of pigeonhole labels, and list \idr{l1} represents the labels
 assigned to a list of items. If there are more items than labels, at least two
-items must have the same label -- i.e., list l1 must contain repeats.
+items must have the same label -- i.e., list \idr{l1} must contain repeats.
 
-This proof is much easier if you use the excluded_middle hypothesis to show that
-In is decidable, i.e., ∀ x l, (In x l) ∨ ¬ (In x l). However, it is also
-possible to make the proof go through without assuming that In is decidable; if
-you manage to do this, you will not need the excluded_middle hypothesis.
+This proof is much easier if you use the \idr{excluded_middle} hypothesis to
+show that \idr{In} is decidable, i.e., \idr{(In x l) `Either` (Not (In x l))}.
+However, it is also possible to make the proof go through _without_ assuming
+that \idr{In} is decidable; if you manage to do this, you will not need the
+\idr{excluded_middle} hypothesis.
 
-Theorem pigeonhole_principle: ∀(X:Type) (l1 l2:list X),
-   excluded_middle ->
-   (∀x, In x l1 -> In x l2) ->
-   length l2 < length l1 ->
-   repeats l1.
-Proof.
-   intros X l1. induction l1 as [|x l1' IHl1'].
-  (* FILL IN HERE *) Admitted.
+> pigeonhole_principle: (l1, l2 : List a) -> 
+>                       ((x : a) -> In x l1 -> In x l2) -> 
+>                       ((length l2) <' (length l1)) -> 
+>                       Repeats l1
+> pigeonhole_principle l1 l2 f prf = ?pigeonhole_principle_rhs
+> where
+>   excluded_middle : (a : Type) -> a `Either` (Not a)
+>   excluded_middle p = really_believe_me p
 
 $\square$
