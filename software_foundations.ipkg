@@ -5,6 +5,7 @@ modules    = Basics
            , Lists
            , Poly
            , Tactics
+           , Logic
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
