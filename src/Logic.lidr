@@ -129,7 +129,7 @@ To prove a conjunction, we can use value-level pair syntax:
 > and_example = (Refl, Refl)
 
 For any propositions \idr{a} and \idr{b}, if we assume that \idr{a} is true and
-we assume that \idr{a} is true, we can trivially conclude that \idr{(a,b)} is
+we assume that \idr{b} is true, we can trivially conclude that \idr{(a,b)} is
 also true.
 
 > and_intro : a -> b -> (a, b)
@@ -160,10 +160,10 @@ You may wonder why we bothered packing the two hypotheses \idr{n = 0} and \idr{m
 = 0} into a single conjunction, since we could have also stated the theorem with
 two separate premises:
 
-> and_example2'' : (n, m : Nat) -> n = 0 -> m = 0 -> n + m = 0
-> and_example2'' Z Z Refl Refl = Refl
-> and_example2'' (S _) _ Refl _ impossible
-> and_example2'' _ (S _) _ Refl impossible
+> and_example2' : (n, m : Nat) -> n = 0 -> m = 0 -> n + m = 0
+> and_example2' Z Z Refl Refl = Refl
+> and_example2' (S _) _ Refl _ impossible
+> and_example2' _ (S _) _ Refl impossible
 
 For this theorem, both formulations are fine. But it's important to understand
 how to work with conjunctive hypotheses because conjunctions often arise from
@@ -212,7 +212,8 @@ $\square$
 
 === Disjunction
 
-\todo[inline]{Make syntax synonyms for \idr{(,)} and \idr{Either}?}
+\todo[inline]{Hide \idr{Basics.Booleans} analogues and make syntax synonyms
+\idr{(/\)} and \idr{(\/)} for \idr{(,)} and \idr{Either}?}
 
 Another important connective is the _disjunction_, or _logical or_ of two
 propositions: \idr{a `Either` b} is true when either \idr{a} or \idr{b} is. The
@@ -267,6 +268,8 @@ course, we may also be interested in _negative_ results, showing that certain
 propositions are _not_ true. In Idris, such negative statements are expressed
 with the negation typelevel function \idr{Not}.
 
+\todo[inline]{Add hyperlink}
+
 To see how negation works, recall the discussion of the _principle of explosion_
 from the previous chapter; it asserts that, if we assume a contradiction, then
 any other proposition can be derived. Following this intuition, we could define
@@ -281,6 +284,8 @@ data Void : Type where
 Not : Type -> Type
 Not a = a -> Void
 ```
+
+\todo[inline]{Discuss difference between \idr{void} and \idr{absurd}}
 
 Since \idr{Void} is a contradictory proposition, the principle of explosion also
 applies to it. If we get \idr{Void} into the proof context, we can call
@@ -333,7 +338,7 @@ warmed up.
 > double_neg p notp = notp p
 
 
-==== Exercise: 2 stars, advanced, recommendedM (double_neg_inf)
+==== Exercise: 2 stars, advanced, recommended (double_neg_inf)
 
 Write an informal proof of \idr{double_neg}:
 
@@ -405,7 +410,7 @@ the same truth value, is just the conjunction of two implications.
 >   iff : {p,q : Type} -> Type
 >   iff {p} {q} = (p -> q, q -> p)
 
-Idris' stdlib has a more general form of this, \idr{Iso}, in
+Idris's stdlib has a more general form of this, \idr{Iso}, in
 \idr{Control.Isomorphism}.
 
 >   syntax [p] "<->" [q] = iff {p} {q}
@@ -450,9 +455,7 @@ Some of Idris's tactics treat iff statements specially, avoiding the need for
 some low-level proof-state manipulation. In particular, rewrite and reflexivity
 can be used with iff statements, not just equalities. To enable this behavior,
 we need to import a special Idris library that allows rewriting with other
-formulas besides equality:
-
-Require Import Idris.Setoids.Setoid.
+formulas besides equality (setoids).
 
 Here is a simple example demonstrating how these tactics work with iff. First,
 let's prove a couple of basic iff equivalences...
@@ -477,9 +480,9 @@ let's prove a couple of basic iff equivalences...
 >     fro (Left (Right q)) = Right $ Left q
 >     fro (Right r) = Right $ Right r
 
-We can now use these facts with rewrite and reflexivity to give smooth proofs of
-statements involving equivalences. Here is a ternary version of the previous
-mult_0 result:
+We can now use these facts with \idr{rewrite} and \idr{Refl} to give smooth
+proofs of statements involving equivalences. Here is a ternary version of the
+previous \idr{mult_0} result:
 
 >   mult_0_3 : (n * m * p = Z) <-> 
 >              ((n = Z) `Either` ((m = Z) `Either` (p = Z)))
@@ -498,8 +501,8 @@ mult_0 result:
 >     fro {n} (Right (Left Refl)) = rewrite multZeroRightZero n in Refl
 >     fro {n} {m} (Right (Right Refl)) = rewrite multZeroRightZero (n*m) in Refl
 
-The apply tactic can also be used with <->. When given an equivalence as its
-argument, apply tries to guess which side of the equivalence to use.
+The apply tactic can also be used with \idr{<->}. When given an equivalence as
+its argument, apply tries to guess which side of the equivalence to use.
 
 >    apply_iff_example : (n, m : Nat) -> n * m = Z -> ((n = Z) `Either` (m = Z))  
 >    apply_iff_example n m = fst $ mult_0 {n} {m}
@@ -536,7 +539,7 @@ that \idr{p} holds of \idr{x}.
 Prove that "\idr{p} holds for all \idr{x}" implies "there is no \idr{x} for
 which \idr{p} does not hold."
 
-> dist_not_exists : {p : a -> Type} -> ((x:a) -> p x) -> Not (x ** Not $ p x)
+> dist_not_exists : {p : a -> Type} -> ((x : a) -> p x) -> Not (x ** Not $ p x)
 > dist_not_exists f = ?dist_not_exists_rhs
 
 $\square$
@@ -679,6 +682,8 @@ $\square$
 One feature of Idris that distinguishes it from many other proof assistants is
 that it treats _proofs_ as first-class objects.
 
+\todo[inline]{`nameref` the chapters when they're done}
+
 There is a great deal to be said about this, but it is not necessary to
 understand it in detail in order to use Idris. This section gives just a taste,
 while a deeper exploration can be found in the optional chapters
@@ -716,23 +721,27 @@ wanted to prove the following result:
 
 > plus_comm3 : (n, m, p : Nat) -> n + (m + p) = (p + m) + n
 
-\todo[inline]{Edit, we have already done this in previous chapters}
+\todo[inline]{Edit, we have already done this in previous chapters (add a
+hyperlink?)}
 
 It appears at first sight that we ought to be able to prove this by rewriting
 with \idr{plusCommutative} twice to make the two sides match. The problem,
 however, is that the second \idr{rewrite} will undo the effect of the first.
 
+```coq
 Proof.
   intros n m p.
   rewrite plus_comm.
   rewrite plus_comm.
   (* We are back where we started... *)
 Abort.
+```
 
 One simple way of fixing this problem, using only tools that we already know, is
 to use assert to derive a specialized version of plus_comm that can be used to
 rewrite exactly where we want.
 
+```coq
 Lemma plus_comm3_take2 :
   ∀n m p, n + (m + p) = (p + m) + n.
 Proof.
@@ -743,10 +752,11 @@ Proof.
   rewrite H.
   reflexivity.
 Qed.
+```
 
-A more elegant alternative is to apply plus_comm directly to the arguments we
-want to instantiate it with, in much the same way as we apply a polymorphic
-function to a type argument.
+A more elegant alternative is to apply \idr{plusCommutative} directly to the
+arguments we want to instantiate it with, in much the same way as we apply a
+polymorphic function to a type argument.
 
 > plus_comm3 n m p = rewrite plusCommutative n (m+p) in 
 >                    rewrite plusCommutative m p in Refl
@@ -771,7 +781,7 @@ We will see many more examples of the idioms from this section in later chapters
 
 == Idris vs. Set Theory
 
-\todo[inline]{Edit, Idris' core is likely some variant of MLTT}
+\todo[inline]{Edit, Idris's core is likely some variant of MLTT}
 
 Idris's logical core, the Calculus of Inductive Constructions, differs in some
 important ways from other formal systems that are used by mathematicians for
@@ -806,9 +816,9 @@ we can write propositions claiming that two _functions_ are equal to each other:
 In common mathematical practice, two functions `f` and `g` are considered equal
 if they produce the same outputs:
 
-\todo[inline]{Use proper TeX here?}
-    
-    `(∀x, f x = g x) -> f = g`
+\[
+     \left(\forall x, f(x) = g(x)\right) \to f = g
+\]
 
 This is known as the principle of _functional extensionality_.
 
@@ -830,7 +840,7 @@ function_equality_ex2 = ?stuck
 However, we can add functional extensionality to Idris's core logic using the
 \idr{really_believe_me} command.
 
-> functional_extensionality : ((x:a) -> f x = g x) -> f = g
+> functional_extensionality : ((x : a) -> f x = g x) -> f = g
 > functional_extensionality = really_believe_me
 
 Using \idr{really_believe_me} has the same effect as stating a theorem and
@@ -856,14 +866,16 @@ consistent.
 \todo[inline]{Is there such a command in Idris?}
 
 To check whether a particular proof relies on any additional axioms, use the
-Print Assumptions command.
+`Print Assumptions` command.
 
+```coq
 Print Assumptions function_equality_ex2.
 (* ===>
      Axioms:
      functional_extensionality :
          forall (X Y : Type) (f g : X -> Y),
                 (forall x : X, f x = g x) -> f = g *)
+```
 
 
 ==== Exercise: 4 stars (tr_rev)
@@ -928,7 +940,9 @@ We often say that the boolean \idr{evenb n} _reflects_ the proposition \idr{(k
 ==== Exercise: 3 stars (evenb_double_conv)
 
 > evenb_double_conv : (k ** n = if evenb n then double k else S (double k))
-> -- Hint: Use the \idr{evenb_S} lemma from `Induction`
+
+*Hint*: Use the \idr{evenb_S} lemma from \idr{Induction}.
+
 > evenb_double_conv = ?evenb_double_conv_rhs
 
 $\square$
@@ -1003,7 +1017,7 @@ Idris's core language, which is designed so that every function that it can
 express is computable and total. One reason for this is to allow the extraction
 of executable programs from Idris developments. As a consequence, \idr{Type} in
 Idris does _not_ have a universal case analysis operation telling whether any
-given proposition is true or Void, since such an operation would allow us to
+given proposition is true or false, since such an operation would allow us to
 write non-computable functions.
 
 Although general non-computable properties cannot be phrased as boolean
@@ -1037,6 +1051,9 @@ explicitly:
 
 > even_1000'' : (k ** 1000 = double k)
 > even_1000'' = (fst $ even_bool_prop {n=1000}) Refl
+
+\todo[inline]{Add http://www.ams.org/journals/notices/200811/tx081101382p.pdf as
+a link}
 
 Although we haven't gained much in terms of proof size in this case, larger
 proofs can often be made considerably simpler by the use of reflection. As an
@@ -1221,13 +1238,13 @@ constructive reasoning, but arguments by contradiction, in particular, are
 infamous for leading to non-constructive proofs. Here's a typical example:
 suppose that we want to show that there exists \idr{x} with some property
 \idr{p}, i.e., such that \idr{p x}. We start by assuming that our conclusion is
-false; that is, \idr{Not (x:a ** p x)}. From this premise, it is not hard to
-derive \idr{(x:a) -> Not $ p x}. If we manage to show that this intermediate
+false; that is, \idr{Not (x : a ** p x)}. From this premise, it is not hard to
+derive \idr{(x : a) -> Not $ p x}. If we manage to show that this intermediate
 fact results in a contradiction, we arrive at an existence proof without ever
 exhibiting a value of \idr{x} for which \idr{p x} holds!
 
 The technical flaw here, from a constructive standpoint, is that we claimed to
-prove \idr{(x ** p x)} using a proof of `Not $ Not (x ** p x)}. Allowing
+prove \idr{(x ** p x)} using a proof of \idr{Not $ Not (x ** p x)}. Allowing
 ourselves to remove double negations from arbitrary statements is equivalent to
 assuming the excluded middle, as shown in one of the exercises below. Thus, this
 line of reasoning cannot be encoded in Idris without assuming additional axioms.
@@ -1258,6 +1275,8 @@ equivalent:
     Not (x : a ** Not p x)
     (x : a) -> p x
 ```
+
+\todo[inline]{Add a hyperlink}
 
 The \idr{dist_not_exists} theorem above proves one side of this equivalence.
 Interestingly, the other direction cannot be proved in constructive logic. Your
