@@ -6,6 +6,7 @@
 > import Induction
 
 > %hide Basics.Numbers.pred
+> %hide Prelude.Strings.(++)
 
 == Inductively Defined Propositions
 
@@ -669,13 +670,6 @@ follows:
 >   Union : Reg_exp t -> Reg_exp t -> Reg_exp t
 >   Star : Reg_exp t -> Reg_exp t
 
-Arguments EmptySet {T}.
-Arguments EmptyStr {T}.
-Arguments Char {T} _.
-Arguments App {T} _ _.
-Arguments Union {T} _ _.
-Arguments Star {T} _.
-
 Note that this definition is _polymorphic_: Regular expressions in \idr{Reg_exp
 t} describe strings with characters drawn from\idr{t} -- that is, lists of
 elements of \idr{t}.
@@ -816,158 +810,227 @@ We can also prove general facts about \idr{Exp_match}. For instance, the
 following lemma shows that every string \idr{s} that matches \idr{re} also
 matches \idr{Star re}.
 
-> MStar1 : (re : Reg_exp t) -> (s =~ re) -> (s =~ Star re)
-> MStar1 re x = ?MStar1_rhs
+> MStar1 : (s =~ re) -> (s =~ Star re)
+> MStar1 {s} h = 
+>   rewrite sym $ appendNilRightNeutral s in 
+>   MStarApp h MStar0
 
-Proof.
-  intros T s re H.
-  rewrite ← (app_nil_r _ s).
-  apply (MStarApp s [] re).
-  - apply H.
-  - apply MStar0.
-Qed.
+(Note the use of \idr{appendNilRightNeutral} to change the goal of the theorem
+to exactly the same shape expected by \idr{MStarApp}.)
 
-(Note the use of app_nil_r to change the goal of the theorem to exactly the same shape expected by MStarApp.)
-Exercise: 3 stars (exp_match_ex1)
-The following lemmas show that the informal matching rules given at the beginning of the chapter can be obtained from the formal inductive definition.
 
-Lemma empty_is_empty : ∀T (s : list T),
-  ¬ (s =~ EmptySet).
-Proof.
-  (* FILL IN HERE *) Admitted.
+==== Exercise: 3 stars (exp_match_ex1)
 
-Lemma MUnion' : ∀T (s : list T) (re1 re2 : Reg_exp T),
-  s =~ re1 ∨ s =~ re2 ->
-  s =~ Union re1 re2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+The following lemmas show that the informal matching rules given at the
+beginning of the chapter can be obtained from the formal inductive definition.
 
-The next lemma is stated in terms of the fold function from the Poly chapter: If ss : list (list T) represents a sequence of strings s1, ..., sn, then fold app ss [] is the result of concatenating them all together.
+> empty_is_empty : Not (s =~ EmptySet)
+> empty_is_empty = ?empty_is_empty_rhs
 
-Lemma MStar' : ∀T (ss : list (list T)) (re : Reg_exp T),
-  (∀s, In s ss -> s =~ re) ->
-  fold app ss [] =~ Star re.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> MUnion' : (s =~ re1, s =~ re2) -> s =~ Union re1 re2
+> MUnion' m = ?MUnion'_rhs
+
+The next lemma is stated in terms of the \idr{fold} function from the \idr{Poly}
+chapter: If \idr{ss : List (List t)} represents a sequence of strings \idr{s1,
+..., sn}, then \idr{fold (++) ss []} is the result of concatenating them all
+together.
+
+\todo[inline]{Copied these here for now, add hyperlink}
+
+> fold : (f : x -> y -> y) -> (l : List x) -> (b : y) -> y
+> fold f [] b = b
+> fold f (h::t) b = f h (fold f t b)
+
+> In : (x : a) -> (l : List a) -> Type
+> In x [] = Void
+> In x (x' :: xs) = (x' = x) `Either` In x xs
+
+> MStar' : (ss : List $ List t) -> (re : Reg_exp t) -> 
+>          ((s : List t) -> (In s ss) -> (s =~ re)) -> 
+>          (fold (++) ss []) =~ Star re
+> MStar' ss re f = ?MStar'_rhs
+
 $\square$
-Exercise: 4 stars (reg_exp_of_list)
-Prove that reg_exp_of_list satisfies the following specification:
 
-Lemma reg_exp_of_list_spec : ∀T (s1 s2 : list T),
-  s1 =~ reg_exp_of_list s2 ↔ s1 = s2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+
+==== Exercise: 4 stars (reg_exp_of_list)
+
+Prove that \idr{reg_exp_of_list} satisfies the following specification:
+
+> reg_exp_of_list_spec : (s1 =~ reg_exp_of_list s2) <-> (s1 = s2)
+> reg_exp_of_list_spec = ?reg_exp_of_list_spec_rhs
+
 $\square$
-Since the definition of Exp_match has a recursive structure, we might expect that proofs involving regular expressions will often require induction on evidence. For example, suppose that we wanted to prove the following intuitive result: If a regular expression re matches some string s, then all elements of s must occur somewhere in re. To state this theorem, we first define a function re_chars that lists all characters that occur in a regular expression:
 
-Fixpoint re_chars {T} (re : Reg_exp T) : list T =
-  match re with
-  | EmptySet ⇒ []
-  | EmptyStr ⇒ []
-  | Char x ⇒ [x]
-  | App re1 re2 ⇒ re_chars re1 ++ re_chars re2
-  | Union re1 re2 ⇒ re_chars re1 ++ re_chars re2
-  | Star re ⇒ re_chars re
-  end.
+Since the definition of \idr{Exp_match} has a recursive structure, we might
+expect that proofs involving regular expressions will often require induction on
+evidence. For example, suppose that we wanted to prove the following intuitive
+result: If a regular expression \idr{re} matches some string \idr{s}, then all
+elements of \idr{s} must occur somewhere in \idr{re}. To state this theorem, we
+first define a function \idr{re_chars} that lists all characters that occur in a
+regular expression:
+
+> re_chars : (re : Reg_exp t) -> List t
+> re_chars EmptySet = []
+> re_chars EmptyStr = []
+> re_chars (Chr x) = [x]
+> re_chars (App re1 re2) = re_chars re1 ++ re_chars re2 
+> re_chars (Union re1 re2) = re_chars re1 ++ re_chars re2 
+> re_chars (Star re) = re_chars re
+
+> re_star : re_chars (Star re) = re_chars re
+> re_star = Refl
 
 We can then phrase our theorem as follows:
 
-Theorem in_re_match : ∀T (s : list T) (re : Reg_exp T) (x : T),
-  s =~ re ->
-  In x s ->
-  In x (re_chars re).
-Proof.
-  intros T s re x Hmatch Hin.
-  induction Hmatch
-    as [
-        |x'
-        |s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
-        |s1 re1 re2 Hmatch IH|re1 s2 re2 Hmatch IH
-        |re|s1 s2 re Hmatch1 IH1 Hmatch2 IH2].
-  (* WORKED IN CLASS *)
-  - (* MEmpty *)
-    apply Hin.
-  - (* MChar *)
-    apply Hin.
-  - simpl. rewrite in_app_iff in *.
-    destruct Hin as [Hin | Hin].
-    + (* In x s1 *)
-      left. apply (IH1 Hin).
-    + (* In x s2 *)
-      right. apply (IH2 Hin).
-  - (* MUnionL *)
-    simpl. rewrite in_app_iff.
-    left. apply (IH Hin).
-  - (* MUnionR *)
-    simpl. rewrite in_app_iff.
-    right. apply (IH Hin).
-  - (* MStar0 *)
-    destruct Hin.
+\todo[inline]{Copied here for now}
 
-Something interesting happens in the MStarApp case. We obtain two induction hypotheses: One that applies when x occurs in s1 (which matches re), and a second one that applies when x occurs in s2 (which matches Star re). This is a good illustration of why we need induction on evidence for Exp_match, as opposed to re: The latter would only provide an induction hypothesis for strings that match re, which would not allow us to reason about the case In x s2.
+> in_app_iff : (In a (l++l')) <-> (In a l `Either` In a l')
+> in_app_iff {l} {l'} = (to l l', fro l l')
+> where
+>   to : (l, l' : List x) -> In a (l ++ l') -> (In a l) `Either` (In a l')
+>   to [] [] prf = absurd prf
+>   to [] _ prf = Right prf
+>   to (_ :: _) _ (Left Refl) = Left $ Left Refl
+>   to (_ :: xs) l' (Right prf) = 
+>     case to xs l' prf of 
+>       Left ixs => Left $ Right ixs
+>       Right il' => Right il'
+>   fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
+>   fro [] _ (Left prf) = absurd prf
+>   fro (_ :: _) _ (Left (Left Refl)) = Left Refl
+>   fro (_ :: xs) l' (Left (Right prf)) = Right $ fro xs l' (Left prf)
+>   fro _ [] (Right prf) = absurd prf
+>   fro [] _ (Right prf) = prf
+>   fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
 
-  - (* MStarApp *)
-    simpl. rewrite in_app_iff in Hin.
-    destruct Hin as [Hin | Hin].
-    + (* In x s1 *)
-      apply (IH1 Hin).
-    + (* In x s2 *)
-      apply (IH2 Hin).
-Qed.
+> -- some unfortunate implicit plumbing
+> destruct : In x (s1 ++ s2) -> (In x s1) `Either` (In x s2)
+> destruct {x} {s1} {s2} = fst $ in_app_iff {a=x} {l=s1} {l'=s2} 
+> construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) -> In x ((re_chars re1) ++ (re_chars re2))
+> construct {x} {re1} {re2} = snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)} 
 
-Exercise: 4 stars (re_not_empty)
-Write a recursive function re_not_empty that tests whether a regular expression matches some string. Prove that your function is correct.
+> in_re_match : (s =~ re) -> In x s -> In x (re_chars re)
+> in_re_match MEmpty prf = prf
+> in_re_match MChar prf = prf
+> in_re_match (MApp m1 m2) prf = construct $ case destruct prf of
+>     Left prf1 => Left $ in_re_match m1 prf1
+>     Right prf2 => Right $ in_re_match m2 prf2
+> in_re_match (MUnionL ml) prf = construct $ Left $ in_re_match ml prf
+> in_re_match (MUnionR mr) prf = construct $ Right $ in_re_match mr prf
+> in_re_match MStar0 prf = absurd prf
+> in_re_match (MStarApp m ms) prf = case destruct prf of
 
-Fixpoint re_not_empty {T : Type} (re : Reg_exp T) : bool
-  (* REPLACE THIS LINE WITH "= _your_definition_ ." *). Admitted.
+\todo[inline]{Edit}
 
-Lemma re_not_empty_correct : ∀T (re : Reg_exp T),
-  (∃s, s =~ re) ↔ re_not_empty re = True.
-Proof.
-  (* FILL IN HERE *) Admitted.
+Something interesting happens in the \idr{MStarApp} case. We obtain two
+induction hypotheses: One that applies when \idr{x} occurs in \idr{s1} (which
+matches \idr{re}), and a second one that applies when \idr{x} occurs in \idr{s2}
+(which matches \idr{Star re}). This is a good illustration of why we need
+induction on evidence for \idr{Exp_match}, as opposed to \idr{re}: The latter
+would only provide an induction hypothesis for strings that match \idr{re},
+which would not allow us to reason about the case \idr{In x s2}.
+
+>     Left prf' => in_re_match m prf'
+>     Right prfs => in_re_match ms prfs
+
+
+==== Exercise: 4 stars (re_not_empty)
+
+Write a recursive function \idr{re_not_empty} that tests whether a regular
+expression matches some string. Prove that your function is correct.
+
+> re_not_empty : (re : Reg_exp t) -> Bool
+> re_not_empty re = ?re_not_empty_rhs
+
+> re_not_empty_correct : (s ** s =~ re) <-> re_not_empty re = True
+> re_not_empty_correct = ?re_not_empty_correct_rhs
+
 $\square$
-The remember Tactic
-One potentially confusing feature of the induction tactic is that it happily lets you try to set up an induction over a term that isn't sufficiently general. The effect of this is to lose information (much as destruct can do), and leave you unable to complete the proof. Here's an example:
 
-Lemma star_app: ∀T (s1 s2 : list T) (re : Reg_exp T),
-  s1 =~ Star re ->
-  s2 =~ Star re ->
-  s1 ++ s2 =~ Star re.
-Proof.
-  intros T s1 s2 re H1.
 
-Just doing an inversion on H1 won't get us very far in the recursive cases. (Try it!). So we need induction. Here is a naive first attempt:
+=== The remember Tactic
 
+\todo[inline]{Rewrite the section, dependent pattern matching figures all of
+this out}
+
+One potentially confusing feature of the induction tactic is that it happily
+lets you try to set up an induction over a term that isn't sufficiently general.
+The effect of this is to lose information (much as destruct can do), and leave
+you unable to complete the proof. Here's an example:
+
+> star_app : (s1 =~ Star re) -> (s2 =~ Star re) -> (s1 ++ s2) =~ Star re
+> star_app MStar0 m2 = m2
+> star_app {s2} (MStarApp {s1=s11} {s2=s21} m ms) m2 = 
+>  rewrite sym $ appendAssociative s11 s21 s2 in 
+>    MStarApp m (star_app ms m2)
+
+Just doing an inversion on H1 won't get us very far in the recursive cases. (Try
+it!). So we need induction. Here is a naive first attempt:
+
+```coq
   induction H1
     as [|x'|s1 re1 s2' re2 Hmatch1 IH1 Hmatch2 IH2
         |s1 re1 re2 Hmatch IH|re1 s2' re2 Hmatch IH
         |re''|s1 s2' re'' Hmatch1 IH1 Hmatch2 IH2].
+```
 
-But now, although we get seven cases (as we would expect from the definition of Exp_match), we have lost a very important bit of information from H1: the fact that s1 matched something of the form Star re. This means that we have to give proofs for all seven constructors of this definition, even though all but two of them (MStar0 and MStarApp) are contradictory. We can still get the proof to go through for a few constructors, such as MEmpty...
+But now, although we get seven cases (as we would expect from the definition of
+Exp_match), we have lost a very important bit of information from H1: the fact
+that s1 matched something of the form Star re. This means that we have to give
+proofs for all seven constructors of this definition, even though all but two of
+them (MStar0 and MStarApp) are contradictory. We can still get the proof to go
+through for a few constructors, such as MEmpty...
 
+```coq
   - (* MEmpty *)
     simpl. intros H. apply H.
+```
 
 ... but most cases get stuck. For MChar, for instance, we must show that
+
+```coq
     s2 =~ Char x' -> x' :: s2 =~ Char x',
+```
+
 which is clearly impossible.
 
+```coq
   - (* MChar. Stuck... *)
 Abort.
+```
 
-The problem is that induction over a Type hypothesis only works properly with hypotheses that are completely general, i.e., ones in which all the arguments are variables, as opposed to more complex expressions, such as Star re.
-(In this respect, induction on evidence behaves more like destruct than like inversion.)
-We can solve this problem by generalizing over the problematic expressions with an explicit equality:
+The problem is that induction over a Type hypothesis only works properly with
+hypotheses that are completely general, i.e., ones in which all the arguments
+are variables, as opposed to more complex expressions, such as Star re.
 
+(In this respect, induction on evidence behaves more like destruct than like
+inversion.)
+
+We can solve this problem by generalizing over the problematic expressions with
+an explicit equality:
+
+```coq
 Lemma star_app: ∀T (s1 s2 : list T) (re re' : Reg_exp T),
   s1 =~ re' ->
   re' = Star re ->
   s2 =~ Star re ->
   s1 ++ s2 =~ Star re.
+```
 
-We can now proceed by performing induction over evidence directly, because the argument to the first hypothesis is sufficiently general, which means that we can discharge most cases by inverting the re' = Star re equality in the context.
-This idiom is so common that Idris provides a tactic to automatically generate such equations for us, avoiding thus the need for changing the statements of our theorems.
-Invoking the tactic remember e as x causes Idris to (1) replace all occurrences of the expression e by the variable x, and (2) add an equation x = e to the context. Here's how we can use it to show the above result:
+We can now proceed by performing induction over evidence directly, because the
+argument to the first hypothesis is sufficiently general, which means that we
+can discharge most cases by inverting the re' = Star re equality in the context.
+
+This idiom is so common that Idris provides a tactic to automatically generate
+such equations for us, avoiding thus the need for changing the statements of our
+theorems.
+
+Invoking the tactic remember e as x causes Idris to (1) replace all occurrences
+of the expression e by the variable x, and (2) add an equation x = e to the
+context. Here's how we can use it to show the above result:
+
+```coq
 Abort.
 
 Lemma star_app: ∀T (s1 s2 : list T) (re : Reg_exp T),
@@ -977,25 +1040,34 @@ Lemma star_app: ∀T (s1 s2 : list T) (re : Reg_exp T),
 Proof.
   intros T s1 s2 re H1.
   remember (Star re) as re'.
+```
 
 We now have Heqre' : re' = Star re.
 
+```coq
   generalize dependent s2.
   induction H1
     as [|x'|s1 re1 s2' re2 Hmatch1 IH1 Hmatch2 IH2
         |s1 re1 re2 Hmatch IH|re1 s2' re2 Hmatch IH
         |re''|s1 s2' re'' Hmatch1 IH1 Hmatch2 IH2].
+```
 
-The Heqre' is contradictory in most cases, which allows us to conclude immediately.
+The Heqre' is contradictory in most cases, which allows us to conclude
+immediately.
 
+```coq
   - (* MEmpty *) inversion Heqre'.
   - (* MChar *) inversion Heqre'.
   - (* MApp *) inversion Heqre'.
   - (* MUnionL *) inversion Heqre'.
   - (* MUnionR *) inversion Heqre'.
+```
 
-The interesting cases are those that correspond to Star. Note that the induction hypothesis IH2 on the MStarApp case mentions an additional premise Star re'' = Star re', which results from the equality generated by remember.
+The interesting cases are those that correspond to Star. Note that the induction
+hypothesis IH2 on the MStarApp case mentions an additional premise Star re'' =
+Star re', which results from the equality generated by remember.
 
+```coq
   - (* MStar0 *)
     inversion Heqre'. intros s H. apply H.
 
@@ -1008,147 +1080,201 @@ The interesting cases are those that correspond to Star. Note that the induction
       * reflexivity.
       * apply H1.
 Qed.
+```
 
-Exercise: 4 stars (exp_match_ex2)
-The MStar'' lemma below (combined with its converse, the MStar' exercise above), shows that our definition of Exp_match for Star is equivalent to the informal one given previously.
 
-Lemma MStar'' : ∀T (s : list T) (re : Reg_exp T),
-  s =~ Star re ->
-  ∃ss : list (list T),
-    s = fold app ss []
-    ∧ ∀s', In s' ss -> s' =~ re.
-Proof.
-  (* FILL IN HERE *) Admitted.
-$\square$
-Exercise: 5 stars, advanced (pumping)
-One of the first really interesting theorems in the theory of regular expressions is the so-called pumping lemma, which states, informally, that any sufficiently long string s matching a regular expression re can be "pumped" by repeating some middle section of s an arbitrary number of times to produce a new string also matching re.
-To begin, we need to define "sufficiently long." Since we are working in a constructive logic, we actually need to be able to calculate, for each regular expression re, the minimum length for strings s to guarantee "pumpability."
+==== Exercise: 4 stars (exp_match_ex2)
 
-Module Pumping.
+The \idr{MStar''} lemma below (combined with its converse, the \idr{MStar'}
+exercise above), shows that our definition of \idr{Exp_match} for \idr{Star} is
+equivalent to the informal one given previously.
 
-Fixpoint pumping_constant {T} (re : Reg_exp T) : Nat =
-  match re with
-  | EmptySet ⇒ 0
-  | EmptyStr ⇒ 1
-  | Char _ ⇒ 2
-  | App re1 re2 ⇒
-      pumping_constant re1 + pumping_constant re2
-  | Union re1 re2 ⇒
-      pumping_constant re1 + pumping_constant re2
-  | Star _ ⇒ 1
-  end.
+> MStar'' : (s =~ Star re) -> ((ss : List (List t) ** s = fold app ss []), 
+>                              (s': List t) -> In s' ss -> s' =~ re      )
+> MStar'' m = ?MStar''_rhs
 
-Next, it is useful to define an auxiliary function that repeats a string (appends it to itself) some number of times.
-
-Fixpoint napp {T} (n : Nat) (l : list T) : list T =
-  match n with
-  | 0 ⇒ []
-  | S n' ⇒ l ++ napp n' l
-  end.
-
-Lemma napp_plus: ∀T (n m : Nat) (l : list T),
-  napp (n + m) l = napp n l ++ napp m l.
-Proof.
-  intros T n m l.
-  induction n as [|n IHn].
-  - reflexivity.
-  - simpl. rewrite IHn, app_assoc. reflexivity.
-Qed.
-
-Now, the pumping lemma itself says that, if s =~ re and if the length of s is at least the pumping constant of re, then s can be split into three substrings s1 ++ s2 ++ s3 in such a way that s2 can be repeated any number of times and the result, when combined with s1 and s3 will still match re. Since s2 is also guaranteed not to be the empty string, this gives us a (constructive!) way to generate strings matching re that are as long as we like.
-
-Lemma pumping : ∀T (re : Reg_exp T) s,
-  s =~ re ->
-  pumping_constant re <= length s ->
-  ∃s1 s2 s3,
-    s = s1 ++ s2 ++ s3 ∧
-    s2 ≠ [] ∧
-    ∀m, s1 ++ napp m s2 ++ s3 =~ re.
-
-To streamline the proof (which you are to fill in), the omega tactic, which is enabled by the following Require, is helpful in several places for automatically completing tedious low-level arguments involving equalities or inequalities over natural numbers. We'll return to omega in a later chapter, but feel free to experiment with it now if you like. The first case of the induction gives an example of how it is used.
-
-Require Import Idris.omega.Omega.
-
-Proof.
-  intros T re s Hmatch.
-  induction Hmatch
-    as [ | x | s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
-       | s1 re1 re2 Hmatch IH | re1 s2 re2 Hmatch IH
-       | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2 ].
-  - (* MEmpty *)
-    simpl. omega.
-  (* FILL IN HERE *) Admitted.
-
-End Pumping.
 $\square$
 
-Case Study: Improving Reflection
-We've seen in the Logic chapter that we often need to relate boolean computations to statements in Type. But performing this conversion in the way we did it there can result in tedious proof scripts. Consider the proof of the following theorem:
 
-Theorem filter_not_empty_In : ∀n l,
-  filter (beq_nat n) l ≠ [] ->
-  In n l.
-Proof.
-  intros n l. induction l as [|m l' IHl'].
-  - (* l =  *)
-    simpl. intros H. apply H. reflexivity.
-  - (* l = m :: l' *)
-    simpl. destruct (beq_nat n m) eqn:H.
-    + (* beq_nat n m = True *)
-      intros _. rewrite beq_nat_true_iff in H. rewrite H.
-      left. reflexivity.
-    + (* beq_nat n m = False *)
-      intros H'. right. apply IHl'. apply H'.
-Qed.
+==== Exercise: 5 stars, advanced (pumping)
 
-In the first branch after destruct, we explicitly apply the beq_nat_true_iff lemma to the equation generated by destructing beq_nat n m, to convert the assumption beq_nat n m = True into the assumption n = m; then we had to rewrite using this assumption to complete the case.
-We can streamline this by defining an inductive proposition that yields a better case-analysis principle for beq_nat n m. Instead of generating an equation such as beq_nat n m = True, which is generally not directly useful, this principle gives us right away the assumption we really need: n = m.
-We'll actually define something a bit more general, which can be used with arbitrary properties (and not just equalities):
+One of the first really interesting theorems in the theory of regular
+expressions is the so-called _pumping lemma_, which states, informally, that any
+sufficiently long string \idr{s} matching a regular expression \idr{re} can be
+"pumped" by repeating some middle section of \idr{s} an arbitrary number of
+times to produce a new string also matching \idr{re}.
 
-Module FirstTry.
+To begin, we need to define "sufficiently long." Since we are working in a
+constructive logic, we actually need to be able to calculate, for each regular
+expression \idr{re}, the minimum length for strings \idr{s} to guarantee
+"pumpability."
 
-Inductive reflect : Type -> bool -> Type =
-| ReflectT : ∀(P:Type), P -> reflect P True
-| ReflectF : ∀(P:Type), ¬ P -> reflect P False.
+> namespace Pumping
 
-Before explaining this, let's rearrange it a little: Since the types of both ReflectT and ReflectF begin with ∀ (P:Type), we can make the definition a bit more readable and easier to work with by making P a parameter of the whole Inductive declaration.
+>   pumping_constant : (re : Reg_exp t) -> Nat 
+>   pumping_constant EmptySet = 0
+>   pumping_constant EmptyStr = 1
+>   pumping_constant (Chr _) = 2
+>   pumping_constant (App re1 re2) = 
+>     pumping_constant re1 + pumping_constant re2
+>   pumping_constant (Union re1 re2) = 
+>     pumping_constant re1 + pumping_constant re2
+>   pumping_constant (Star _) = 1
 
-End FirstTry.
+Next, it is useful to define an auxiliary function that repeats a string
+(appends it to itself) some number of times.
 
-Inductive reflect (P : Type) : bool -> Type =
-| ReflectT : P -> reflect P True
-| ReflectF : ¬ P -> reflect P False.
+>   napp : (n : Nat) -> (l : List t) -> List t
+>   napp Z _ = []
+>   napp (S k) l = l ++ napp k l
 
-The reflect property takes two arguments: a proposition P and a boolean b. Intuitively, it states that the property P is reflected in (i.e., equivalent to) the boolean b: P holds if and only if b = True. To see this, notice that, by definition, the only way we can produce evidence that reflect P True holds is by showing that P is True and using the ReflectT constructor. If we invert this statement, this means that it should be possible to extract evidence for P from a proof of reflect P True. Conversely, the only way to show reflect P False is by combining evidence for ¬ P with the ReflectF constructor.
-It is easy to formalize this intuition and show that the two statements are indeed equivalent:
+>   napp_plus: (n, m : Nat) -> (l : List t) -> 
+>              napp (n + m) l = napp n l ++ napp m l
+>   napp_plus Z _ _ = Refl
+>   napp_plus (S k) m l = 
+>    rewrite napp_plus k m l in 
+>      appendAssociative l (napp k l) (napp m l)
 
-Theorem iff_reflect : ∀P b, (P ↔ b = True) -> reflect P b.
-Proof.
-  (* WORKED IN CLASS *)
-  intros P b H. destruct b.
-  - apply ReflectT. rewrite H. reflexivity.
-  - apply ReflectF. rewrite H. intros H'. inversion H'.
-Qed.
+Now, the pumping lemma itself says that, if \idr{s =~ re} and if the length of
+\idr{s} is at least the pumping constant of \idr{re}, then \idr{s} can be split
+into three substrings \idr{s1 ++ s2 ++ s3} in such a way that \idr{s2} can be
+repeated any number of times and the result, when combined with \idr{s1} and
+\idr{s3} will still match \idr{re}. Since \idr{s2} is also guaranteed not to be
+the empty string, this gives us a (constructive!) way to generate strings
+matching \idr{re} that are as long as we like.
 
-Exercise: 2 stars, recommended (reflect_iff)
-Theorem reflect_iff : ∀P b, reflect P b -> (P ↔ b = True).
-Proof.
-  (* FILL IN HERE *) Admitted.
+   pumping : (s =~ re) -> ((pumping_constant re) <=' (length s)) -> 
+             (s1 ** s2 ** s3 ** ( s = s1 ++ s2 ++ s3 
+                                , Not (s2 = [])
+                                , (m:Nat) -> (s1 ++ napp m s2 ++ s3) =~ re
+                                ))
+
+\todo[inline]{Edit hint}                                
+
+To streamline the proof (which you are to fill in), the omega tactic, which is
+enabled by the following Require, is helpful in several places for automatically
+completing tedious low-level arguments involving equalities or inequalities over
+natural numbers. We'll return to omega in a later chapter, but feel free to
+experiment with it now if you like. The first case of the induction gives an
+example of how it is used.
+
+   pumping m le = ?pumping_rhs
+
+
+== Case Study: Improving Reflection
+
+We've seen in the \idr{Logic} chapter that we often need to relate boolean
+computations to statements in \idr{Type}. But performing this conversion in the
+way we did it there can result in tedious proof scripts. Consider the proof of
+the following theorem:
+
+\todo[inline]{Copy here for now}
+
+> beq_nat_true : beq_nat n m = True -> n = m    
+> beq_nat_true {n=Z} {m=Z} _ = Refl             
+> beq_nat_true {n=(S _)} {m=Z} Refl impossible  
+> beq_nat_true {n=Z} {m=(S _)} Refl impossible  
+> beq_nat_true {n=(S n')} {m=(S m')} eq =       
+>  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
+
+> filter_not_empty_In : Not (filter (beq_nat n) l = []) -> In n l
+> filter_not_empty_In {l=[]} contra = contra Refl
+> filter_not_empty_In {l=(x::xs)} {n} contra with (beq_nat n x) proof h
+>   filter_not_empty_In {l=(x::xs)} {n} contra | True = 
+>     Left $ sym $ beq_nat_true $ sym h
+>   filter_not_empty_In {l=(x::xs)} {n} contra | False = 
+>     Right $ filter_not_empty_In contra
+
+In the second case we explicitly apply the \idr{beq_nat_true} lemma to the
+equation generated by doing a dependent match on \idr{beq_nat n x}, to convert
+the assumption \idr{beq_nat n x = True} into the assumption \idr{n = m}.
+
+We can streamline this by defining an inductive proposition that yields a better
+case-analysis principle for \idr{beq_nat n m}. Instead of generating an equation
+such as \idr{beq_nat n m = True}, which is generally not directly useful, this
+principle gives us right away the assumption we really need: \idr{n = m}.
+
+We'll actually define something a bit more general, which can be used with
+arbitrary properties (and not just equalities):
+
+```idris
+data Reflect : Type -> Bool -> Type where
+  ReflectT : (p : Type) -> Reflect p True
+  ReflectF : (p : Type) -> (Not p) -> Reflect p False
+```
+
+Before explaining this, let's rearrange it a little: Since the types of both
+\idr{ReflectT} and \idr{ReflectF} begin with \idr{(p : Type)}, we can make the
+definition a bit more readable and easier to work with by making \idr{p} a
+parameter of the whole \idr{data} declaration.
+
+> data Reflect : (p : Type) -> Bool -> Type where
+>   ReflectT : p -> Reflect p True
+>   ReflectF : (Not p) -> Reflect p False
+
+The reflect property takes two arguments: a proposition \idr{p} and a boolean
+\idr{b}. Intuitively, it states that the property \idr{p} is _reflected_ in
+(i.e., equivalent to) the boolean \idr{b}: \idr{p} holds if and only if \idr{b =
+True}. To see this, notice that, by definition, the only way we can produce
+evidence that \idr{Reflect p True} holds is by showing that \idr{p} is true and
+using the \idr{ReflectT} constructor. If we invert this statement, this means
+that it should be possible to extract evidence for \idr{p} from a proof of
+\idr{Reflect p True}. Conversely, the only way to show \idr{Reflect p False} is
+by combining evidence for \idr{Not p} with the \idr{ReflectF} constructor.
+
+It is easy to formalize this intuition and show that the two statements are
+indeed equivalent:
+
+> iff_reflect : (p <-> (b = True)) -> Reflect p b
+> iff_reflect {b = True} (_, bp) = ReflectT $ bp Refl
+> iff_reflect {b = False} (pb, _) = ReflectF $ uninhabited . pb
+
+
+==== Exercise: 2 stars, recommended (reflect_iff)
+
+> reflect_iff : Reflect p b -> (p <-> (b = True))
+> reflect_iff x = ?reflect_iff_rhs
+
 $\square$
-The advantage of reflect over the normal "if and only if" connective is that, by destructing a hypothesis or lemma of the form reflect P b, we can perform case analysis on b while at the same time generating appropriate hypothesis in the two branches (P in the first subgoal and ¬ P in the second).
 
-Lemma beq_natP : ∀n m, reflect (n = m) (beq_nat n m).
-Proof.
-  intros n m.
-  apply iff_reflect. rewrite beq_nat_true_iff. reflexivity.
-Qed.
+The advantage of \idr{Reflect} over the normal "if and only if" connective is
+that, by destructing a hypothesis or lemma of the form \idr{Reflect p b}, we can
+perform case analysis on \idr{b} while at the same time generating appropriate
+hypothesis in the two branches (\idr{p} in the first subgoal and \idr{Not p} in
+the second).
 
-The new proof of filter_not_empty_In now goes as follows. Notice how the calls to destruct and apply are combined into a single call to destruct.
-(To see this clearly, look at the two proofs of filter_not_empty_In with Idris and observe the differences in proof state at the beginning of the first case of the destruct.)
+\todo[inline]{Copy here for now}
 
-Theorem filter_not_empty_In' : ∀n l,
-  filter (beq_nat n) l ≠ [] ->
-  In n l.
+> beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
+> beq_nat_true_iff n1 n2 = (to, fro n1 n2)                                 
+> where                                                                    
+>   to : (beq_nat n1 n2 = True) -> (n1 = n2)                               
+>   to = beq_nat_true {n=n1} {m=n2}                                        
+>   fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)            
+>   fro n1 n1 Refl = sym $ beq_nat_refl n1                   
+
+> iff_sym : (p <-> q) -> (q <-> p)
+> iff_sym (pq, qp) = (qp, pq)              
+
+> beq_natP : Reflect (n = m) (beq_nat n m)
+> beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
+
+\todo[inline]{Edit}
+
+The new proof of filter_not_empty_In now goes as follows. Notice how the calls
+to destruct and apply are combined into a single call to destruct.
+
+(To see this clearly, look at the two proofs of filter_not_empty_In with Idris
+and observe the differences in proof state at the beginning of the first case of
+the destruct.)
+
+> filter_not_empty_In' : Not (filter (beq_nat n) l = []) -> In n l
+> filter_not_empty_In' {l=[]} contra = contra Refl
+> filter_not_empty_In' {n} {l=(x::xs)} contra = 
+>   let 
+>     bq = beq_natP {n} {m=x}
+>   in ?aa
+
 Proof.
   intros n l. induction l as [|m l' IHl'].
   - (* l =  *)
@@ -1161,7 +1287,9 @@ Proof.
       intros H'. right. apply IHl'. apply H'.
 Qed.
 
-Exercise: 3 stars, recommended (beq_natP_practice)
+
+==== Exercise: 3 stars, recommended (beq_natP_practice)
+
 Use beq_natP as above to prove the following:
 
 Fixpoint count n l =
@@ -1174,19 +1302,45 @@ Theorem beq_natP_practice : ∀n l,
   count n l = 0 -> ~(In n l).
 Proof.
   (* FILL IN HERE *) Admitted.
-$\square$
-This technique gives us only a small gain in convenience for the proofs we've seen here, but using reflect consistently often leads to noticeably shorter and clearer scripts as proofs get larger. We'll see many more examples in later chapters.
-The use of the reflect property was popularized by SSReflect, a Idris library that has been used to formalize important results in mathematics, including as the 4-color theorem and the Feit-Thompson theorem. The name SSReflect stands for small-scale reflection, i.e., the pervasive use of reflection to simplify small proof steps with boolean computations.
 
-Additional Exercises
-Exercise: 3 stars, recommended (nostutter)
-Formulating inductive definitions of properties is an important skill you'll need in this course. Try to solve this exercise without any help at all.
-We say that a list "stutters" if it repeats the same element consecutively. The property "nostutter mylist" means that mylist does not stutter. Formulate an inductive definition for nostutter. (This is different from the NoDup property in the exercise above; the sequence 1;4;1 repeats but does not stutter.)
+$\square$
+
+This technique gives us only a small gain in convenience for the proofs we've
+seen here, but using reflect consistently often leads to noticeably shorter and
+clearer scripts as proofs get larger. We'll see many more examples in later
+chapters.
+
+The use of the reflect property was popularized by SSReflect, a Idris library
+that has been used to formalize important results in mathematics, including as
+the 4-color theorem and the Feit-Thompson theorem. The name SSReflect stands for
+small-scale reflection, i.e., the pervasive use of reflection to simplify small
+proof steps with boolean computations.
+
+
+== Additional Exercises
+
+
+==== Exercise: 3 stars, recommended (nostutter)
+
+Formulating inductive definitions of properties is an important skill you'll
+need in this course. Try to solve this exercise without any help at all.
+
+We say that a list "stutters" if it repeats the same element consecutively. The
+property "nostutter mylist" means that mylist does not stutter. Formulate an
+inductive definition for nostutter. (This is different from the NoDup property
+in the exercise above; the sequence 1;4;1 repeats but does not stutter.)
 
 Inductive nostutter {X:Type} : list X -> Type =
  (* FILL IN HERE *)
 .
-Make sure each of these tests succeeds, but feel free to change the suggested proof (in comments) if the given one doesn't work for you. Your definition might be different from ours and still be correct, in which case the examples might need a different proof. (You'll notice that the suggested proofs use a number of tactics we haven't talked about, to make them more robust to different possible ways of defining nostutter. You can probably just uncomment and use them as-is, but you can also prove each example with more basic tactics.)
+
+Make sure each of these tests succeeds, but feel free to change the suggested
+proof (in comments) if the given one doesn't work for you. Your definition might
+be different from ours and still be correct, in which case the examples might
+need a different proof. (You'll notice that the suggested proofs use a number of
+tactics we haven't talked about, to make them more robust to different possible
+ways of defining nostutter. You can probably just uncomment and use them as-is,
+but you can also prove each example with more basic tactics.)
 
 Example test_nostutter_1: nostutter [3;1;4;1;5;6].
 (* FILL IN HERE *) Admitted.
@@ -1218,44 +1372,89 @@ Example test_nostutter_4: not (nostutter [3;1;1;4]).
   contradiction H1; auto. Qed.
 *)
 $\square$
-Exercise: 4 stars, advanced (filter_challenge)
-Let's prove that our definition of filter from the Poly chapter matches an abstract specification. Here is the specification, written out informally in English:
-A list l is an "in-order merge" of l1 and l2 if it contains all the same elements as l1 and l2, in the same order as l1 and l2, but possibly interleaved. For example,
+
+
+==== Exercise: 4 stars, advanced (filter_challenge)
+
+Let's prove that our definition of filter from the Poly chapter matches an
+abstract specification. Here is the specification, written out informally in
+English:
+
+A list l is an "in-order merge" of l1 and l2 if it contains all the same
+elements as l1 and l2, in the same order as l1 and l2, but possibly interleaved.
+For example,
     [1;4;6;2;3]
 is an in-order merge of
     [1;6;2]
 and
     [4;3].
-Now, suppose we have a set X, a function test: X->bool, and a list l of type list X. Suppose further that l is an in-order merge of two lists, l1 and l2, such that every item in l1 satisfies test and no item in l2 satisfies test. Then filter test l = l1.
-Translate this specification into a Idris theorem and prove it. (You'll need to begin by defining what it means for one list to be a merge of two others. Do this with an inductive relation, not a Fixpoint.)
 
-(* FILL IN HERE *)
-$\square$
-Exercise: 5 stars, advanced, optional (filter_challenge_2)
-A different way to characterize the behavior of filter goes like this: Among all subsequences of l with the property that test evaluates to True on all their members, filter test l is the longest. Formalize this claim and prove it.
+Now, suppose we have a set X, a function test: X->bool, and a list l of type
+list X. Suppose further that l is an in-order merge of two lists, l1 and l2,
+such that every item in l1 satisfies test and no item in l2 satisfies test. Then
+filter test l = l1.
 
-(* FILL IN HERE *)
+Translate this specification into a Idris theorem and prove it. (You'll need to
+begin by defining what it means for one list to be a merge of two others. Do
+this with an inductive relation, not a Fixpoint.)
+
+> -- FILL IN HERE
+
 $\square$
-Exercise: 4 stars, optional (palindromes)
+
+
+==== Exercise: 5 stars, advanced, optional (filter_challenge_2)
+
+A different way to characterize the behavior of filter goes like this: Among all
+subsequences of l with the property that test evaluates to True on all their
+members, filter test l is the longest. Formalize this claim and prove it.
+
+> -- FILL IN HERE
+
+$\square$
+
+
+==== Exercise: 4 stars, optional (palindromes)
+
 A palindrome is a sequence that reads the same backwards as forwards.
-Define an inductive proposition pal on list X that captures what it means to be a palindrome. (Hint: You'll need three cases. Your definition should be based on the structure of the list; just having a single constructor like
-  c : ∀l, l = rev l -> pal l
-may seem obvious, but will not work very well.)
-Prove (pal_app_rev) that
- ∀l, pal (l ++ rev l).
-Prove (pal_rev that)
- ∀l, pal l -> l = rev l.
 
-(* FILL IN HERE *)
+  - Define an inductive proposition pal on list X that captures what it means to
+    be a palindrome. (Hint: You'll need three cases. Your definition should be
+    based on the structure of the list; just having a single constructor like
+
+    c : ∀l, l = rev l -> pal l
+
+    may seem obvious, but will not work very well.)
+
+  - Prove (pal_app_rev) that
+
+    ∀l, pal (l ++ rev l).
+
+  - Prove (pal_rev that)
+
+    ∀l, pal l -> l = rev l.
+
+> -- FILL IN HERE
+
 $\square$
-Exercise: 5 stars, optional (palindrome_converse)
-Again, the converse direction is significantly more difficult, due to the lack of evidence. Using your definition of pal from the previous exercise, prove that
+
+
+==== Exercise: 5 stars, optional (palindrome_converse)
+
+Again, the converse direction is significantly more difficult, due to the lack
+of evidence. Using your definition of pal from the previous exercise, prove that
+
      ∀l, l = rev l -> pal l.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE 
+
 $\square$
-Exercise: 4 stars, advanced, optional (NoDup)
-Recall the definition of the In property from the Logic chapter, which asserts that a value x appears at least once in a list l:
+
+
+=== Exercise: 4 stars, advanced, optional (NoDup)
+
+Recall the definition of the In property from the Logic chapter, which asserts
+that a value x appears at least once in a list l:
 
 (* Fixpoint In (A : Type) (x : A) (l : list A) : Type =
    match l with
@@ -1263,20 +1462,35 @@ Recall the definition of the In property from the Logic chapter, which asserts t
    | x' :: l' => x' = x \/ In A x l'
    end *)
 
-Your first task is to use In to define a proposition disjoint X l1 l2, which should be provable exactly when l1 and l2 are lists (with elements of type X) that have no elements in common.
+Your first task is to use In to define a proposition disjoint X l1 l2, which
+should be provable exactly when l1 and l2 are lists (with elements of type X)
+that have no elements in common.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
-Next, use In to define an inductive proposition NoDup X l, which should be provable exactly when l is a list (with elements of type X) where every member is different from every other. For example, NoDup Nat [1;2;3;4] and NoDup bool [] should be provable, while NoDup Nat [1;2;1] and NoDup bool [True;True] should not be.
+Next, use In to define an inductive proposition NoDup X l, which should be
+provable exactly when l is a list (with elements of type X) where every member
+is different from every other. For example, NoDup Nat [1;2;3;4] and NoDup bool
+[] should be provable, while NoDup Nat [1;2;1] and NoDup bool [True;True] should
+not be.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
-Finally, state and prove one or more interesting theorems relating disjoint, NoDup and ++ (list append).
+Finally, state and prove one or more interesting theorems relating disjoint,
+NoDup and ++ (list append).
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
+
 $\square$
-Exercise: 4 stars, advanced, optional (pigeonhole principle)
-The pigeonhole principle states a basic fact about counting: if we distribute more than n items into n pigeonholes, some pigeonhole must contain at least two items. As often happens, this apparently trivial fact about numbers requires non-trivial machinery to prove, but we now have enough...
+
+
+==== Exercise: 4 stars, advanced, optional (pigeonhole principle)
+
+The _pigeonhole principle_ states a basic fact about counting: if we distribute
+more than n items into n pigeonholes, some pigeonhole must contain at least two
+items. As often happens, this apparently trivial fact about numbers requires
+non-trivial machinery to prove, but we now have enough...
+
 First prove an easy useful lemma.
 
 Lemma in_split : ∀(X:Type) (x:X) (l:list X),
@@ -1285,14 +1499,22 @@ Lemma in_split : ∀(X:Type) (x:X) (l:list X),
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Now define a property repeats such that repeats X l asserts that l contains at least one repeated element (of type X).
+Now define a property repeats such that repeats X l asserts that l contains at
+least one repeated element (of type X).
 
 Inductive repeats {X:Type} : list X -> Type =
   (* FILL IN HERE *)
 .
 
-Now, here's a way to formalize the pigeonhole principle. Suppose list l2 represents a list of pigeonhole labels, and list l1 represents the labels assigned to a list of items. If there are more items than labels, at least two items must have the same label -- i.e., list l1 must contain repeats.
-This proof is much easier if you use the excluded_middle hypothesis to show that In is decidable, i.e., ∀ x l, (In x l) ∨ ¬ (In x l). However, it is also possible to make the proof go through without assuming that In is decidable; if you manage to do this, you will not need the excluded_middle hypothesis.
+Now, here's a way to formalize the pigeonhole principle. Suppose list l2
+represents a list of pigeonhole labels, and list l1 represents the labels
+assigned to a list of items. If there are more items than labels, at least two
+items must have the same label -- i.e., list l1 must contain repeats.
+
+This proof is much easier if you use the excluded_middle hypothesis to show that
+In is decidable, i.e., ∀ x l, (In x l) ∨ ¬ (In x l). However, it is also
+possible to make the proof go through without assuming that In is decidable; if
+you manage to do this, you will not need the excluded_middle hypothesis.
 
 Theorem pigeonhole_principle: ∀(X:Type) (l1 l2:list X),
    excluded_middle ->
@@ -1304,4 +1526,3 @@ Proof.
   (* FILL IN HERE *) Admitted.
 
 $\square$
-
