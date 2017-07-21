@@ -6,6 +6,7 @@
 > import Induction
 
 > %hide Basics.Numbers.pred
+> %hide Prelude.Stream.(::)
 
 
 == Inductively Defined Propositions
@@ -1208,14 +1209,16 @@ data Reflect : Type -> Bool -> Type where
   ReflectF : (p : Type) -> (Not p) -> Reflect p False
 ```
 
+\todo[inline]{Edit for new definition of `Reflect`}
+
 Before explaining this, let's rearrange it a little: Since the types of both
 \idr{ReflectT} and \idr{ReflectF} begin with \idr{(p : Type)}, we can make the
 definition a bit more readable and easier to work with by making \idr{p} a
 parameter of the whole \idr{data} declaration.
 
-> data Reflect : (p : Type) -> Bool -> Type where
->   ReflectT : p -> Reflect p True
->   ReflectF : (Not p) -> Reflect p False
+> data Reflect : (p : Type) -> (b : Bool) -> Type where
+>   ReflectT : p -> (b=True) -> Reflect p b
+>   ReflectF : (Not p) -> (b=False) -> Reflect p b
 
 The reflect property takes two arguments: a proposition \idr{p} and a boolean
 \idr{b}. Intuitively, it states that the property \idr{p} is _reflected_ in
@@ -1231,8 +1234,8 @@ It is easy to formalize this intuition and show that the two statements are
 indeed equivalent:
 
 > iff_reflect : (p <-> (b = True)) -> Reflect p b
-> iff_reflect {b = True} (_, bp) = ReflectT $ bp Refl
-> iff_reflect {b = False} (pb, _) = ReflectF $ uninhabited . pb
+> iff_reflect {b = False} (pb, _) = ReflectF (uninhabited . pb) Refl
+> iff_reflect {b = True} (_, bp) = ReflectT (bp Refl) Refl
 
 
 ==== Exercise: 2 stars, recommended (reflect_iff)
@@ -1264,7 +1267,7 @@ the second).
 > beq_natP : Reflect (n = m) (beq_nat n m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
 
-\todo[inline]{Edit text and finish the theorem}
+\todo[inline]{Edit}
 
 The new proof of filter_not_empty_In now goes as follows. Notice how the calls
 to destruct and apply are combined into a single call to destruct.
@@ -1275,22 +1278,16 @@ the destruct.)
 
 > filter_not_empty_In' : Not (filter (beq_nat n) l = []) -> In n l
 > filter_not_empty_In' {l=[]} contra = contra Refl
-> filter_not_empty_In' {n} {l=(x::xs)} contra = 
->   let 
->     bq = beq_natP {n} {m=x}
->   in ?aa
+> filter_not_empty_In' {n} {l=(x::xs)} contra with (beq_natP {n} {m=x})
+>   filter_not_empty_In' _ | (ReflectT eq _) = Left $ sym eq
+>   filter_not_empty_In' {n} {l=(x::xs)} contra | (ReflectF _ notbeq) = let 
 
-Proof.
-  intros n l. induction l as [|m l' IHl'].
-  - (* l =  *)
-    simpl. intros H. apply H. reflexivity.
-  - (* l = m :: l' *)
-    simpl. destruct (beq_natP n m) as [H | H].
-    + (* n = m *)
-      intros _. rewrite H. left. reflexivity.
-    + (* n <> m *)
-      intros H'. right. apply IHl'. apply H'.
-Qed.
+\todo[inline]{How to rewrite more neatly here?}
+
+>     contra' = replace notbeq contra {P = \a => Not ((if a 
+>                                       then x :: filter (beq_nat n) xs
+>                                       else filter (beq_nat n) xs) = [])}
+>   in Right $ filter_not_empty_In' contra'
 
 
 ==== Exercise: 3 stars, recommended (beq_natP_practice)
