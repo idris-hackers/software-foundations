@@ -22,7 +22,7 @@ the following rules:
 
   - Rule \idr{ev_0}: The number \idr{0} is even.
   - Rule \idr{ev_SS}: If \idr{n} is even, then \idr{S (S n)} is even.
-  
+
 To illustrate how this definition of evenness works, let's imagine using it to
 show that \idr{4} is even. By rule \idr{ev_SS}, it suffices to show that \idr{2}
 is even. This, in turn, is again guaranteed by rule \idr{ev_SS}, as long as we
@@ -36,11 +36,11 @@ that makes them easy to read and write. _Inference rules_ are one such notation:
 \todo[inline]{Use proper TeX}
 
 ```
-                                   ---- (ev_0)  
+                                   ---- (ev_0)
                                    ev 0	
-                               
+
                                    ev n	
-                               ------------ (ev_SS)  
+                               ------------ (ev_SS)
                                ev (S (S n))	
 ```
 
@@ -104,7 +104,8 @@ When checking argument n to IndType.Wrong_ev:
                 Nat (Expected type)
 ```
 
-\todo[inline]{Edit explanation}
+\todo[inline]{Edit the explanation, it works fine if you remove the first `n ->`
+in `Wrong_ev_SS`}
 
 ("Parameter" here is Idris jargon for an argument on the left of the colon in an
 Inductive definition; "index" is used to refer to arguments on the right of the
@@ -161,30 +162,28 @@ Let's look at a few examples to see what this means in practice.
 
 === Pattern Matching on Evidence
 
-\todo[inline]{Edit}
+\todo[inline]{Edit the whole section to talk about dependent pattern matching}
 
 Suppose we are proving some fact involving a number \idr{n}, and we are given
 \idr{Ev n} as a hypothesis. We already know how to perform case analysis on
-\idr{n} using the \idr{inversion} tactic, generating separate subgoals for the
-case where \idr{n = Z} and the case where \idr{n = S n'} for some \idr{n'}. But
-for some proofs we may instead want to analyze the evidence that \idr{Ev n}
+\idr{n} using the `inversion` tactic, generating separate subgoals for the case
+where \idr{n = Z} and the case where \idr{n = S n'} for some \idr{n'}. But for
+some proofs we may instead want to analyze the evidence that \idr{Ev n}
 directly.
 
 By the definition of \idr{Ev}, there are two cases to consider:
 
   - If the evidence is of the form \idr{Ev_0}, we know that \idr{n = Z}.
-  
+
   - Otherwise, the evidence must have the form \idr{Ev_SS {n=n'} e'}, where
     \idr{n = S (S n')} and \idr{e'} is evidence for \idr{Ev n'}.
 
-\todo[inline]{Edit}
-
 We can perform this kind of reasoning in Idris, again using pattern matching.
 Besides allowing us to reason about equalities involving constructors,
-\idr{inversion} provides a case-analysis principle for inductively defined
-propositions. When used in this way, its syntax is similar to \idr{destruct}: We
-pass it a list of identifiers separated by \idr{|} characters to name the
-arguments to each of the possible constructors.
+`inversion` provides a case-analysis principle for inductively defined
+propositions. When used in this way, its syntax is similar to `destruct`: We
+pass it a list of identifiers separated by `|` characters to name the arguments
+to each of the possible constructors.
 
 > ev_minus2 : Ev n -> Ev (pred (pred n))
 > ev_minus2 Ev_0 = Ev_0
@@ -202,23 +201,20 @@ In words, here is how the pattern match reasoning works in this proof:
     show that \idr{Ev (pred (pred (S (S n'))))} holds, which, after
     simplification, follows directly from \idr{e'}.
 
-  
 Suppose that we wanted to prove the following variation of \idr{ev_minus2}:
 
 > evSS_ev : Ev (S (S n)) -> Ev n
 
-\todo[inline]{Edit to say that dependent pattern match is smart enough}
-
 Intuitively, we know that evidence for the hypothesis cannot consist just of the
-\idr{Ev_0} constructor, since O and S are different constructors of the type
-Nat; hence, \idr{Ev_SS} is the only case that applies. Unfortunately, destruct
-is not smart enough to realize this, and it still generates two subgoals. Even
-worse, in doing so, it keeps the final goal unchanged, failing to provide any
-useful information for completing the proof.
+\idr{Ev_0} constructor, since \idr{Z} and \idr{S} are different constructors of
+the type \idr{Nat}; hence, \idr{Ev_SS} is the only case that applies.
+Unfortunately, destruct is not smart enough to realize this, and it still
+generates two subgoals. Even worse, in doing so, it keeps the final goal
+unchanged, failing to provide any useful information for completing the proof.
 
 The inversion tactic, on the other hand, can detect (1) that the first case does
-not apply, and (2) that the n' that appears on the \idr{Ev_SS} case must be the
-same as n. This allows us to complete the proof
+not apply, and (2) that the \idr{n'} that appears on the \idr{Ev_SS} case must be the
+same as \idr{n}. This allows us to complete the proof
 
 > evSS_ev (Ev_SS e') = e'
 
@@ -245,21 +241,22 @@ $\square$
 
 \todo[inline]{Edit}
 
-The way we've used inversion here may seem a bit mysterious at first. Until now,
-we've only used inversion on equality propositions, to utilize injectivity of
+The way we've used `inversion` here may seem a bit mysterious at first. Until now,
+we've only used `inversion` on equality propositions, to utilize injectivity of
 constructors or to discriminate between different constructors. But we see here
-that inversion can also be applied to analyzing evidence for inductively defined
+that `inversion` can also be applied to analyzing evidence for inductively defined
 propositions.
 
-Here's how inversion works in general. Suppose the name I refers to an
-assumption P in the current context, where P has been defined by an Inductive
-declaration. Then, for each of the constructors of P, inversion I generates a
-subgoal in which I has been replaced by the exact, specific conditions under
-which this constructor could have been used to prove P. Some of these subgoals
-will be self-contradictory; inversion throws these away. The ones that are left
-represent the cases that must be proved to establish the original goal. For
-those, inversion adds all equations into the proof context that must hold of the
-arguments given to P (e.g., S (S n') = n in the proof of \idr{evSS_ev}).
+Here's how `inversion` works in general. Suppose the name `I` refers to an
+assumption `P` in the current context, where `P` has been defined by an
+`Inductive` declaration. Then, for each of the constructors of `P`, `inversion
+I` generates a subgoal in which `I` has been replaced by the exact, specific
+conditions under which this constructor could have been used to prove `P`. Some
+of these subgoals will be self-contradictory; `inversion` throws these away. The
+ones that are left represent the cases that must be proved to establish the
+original goal. For those, `inversion` adds all equations into the proof context
+that must hold of the arguments given to `P` (e.g., \idr{S (S n') = n} in the
+proof of \idr{evSS_ev}).
 
 The \idr{ev_double} exercise above shows that our new notion of evenness is
 implied by the two earlier ones (since, by \idr{even_bool_prop} in chapter
@@ -282,7 +279,7 @@ If we look more closely at our second goal, however, we can see that something
 interesting happened: By performing case analysis on \idr{Ev n}, we were able to
 reduce the original result to an similar one that involves a _different_ piece
 of evidence for \idr{Ev n}: \idr{e'}. More formally, we can finish our proof by
-showing that 
+showing that
 
 ```idris
 (k' ** n' = double k')
@@ -300,40 +297,36 @@ result suffices.
 
 === Induction on Evidence
 
-\todo[inline]{Edit, we've already done an induction-style proof}
+\todo[inline]{Edit, we've already just done an induction-style proof, the
+following is basically replacing `where` with `let`}
 
 If this looks familiar, it is no coincidence: We've encountered similar problems
 in the `Induction` chapter, when trying to use case analysis to prove results
 that required induction. And once again the solution is... induction!
 
-The behavior of induction on evidence is the same as its behavior on data: It
+The behavior of `induction` on evidence is the same as its behavior on data: It
 causes Idris to generate one subgoal for each constructor that could have used
 to build that evidence, while providing an induction hypotheses for each
 recursive occurrence of the property in question.
 
 Let's try our current lemma again:
 
-Lemma ev_even : ∀n,
-  ev n -> (k **  n = double k.
-Proof.
-  intros n E.
-  induction E as [|n' E' IH].
-  - (* E = ev_0 *)
-    ∃0. reflexivity.
-  - (* E = ev_SS n' E'
-       with IH : exists k', n' = double k' *)
-    destruct IH as [k' Hk'].
-    rewrite Hk'. ∃(S k'). reflexivity.
-Qed.
+> ev_even' : Ev n -> (k ** n = double k)
+> ev_even' Ev_0 = (Z ** Refl)
+> ev_even' (Ev_SS e') = let
+>   (k**prf) = ev_even e'
+>   cprf = cong {f=S} $ cong {f=S} prf
+> in
+>   rewrite cprf in (S k ** Refl)
 
-Here, we can see that Idris produced an IH that corresponds to E', the single
+Here, we can see that Idris produced an `IH` that corresponds to `E'`, the single
 recursive occurrence of ev in its own definition. Since E' mentions n', the
 induction hypothesis talks about n', as opposed to n or some other number.
 
 The equivalence between the second and third definitions of evenness now
 follows.
 
-\todo[inline]{Copypasted for now}
+\todo[inline]{Copypasted `<->` for now}
 
 > iff : {p,q : Type} -> Type
 > iff {p} {q} = (p -> q, q -> p)
@@ -342,7 +335,7 @@ follows.
 
 > ev_even_iff : (Ev n) <-> (k ** n = double k)
 > ev_even_iff = (ev_even, fro)
-> where 
+> where
 >   fro : (k ** n = double k) -> (Ev n)
 >   fro (k**prf) = rewrite prf in ev_double {n=k}
 
@@ -424,19 +417,18 @@ than or equal to the predecessor of the second.
 
 > syntax [m] "<='" [n] = Le m n
 
-\todo[inline]{Edit}
-
-Proofs of facts about \idr{<=} using the constructors \idr{Le_n} and \idr{Le_S}
+Proofs of facts about \idr{<='} using the constructors \idr{Le_n} and \idr{Le_S}
 follow the same patterns as proofs about properties, like \idr{Ev} above. We can
-apply the constructors to prove \idr{<=} goals (e.g., to show that \idr{3<=3} or
-\idr{3<=6}), and we can use tactics like inversion to extract information from
-\idr{<=} hypotheses in the context (e.g., to prove that \idr{(2<=1) -> 2+2=5}.)
+apply the constructors to prove \idr{<='} goals (e.g., to show that \idr{3<='3}
+or \idr{3<='6}), and we can use pattern matching to extract information from
+\idr{<='} hypotheses in the context (e.g., to prove that \idr{(2<='1) ->
+2+2=5}.)
 
 Here are some sanity checks on the definition. (Notice that, although these are
 the same kind of simple "unit tests" as we gave for the testing functions we
 wrote in the first few lectures, we must construct their proofs explicitly --
-simpl and reflexivity don't do the job, because the proofs aren't just a matter
-of simplifying computations.)
+\idr{Refl} doesn't do the job, because the proofs aren't just a matter of
+simplifying computations.)
 
 > test_le1 : 3 <=' 3
 > test_le1 = Le_n
@@ -451,7 +443,7 @@ of simplifying computations.)
 The "strictly less than" relation \idr{n < m} can now be defined in terms of
 \idr{Le}.
 
-> Lt : (n, m : Nat) -> Type 
+> Lt : (n, m : Nat) -> Type
 > Lt n m = Le (S n) m
 
 > syntax [m] "<'" [n] = Lt m n
@@ -474,7 +466,7 @@ Here are a few more simple relations on numbers:
 Define an inductive binary relation \idr{Total_relation} that holds between
 every pair of natural numbers.
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -561,12 +553,12 @@ Which of the following propositions are provable?
   - If we dropped constructor \idr{C5} from the definition of \idr{R}, would the
     set of provable propositions change? Briefly (1 sentence) explain your
     answer.
-  
+
   - If we dropped constructor \idr{C4} from the definition of \idr{R}, would the
     set of provable propositions change? Briefly (1 sentence) explain your
     answer.
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -591,8 +583,8 @@ $\square$
 A list is a _subsequence_ of another list if all of the elements in the first
 list occur in the same order in the second list, possibly with some extra
 elements in between. For example,
-      
-```idris      
+
+```idris
       [1,2,3]
 ```
 
@@ -603,7 +595,7 @@ is a subsequence of each of the lists
       [1,1,1,2,2,3]
       [1,2,7,3]
       [5,6,1,9,9,2,7,3,8]
-```      
+```
 
 but it is not a subsequence of any of the lists
 
@@ -611,7 +603,7 @@ but it is not a subsequence of any of the lists
       [1,2]
       [1,3]
       [5,6,2,1,7,3,8]
-```      
+```
 
   - Define an inductive type \idr{Subseq} on \idr{List Nat} that captures what
     it means to be a subsequence. (Hint: You'll need three cases.)
@@ -628,7 +620,7 @@ but it is not a subsequence of any of the lists
     subsequence of \idr{l3}, then \idr{l1} is a subsequence of \idr{l3}. Hint:
     choose your induction carefully!
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -711,7 +703,7 @@ follows:
 > data Exp_match : List t -> Reg_exp t -> Type where
 >   MEmpty : Exp_match [] EmptyStr
 >   MChar : Exp_match [x] (Chr x)
->   MApp : Exp_match s1 re1 -> Exp_match s2 re2 -> 
+>   MApp : Exp_match s1 re1 -> Exp_match s2 re2 ->
 >          Exp_match (s1 ++ s2) (App re1 re2)
 >   MUnionL : Exp_match s1 re1 ->
 >             Exp_match s1 (Union re1 re2)
@@ -727,33 +719,33 @@ notation. At the same time, let's introduce a more readable infix notation.
 
 > syntax [s] "=~" [re] = (Exp_match s re)
 
-\todo[inline]{Format properly}
+\todo[inline]{Use proper TeX?}
 
 ```idris
--------------- (MEmpty)  
-[] =~ EmptyStr
+                                     -------------- (MEmpty)
+                                     [] =~ EmptyStr
 
------------- (MChar)  
-[x] =~ Chr x
+                                     ------------ (MChar)
+                                     [x] =~ Chr x
 
-s1 =~ re1    s2 =~ re2	
------------------------ (MApp)  
-s1 ++ s2 =~ App re1 re2	
+                               s1 =~ re1    s2 =~ re2	
+                              ----------------------- (MApp)
+                              s1 ++ s2 =~ App re1 re2	
 
-s1 =~ re1	
--------------------(MUnionL)  
-s1 =~ Union re1 re2
+                                       s1 =~ re1	
+                                 ------------------- (MUnionL)
+                                 s1 =~ Union re1 re2
 
-s2 =~ re2	
-------------------- (MUnionR)  
-s2 =~ Union re1 re2	
+                                       s2 =~ re2	
+                                 ------------------- (MUnionR)
+                                 s2 =~ Union re1 re2	
 
-------------- (MStar0)  
-[] =~ Star re	
+                                    ------------- (MStar0)
+                                    [] =~ Star re	
 
-s1 =~ re    s2 =~ Star re
-------------------------- (MStarApp)  
-s1 ++ s2 =~ Star re	
+                             s1 =~ re    s2 =~ Star re
+                             ------------------------- (MStarApp)
+                                s1 ++ s2 =~ Star re	
 ```
 
 Notice that these rules are not _quite_ the same as the informal ones that we
@@ -778,14 +770,18 @@ Let's illustrate these rules with a few examples.
 > reg_exp_ex1 : [1] =~ (Chr 1)
 > reg_exp_ex1 = MChar
 
+```idris
+reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
+reg_exp_ex2 = MApp {s1=[1]} {s2=[2]} MChar MChar
+```
+
+Notice how the last example applies \idr{MApp} to the strings \idr{[1]} and
+\idr{[2]} directly. While the goal mentions \idr{[1,2]} instead of \idr{[1] ++
+[2]}, Idris is able to figure out how to split the string on its own, so we can
+drop the implicits:
+
 > reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
 > reg_exp_ex2 = MApp MChar MChar
-
-\todo[inline]{Edit, Idris is actually smart enough for this}
-
-(Notice how the last example applies MApp to the strings [1] and [2] directly.
-Since the goal mentions [1,2] instead of [1] ++ [2], Idris wouldn't be able to
-figure out how to split the string on its own.)
 
 Using pattern matching, we can also show that certain strings do not match a
 regular expression:
@@ -815,8 +811,8 @@ following lemma shows that every string \idr{s} that matches \idr{re} also
 matches \idr{Star re}.
 
 > MStar1 : (s =~ re) -> (s =~ Star re)
-> MStar1 {s} h = 
->   rewrite sym $ appendNilRightNeutral s in 
+> MStar1 {s} h =
+>   rewrite sym $ appendNilRightNeutral s in
 >   MStarApp h MStar0
 
 (Note the use of \idr{appendNilRightNeutral} to change the goal of the theorem
@@ -849,8 +845,8 @@ together.
 > In x [] = Void
 > In x (x' :: xs) = (x' = x) `Either` In x xs
 
-> MStar' : (ss : List $ List t) -> (re : Reg_exp t) -> 
->          ((s : List t) -> (In s ss) -> (s =~ re)) -> 
+> MStar' : (ss : List $ List t) -> (re : Reg_exp t) ->
+>          ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
 > MStar' ss re f = ?MStar'_rhs
 
@@ -878,8 +874,8 @@ regular expression:
 > re_chars EmptySet = []
 > re_chars EmptyStr = []
 > re_chars (Chr x) = [x]
-> re_chars (App re1 re2) = re_chars re1 ++ re_chars re2 
-> re_chars (Union re1 re2) = re_chars re1 ++ re_chars re2 
+> re_chars (App re1 re2) = re_chars re1 ++ re_chars re2
+> re_chars (Union re1 re2) = re_chars re1 ++ re_chars re2
 > re_chars (Star re) = re_chars re
 
 > re_star : re_chars (Star re) = re_chars re
@@ -896,8 +892,8 @@ We can then phrase our theorem as follows:
 >   to [] [] prf = absurd prf
 >   to [] _ prf = Right prf
 >   to (_ :: _) _ (Left Refl) = Left $ Left Refl
->   to (_ :: xs) l' (Right prf) = 
->     case to xs l' prf of 
+>   to (_ :: xs) l' (Right prf) =
+>     case to xs l' prf of
 >       Left ixs => Left $ Right ixs
 >       Right il' => Right il'
 >   fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
@@ -908,13 +904,14 @@ We can then phrase our theorem as follows:
 >   fro [] _ (Right prf) = prf
 >   fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
 
-> -- some unfortunate implicit plumbing
+\todo[inline]{Some unfortunate implicit plumbing}
+
 > destruct : In x (s1 ++ s2) -> (In x s1) `Either` (In x s2)
-> destruct {x} {s1} {s2} = fst $ in_app_iff {a=x} {l=s1} {l'=s2} 
-> construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) -> 
+> destruct {x} {s1} {s2} = fst $ in_app_iff {a=x} {l=s1} {l'=s2}
+> construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) ->
 >             In x ((re_chars re1) ++ (re_chars re2))
-> construct {x} {re1} {re2} = 
->   snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)} 
+> construct {x} {re1} {re2} =
+>   snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)}
 
 > in_re_match : (s =~ re) -> In x s -> In x (re_chars re)
 > in_re_match MEmpty prf = prf
@@ -967,8 +964,8 @@ you unable to complete the proof. Here's an example:
 
 > star_app : (s1 =~ Star re) -> (s2 =~ Star re) -> (s1 ++ s2) =~ Star re
 > star_app MStar0 m2 = m2
-> star_app {s2} (MStarApp {s1=s11} {s2=s21} m ms) m2 = 
->  rewrite sym $ appendAssociative s11 s21 s2 in 
+> star_app {s2} (MStarApp {s1=s11} {s2=s21} m ms) m2 =
+>  rewrite sym $ appendAssociative s11 s21 s2 in
 >    MStarApp m (star_app ms m2)
 
 Just doing an inversion on H1 won't get us very far in the recursive cases. (Try
@@ -1095,7 +1092,7 @@ The \idr{MStar''} lemma below (combined with its converse, the \idr{MStar'}
 exercise above), shows that our definition of \idr{Exp_match} for \idr{Star} is
 equivalent to the informal one given previously.
 
-> MStar'' : (s =~ Star re) -> ((ss : List (List t) ** s = fold app ss []), 
+> MStar'' : (s =~ Star re) -> ((ss : List (List t) ** s = fold app ss []),
 >                              (s': List t) -> In s' ss -> s' =~ re      )
 > MStar'' m = ?MStar''_rhs
 
@@ -1117,13 +1114,13 @@ expression \idr{re}, the minimum length for strings \idr{s} to guarantee
 
 > namespace Pumping
 
->   pumping_constant : (re : Reg_exp t) -> Nat 
+>   pumping_constant : (re : Reg_exp t) -> Nat
 >   pumping_constant EmptySet = 0
 >   pumping_constant EmptyStr = 1
 >   pumping_constant (Chr _) = 2
->   pumping_constant (App re1 re2) = 
+>   pumping_constant (App re1 re2) =
 >     pumping_constant re1 + pumping_constant re2
->   pumping_constant (Union re1 re2) = 
+>   pumping_constant (Union re1 re2) =
 >     pumping_constant re1 + pumping_constant re2
 >   pumping_constant (Star _) = 1
 
@@ -1134,11 +1131,11 @@ Next, it is useful to define an auxiliary function that repeats a string
 >   napp Z _ = []
 >   napp (S k) l = l ++ napp k l
 
->   napp_plus: (n, m : Nat) -> (l : List t) -> 
+>   napp_plus: (n, m : Nat) -> (l : List t) ->
 >              napp (n + m) l = napp n l ++ napp m l
 >   napp_plus Z _ _ = Refl
->   napp_plus (S k) m l = 
->    rewrite napp_plus k m l in 
+>   napp_plus (S k) m l =
+>    rewrite napp_plus k m l in
 >      appendAssociative l (napp k l) (napp m l)
 
 Now, the pumping lemma itself says that, if \idr{s =~ re} and if the length of
@@ -1149,22 +1146,22 @@ repeated any number of times and the result, when combined with \idr{s1} and
 the empty string, this gives us a (constructive!) way to generate strings
 matching \idr{re} that are as long as we like.
 
-   pumping : (s =~ re) -> ((pumping_constant re) <=' (length s)) -> 
-             (s1 ** s2 ** s3 ** ( s = s1 ++ s2 ++ s3 
-                                , Not (s2 = [])
-                                , (m:Nat) -> (s1 ++ napp m s2 ++ s3) =~ re
-                                ))
+>   pumping : (s =~ re) -> ((pumping_constant re) <=' (length s))
+>             -> (s1 ** s2 ** s3 ** ( s = s1 ++ s2 ++ s3
+>                                   , Not (s2 = [])
+>                                   , (m:Nat) -> (s1 ++ napp m s2 ++ s3) =~ re
+>                                   ))
 
-\todo[inline]{Edit hint}                                
+\todo[inline]{Edit hint}
 
-To streamline the proof (which you are to fill in), the omega tactic, which is
-enabled by the following Require, is helpful in several places for automatically
-completing tedious low-level arguments involving equalities or inequalities over
-natural numbers. We'll return to omega in a later chapter, but feel free to
-experiment with it now if you like. The first case of the induction gives an
-example of how it is used.
+To streamline the proof (which you are to fill in), the `omega` tactic, which is
+enabled by the following `Require`, is helpful in several places for
+automatically completing tedious low-level arguments involving equalities or
+inequalities over natural numbers. We'll return to `omega` in a later chapter,
+but feel free to experiment with it now if you like. The first case of the
+induction gives an example of how it is used.
 
-   pumping m le = ?pumping_rhs
+>   pumping m le = ?pumping_rhs
 
 
 == Case Study: Improving Reflection
@@ -1176,19 +1173,19 @@ the following theorem:
 
 \todo[inline]{Copy here for now}
 
-> beq_nat_true : beq_nat n m = True -> n = m    
-> beq_nat_true {n=Z} {m=Z} _ = Refl             
-> beq_nat_true {n=(S _)} {m=Z} Refl impossible  
-> beq_nat_true {n=Z} {m=(S _)} Refl impossible  
-> beq_nat_true {n=(S n')} {m=(S m')} eq =       
+> beq_nat_true : beq_nat n m = True -> n = m
+> beq_nat_true {n=Z} {m=Z} _ = Refl
+> beq_nat_true {n=(S _)} {m=Z} Refl impossible
+> beq_nat_true {n=Z} {m=(S _)} Refl impossible
+> beq_nat_true {n=(S n')} {m=(S m')} eq =
 >  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
 
 > filter_not_empty_In : Not (filter (beq_nat n) l = []) -> In n l
 > filter_not_empty_In {l=[]} contra = contra Refl
-> filter_not_empty_In {l=(x::xs)} {n} contra with (beq_nat n x) proof h
->   filter_not_empty_In {l=(x::xs)} {n} contra | True = 
+> filter_not_empty_In {l=(x::_)} {n} contra with (beq_nat n x) proof h
+>   filter_not_empty_In contra | True =
 >     Left $ sym $ beq_nat_true $ sym h
->   filter_not_empty_In {l=(x::xs)} {n} contra | False = 
+>   filter_not_empty_In contra | False =
 >     Right $ filter_not_empty_In contra
 
 In the second case we explicitly apply the \idr{beq_nat_true} lemma to the
@@ -1209,7 +1206,8 @@ data Reflect : Type -> Bool -> Type where
   ReflectF : (p : Type) -> (Not p) -> Reflect p False
 ```
 
-\todo[inline]{Edit for new definition of `Reflect`}
+\todo[inline]{Seems that additional `(b=True/False)` constructor parameter is
+needed for this to work in Idris. Update the text.`}
 
 Before explaining this, let's rearrange it a little: Since the types of both
 \idr{ReflectT} and \idr{ReflectF} begin with \idr{(p : Type)}, we can make the
@@ -1254,37 +1252,38 @@ the second).
 \todo[inline]{Copy here for now}
 
 > beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
-> beq_nat_true_iff n1 n2 = (to, fro n1 n2)                                 
-> where                                                                    
->   to : (beq_nat n1 n2 = True) -> (n1 = n2)                               
->   to = beq_nat_true {n=n1} {m=n2}                                        
->   fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)            
->   fro n1 n1 Refl = sym $ beq_nat_refl n1                   
+> beq_nat_true_iff n1 n2 = (to, fro n1 n2)
+> where
+>   to : (beq_nat n1 n2 = True) -> (n1 = n2)
+>   to = beq_nat_true {n=n1} {m=n2}
+>   fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
+>   fro n1 n1 Refl = sym $ beq_nat_refl n1
 
 > iff_sym : (p <-> q) -> (q <-> p)
-> iff_sym (pq, qp) = (qp, pq)              
+> iff_sym (pq, qp) = (qp, pq)
 
 > beq_natP : Reflect (n = m) (beq_nat n m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
 
-\todo[inline]{Edit}
+\todo[inline]{Edit -  we basically trade the invocation of `beq_nat_true` in
+`Left` for an indirect rewrite in `Right`}
 
-The new proof of filter_not_empty_In now goes as follows. Notice how the calls
-to destruct and apply are combined into a single call to destruct.
+The new proof of \idr{filter_not_empty_In} now goes as follows. Notice how the
+calls to destruct and apply are combined into a single call to destruct.
 
-(To see this clearly, look at the two proofs of filter_not_empty_In with Idris
-and observe the differences in proof state at the beginning of the first case of
-the destruct.)
+(To see this clearly, look at the two proofs of \idr{filter_not_empty_In} with
+Idris and observe the differences in proof state at the beginning of the first
+case of the destruct.)
 
 > filter_not_empty_In' : Not (filter (beq_nat n) l = []) -> In n l
 > filter_not_empty_In' {l=[]} contra = contra Refl
 > filter_not_empty_In' {n} {l=(x::xs)} contra with (beq_natP {n} {m=x})
 >   filter_not_empty_In' _ | (ReflectT eq _) = Left $ sym eq
->   filter_not_empty_In' {n} {l=(x::xs)} contra | (ReflectF _ notbeq) = let 
+>   filter_not_empty_In' {n} {l=(x::xs)} contra | (ReflectF _ notbeq) = let
 
 \todo[inline]{How to rewrite more neatly here?}
 
->     contra' = replace notbeq contra {P = \a => Not ((if a 
+>     contra' = replace notbeq contra {P = \a => Not ((if a
 >                                       then x :: filter (beq_nat n) xs
 >                                       else filter (beq_nat n) xs) = [])}
 >   in Right $ filter_not_empty_In' contra'
@@ -1347,7 +1346,7 @@ as-is, but you can also prove each example with more basic tactics.)
 > test_nostutter_1 = ?test_nostutter_1_rhs
 
 ```coq
-(* 
+(*
   Proof. repeat constructor; apply beq_nat_false_iff; auto.
   Qed.
 *)
@@ -1357,7 +1356,7 @@ as-is, but you can also prove each example with more basic tactics.)
 > test_nostutter_2 = ?test_nostutter_2_rhs
 
 ```coq
-(* 
+(*
   Proof. repeat constructor; apply beq_nat_false_iff; auto.
   Qed.
 *)
@@ -1367,7 +1366,7 @@ as-is, but you can also prove each example with more basic tactics.)
 > test_nostutter_3 = ?test_nostutter_3_rhs
 
 ```coq
-(* 
+(*
   Proof. repeat constructor; apply beq_nat_false; auto. Qed.
 *)
 ```
@@ -1376,7 +1375,7 @@ as-is, but you can also prove each example with more basic tactics.)
 > test_nostutter_4 = ?test_nostutter_4_rhs
 
 ```coq
-(* 
+(*
   Proof. intro.
   repeat match goal with
     h: nostutter _ |- _ => inversion h; clear h; subst
@@ -1400,7 +1399,7 @@ and \idr{l2}, but possibly interleaved. For example,
 
 ```idris
     [1,4,6,2,3]
-```    
+```
 
 is an in-order merge of
 
@@ -1481,9 +1480,9 @@ prove that
 
 ```idris
     (l : List t) -> l = rev l -> Pal l
-```    
+```
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -1552,9 +1551,9 @@ However, it is also possible to make the proof go through _without_ assuming
 that \idr{In} is decidable; if you manage to do this, you will not need the
 \idr{excluded_middle} hypothesis.
 
-> pigeonhole_principle: (l1, l2 : List a) -> 
->                       ((x : a) -> In x l1 -> In x l2) -> 
->                       ((length l2) <' (length l1)) -> 
+> pigeonhole_principle: (l1, l2 : List a) ->
+>                       ((x : a) -> In x l1 -> In x l2) ->
+>                       ((length l2) <' (length l1)) ->
 >                       Repeats l1
 > pigeonhole_principle l1 l2 f prf = ?pigeonhole_principle_rhs
 > where
