@@ -845,10 +845,9 @@ together.
 > In x [] = Void
 > In x (x' :: xs) = (x' = x) `Either` In x xs
 
-> MStar' : (ss : List $ List t) -> (re : Reg_exp t) ->
->          ((s : List t) -> (In s ss) -> (s =~ re)) ->
+> MStar' : ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
-> MStar' ss re f = ?MStar'_rhs
+> MStar' f = ?MStar'_rhs
 
 $\square$
 
@@ -1092,8 +1091,10 @@ The \idr{MStar''} lemma below (combined with its converse, the \idr{MStar'}
 exercise above), shows that our definition of \idr{Exp_match} for \idr{Star} is
 equivalent to the informal one given previously.
 
-> MStar'' : (s =~ Star re) -> ((ss : List (List t) ** s = fold app ss []),
->                              (s': List t) -> In s' ss -> s' =~ re      )
+> MStar'' : (s =~ Star re) -> 
+>           (ss : List (List t) ** 
+>                (s = fold (++) ss [], (s': List t) -> In s' ss -> s' =~ re)
+>           )
 > MStar'' m = ?MStar''_rhs
 
 $\square$
