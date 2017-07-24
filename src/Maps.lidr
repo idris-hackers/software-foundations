@@ -85,8 +85,8 @@ about strings:
 > bfro {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
 >   bfro _ | (Yes _) = Refl
 >   bfro prf | (No contra) = absurd $ contra $ idInj prf
->   where 
->     idInj : MkId x = MkId y -> x = y  
+>   where
+>     idInj : MkId x = MkId y -> x = y
 >     idInj Refl = Refl
 
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
@@ -107,9 +107,9 @@ Similarly:
 > beq_id_false_iff = (to, fro)
 > where
 >   to : (beq_id x y = False) -> Not (x = y)
->   to beqf = not_true_and_false beqf . bfro 
+>   to beqf = not_true_and_false beqf . bfro
 >   fro : (Not (x = y)) -> beq_id x y = False
->   fro noteq = not_true_is_false $ noteq . bto 
+>   fro noteq = not_true_is_false $ noteq . bto
 
 
 == Total Maps
@@ -128,7 +128,7 @@ simplifies proofs that use maps.
 We build partial maps in two steps. First, we define a type of _total maps_ that
 return a default value when we look up a key that is not present in the map.
 
-> total_map : Type -> Type 
+> total_map : Type -> Type
 > total_map a = Id -> a
 
 Intuitively, a total map over an element type \idr{a} is just a function that
@@ -158,8 +158,8 @@ this:
 \todo[inline]{Seems like an inconsistency in the book here}
 
 > examplemap : total_map Bool
-> examplemap = t_update (MkId "foo") False $ 
->              t_update (MkId "bar") True $ 
+> examplemap = t_update (MkId "foo") False $
+>              t_update (MkId "bar") True $
 >              t_empty False
 
 This completes the definition of total maps. Note that we don't need to define a
@@ -195,132 +195,127 @@ $\square$
 
 ==== Exercise: 2 stars, optional (t_update_eq)
 
-Next, if we update a map \idr{m} at a key \idr{x} with a new value v and then
-look up x in the map resulting from the update, we get back v:
+Next, if we update a map \idr{m} at a key \idr{x} with a new value \idr{v} and
+then look up \idr{x} in the map resulting from the \idr{update}, we get back
+\idr{v}:
 
-Lemma t_update_eq : ∀A (m: total_map A) x v,
-  (t_update m x v) x = v.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> t_update_eq : (t_update x v m) x = v
+> t_update_eq = ?t_update_eq_rhs
+
 $\square$
 
 
 ==== Exercise: 2 stars, optional (t_update_neq)
 
-On the other hand, if we update a map m at a key x1 and then look up a different
-key x2 in the resulting map, we get the same result that m would have given:
+On the other hand, if we update a map \idr{m} at a key \idr{x1} and then look up
+a different key \idr{x2} in the resulting map, we get the same result that
+\idr{m} would have given:
 
-Theorem t_update_neq : ∀(X:Type) v x1 x2
-                         (m : total_map X),
-  x1 ≠ x2 →
-  (t_update m x1 v) x2 = m x2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> t_update_neq : Not (x1 = x2) -> (t_update x1 v m) x2 = m x2
+> t_update_neq x = ?t_update_neq_rhs
+
 $\square$
 
 
 ==== Exercise: 2 stars, optional (t_update_shadow)
 
-If we update a map m at a key x with a value v1 and then update again with the
-same key x and another value v2, the resulting map behaves the same (gives the
-same result when applied to any key) as the simpler map obtained by performing
-just the second update on m:
+If we update a map \idr{m} at a key \idr{x} with a value \idr{v1} and then
+update again with the same key \idr{x} and another value \idr{v2}, the resulting
+map behaves the same (gives the same result when applied to any key) as the
+simpler map obtained by performing just the second \idr{update} on \idr{m}:
 
-Lemma t_update_shadow : ∀A (m: total_map A) v1 v2 x,
-    t_update (t_update m x v1) x v2
-  = t_update m x v2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> t_update_shadow : t_update x v2 $ t_update x v1 m = t_update x v2 m
+> t_update_shadow = ?t_update_shadow_rhs
 
 $\square$
 
 For the final two lemmas about total maps, it's convenient to use the reflection
-idioms introduced in chapter IndProp. We begin by proving a fundamental
-reflection lemma relating the equality proposition on ids with the boolean
-function beq_id.
+idioms introduced in chapter `IndProp`. We begin by proving a fundamental
+_reflection lemma_ relating the equality proposition on \idr{Id}s with the
+boolean function \idr{beq_id}.
 
 
 ==== Exercise: 2 stars, optional (beq_idP)
 
-Use the proof of beq_natP in chapter IndProp as a template to prove the following:
+Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
+following:
 
-Lemma beq_idP : ∀x y, reflect (x = y) (beq_id x y).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> data Reflect : Type -> Bool -> Type where
+>   ReflectT : (p : Type) -> Reflect p True
+>   ReflectF : (p : Type) -> (Not p) -> Reflect p False
+
+> beq_idP : Reflect (x = y) (beq_id x y)
+> beq_idP = ?beq_idP_rhs
 
 $\square$
 
-Now, given ids x1 and x2, we can use the destruct (beq_idP x1 x2) to
-simultaneously perform case analysis on the result of beq_id x1 x2 and generate
-hypotheses about the equality (in the sense of =) of x1 and x2.
+Now, given \idr{Id}s \idr{x1} and \idr{x2}, we can use \idr{with (beq_idP x1
+x2)} to simultaneously perform case analysis on the result of \idr{beq_id x1 x2}
+and generate hypotheses about the equality (in the sense of \idr{=}) of \idr{x1}
+and \idr{x2}.
 
 
 ==== Exercise: 2 stars (t_update_same)
 
-With the example in chapter IndProp as a template, use beq_idP to prove the
-following theorem, which states that if we update a map to assign key x the same
-value as it already has in m, then the result is equal to m:
+With the example in chapter `IndProp` as a template, use \idr{beq_idP} to prove
+the following theorem, which states that if we update a map to assign key
+\idr{x} the same value as it already has in \idr{m}, then the result is equal to
+\idr{m}:
 
-Theorem t_update_same : ∀X x (m : total_map X),
-  t_update m x (m x) = m.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> t_update_same : t_update x (m x) m = m
+> t_update_same = ?t_update_same_rhs
 
 $\square$
 
 
 ==== Exercise: 3 stars, recommended (t_update_permute)
 
-Use beq_idP to prove one final property of the update function: If we update a
-map m at two distinct keys, it doesn't matter in which order we do the updates.
+Use \idr{beq_idP} to prove one final property of the \idr{update} function: If
+we update a map \idr{m} at two distinct keys, it doesn't matter in which order
+we do the updates.
 
-Theorem t_update_permute : ∀(X:Type) v1 v2 x1 x2
-                             (m : total_map X),
-  x2 ≠ x1 →
-    (t_update (t_update m x2 v2) x1 v1)
-  = (t_update (t_update m x1 v1) x2 v2).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> t_update_permute : Not (x2 = x1) -> t_update x1 v1 $ t_update x2 v2 m
+>                                   = t_update x2 v2 $ t_update x1 v1 m
+> t_update_permute x = ?t_update_permute_rhs
 
 $\square$
 
+
 == Partial maps
 
-Finally, we define partial maps on top of total maps. A partial map with
-elements of type A is simply a total map with elements of type option A and
-default element None.
+Finally, we define _partial maps_ on top of total maps. A partial map with
+elements of type \idr{a} is simply a total map with elements of type \idr{Maybe
+a} and default element \idr{Nothing}.
 
-Definition partial_map (A:Type) := total_map (option A).
+> partial_map : Type -> Type
+> partial_map a = total_map (Maybe a)
 
-Definition empty {A:Type} : partial_map A :=
-  t_empty None.
+> empty : partial_map a
+> empty = t_empty Nothing
 
-Definition update {A:Type} (m : partial_map A)
-                  (x : id) (v : A) :=
-  t_update m x (Some v).
+> update : (x : Id) -> (v : a) -> (m : partial_map a) -> partial_map a
+> update x v m = t_update x (Just v) m
 
 We now straightforwardly lift all of the basic lemmas about total maps to
 partial maps.
 
-Lemma apply_empty : ∀A x, @empty A x = None.
+> apply_empty : empty {a} x = Nothing {a}
+> apply_empty = Refl
 
-Lemma update_eq : ∀A (m: partial_map A) x v,
-  (update m x v) x = Some v.
+\todo[inline]{Finish}
 
-Theorem update_neq : ∀(X:Type) v x1 x2
-                       (m : partial_map X),
-  x2 ≠ x1 →
-  (update m x2 v) x1 = m x1.
+> update_eq : (update x v m) x = Just v
+> update_eq = ?update_eq_rhs
 
-Lemma update_shadow : ∀A (m: partial_map A) v1 v2 x,
-  update (update m x v1) x v2 = update m x v2.
+> update_neq : Not (x2 = x1) -> (update x2 v m) x1 = m x1
+> update_neq x = ?update_neq_rhs
 
-Theorem update_same : ∀X v x (m : partial_map X),
-  m x = Some v →
-  update m x v = m.
+> update_shadow : update x v2 $ update x v1 m = update x v2 m
+> update_shadow = ?update_shadow_rhs
 
-Theorem update_permute : ∀(X:Type) v1 v2 x1 x2
-                                (m : partial_map X),
-  x2 ≠ x1 →
-    (update (update m x2 v2) x1 v1)
-  = (update (update m x1 v1) x2 v2).
+> update_same : m x = Just v -> update x v m = m
+> update_same prf = ?update_same_rhs
+
+> update_permute : Not (x2 = x1) -> update x1 v1 $ update x2 v2 m
+>                                 = update x2 v2 $ update x1 v1 m
+> update_permute x = ?update_permute_rhs
