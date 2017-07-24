@@ -422,7 +422,7 @@ Idris's stdlib has a more general form of this, \idr{Iso}, in
 >   not_true_iff_false : (Not (b = True)) <-> (b = False)
 >   not_true_iff_false {b} = (not_true_is_false b, not_true_and_false b)
 >   where
->     not_true_and_false : (b : Bool) -> (b = False) -> (b = True) -> Void
+>     not_true_and_false : (b : Bool) -> (b = False) -> Not (b = True)
 >     not_true_and_false False _ Refl impossible
 >     not_true_and_false True Refl _ impossible
 
