@@ -1,5 +1,7 @@
 = Maps: Total and Partial Maps
 
+> module Maps
+
 Maps (or dictionaries) are ubiquitous data structures both generally and in the
 theory of programming languages in particular; we're going to need them in many
 places in the coming chapters. They also make a nice case study using ideas
@@ -10,7 +12,7 @@ streamline proofs (from `IndProp`).
 We'll define two flavors of maps: _total_ maps, which include a "default"
 element to be returned when a key being looked up doesn't exist, and _partial_
 maps, which return a \idr{Maybe} to indicate success or failure. The latter is
-defined in terms of the former, using \idr{Maybe} as the default element.
+defined in terms of the former, using \idr{Nothing} as the default element.
 
 
 == The Idris Standard Library
@@ -19,7 +21,7 @@ defined in terms of the former, using \idr{Maybe} as the default element.
 
 One small digression before we get to maps.
 
-Unlike the chapters we have seen so far, this one does not Require Import the
+Unlike the chapters we have seen so far, this one does not `Require Import` the
 chapter before it (and, transitively, all the earlier chapters). Instead, in
 this chapter and from now, on we're going to import the definitions and theorems
 we need directly from Idris's standard library stuff. You should not notice much
@@ -27,16 +29,18 @@ difference, though, because we've been careful to name our own definitions and
 theorems the same as their counterparts in the standard library, wherever they
 overlap.
 
+```coq
 Require Import Idris.Arith.Arith.
 Require Import Idris.Bool.Bool.
 Require Import Idris.Strings.String.
 Require Import Idris.Logic.FunctionalExtensionality.
+```
 
 Documentation for the standard library can be found at
 http://Idris.inria.fr/library/.
 
-The Search command is a good way to look for theorems involving objects of
-specific types. Take a minute now to experiment with it.
+The \idr{:search} command is a good way to look for theorems involving objects
+of specific types. Take a minute now to experiment with it.
 
 
 == Identifiers
@@ -70,12 +74,14 @@ present purposes you can think of it as just a fancy \idr{Bool}.)
 The following useful property of  \idr{beq_id} follows from an analogous lemma
 about strings:
 
-\todo[inline]{Copypasted `<->` for now}
+\todo[inline]{Copied \idr{<->} for now}
 
 > iff : {p,q : Type} -> Type
 > iff {p} {q} = (p -> q, q -> p)
 
 > syntax [p] "<->" [q] = iff {p} {q}
+
+\todo[inline]{Somehow this doesn't work if put under \idr{where} as usual}
 
 > bto : (beq_id x y = True) -> x = y
 > bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
@@ -94,9 +100,10 @@ about strings:
 
 Similarly:
 
-\todo[inline]{Copypasted here for now}
+\todo[inline]{Copied and inlined \idr{not_true_iff_false} from \idr{Logic} here
+for now}
 
-> not_true_and_false : (b = False) -> (b = True) -> Void
+> not_true_and_false : (b = False) -> Not (b = True)
 > not_true_and_false {b=False} _ Refl impossible
 > not_true_and_false {b=True} Refl _ impossible
 > not_true_is_false : Not (b = True) -> b = False
@@ -140,6 +147,12 @@ this map always returns the default element when applied to any id.
 > t_empty : (v : a) -> total_map a
 > t_empty v = \_ => v
 
+We can also write this as:
+
+```idris
+t_empty = const
+```
+
 More interesting is the \idr{update} function, which (as before) takes a map
 \idr{m}, a key \idr{x}, and a value \idr{v} and returns a new map that takes
 \idr{x} to \idr{v} and takes every other key to whatever \idr{m} does.
@@ -155,7 +168,7 @@ For example, we can build a map taking \idr{Id}s to \idr{Bool}s, where \idr{Id
 3} is mapped to \idr{True} and every other key is mapped to \idr{False}, like
 this:
 
-\todo[inline]{Seems like an inconsistency in the book here}
+\todo[inline]{Seems like a wrong description in the book here}
 
 > examplemap : total_map Bool
 > examplemap = t_update (MkId "foo") False $
@@ -208,7 +221,7 @@ $\square$
 ==== Exercise: 2 stars, optional (t_update_neq)
 
 On the other hand, if we update a map \idr{m} at a key \idr{x1} and then look up
-a different key \idr{x2} in the resulting map, we get the same result that
+a _different_ key \idr{x2} in the resulting map, we get the same result that
 \idr{m} would have given:
 
 > t_update_neq : Not (x1 = x2) -> (t_update x1 v m) x2 = m x2
@@ -239,6 +252,8 @@ boolean function \idr{beq_id}.
 
 Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
 following:
+
+\todo[inline]{Copied \idr{Reflect} for now}
 
 > data Reflect : Type -> Bool -> Type where
 >   ReflectT : (p : Type) -> Reflect p True
