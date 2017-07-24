@@ -17,7 +17,8 @@ LIDR_FILES := Preface.lidr \
 	Lists.lidr \
 	Poly.lidr \
 	Tactics.lidr \
-	Logic.lidr
+	Logic.lidr \
+	IndProp.lidr
 # TODO: Add more chapters, in order, here.
 
 

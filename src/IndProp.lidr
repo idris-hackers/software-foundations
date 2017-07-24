@@ -1091,8 +1091,8 @@ The \idr{MStar''} lemma below (combined with its converse, the \idr{MStar'}
 exercise above), shows that our definition of \idr{Exp_match} for \idr{Star} is
 equivalent to the informal one given previously.
 
-> MStar'' : (s =~ Star re) -> 
->           (ss : List (List t) ** 
+> MStar'' : (s =~ Star re) ->
+>           (ss : List (List t) **
 >                (s = fold (++) ss [], (s': List t) -> In s' ss -> s' =~ re)
 >           )
 > MStar'' m = ?MStar''_rhs
@@ -1327,13 +1327,13 @@ need in this course. Try to solve this exercise without any help at all.
 
 We say that a list "stutters" if it repeats the same element consecutively. The
 property "\idr{Nostutter mylist}" means that \idr{mylist} does not stutter.
-Formulate an inductive definition for \idr{nostutter}. (This is different from
+Formulate an inductive definition for \idr{Nostutter}. (This is different from
 the \idr{NoDup} property in the exercise below; the sequence \idr{[1,4,1]}
 repeats but does not stutter.)
 
 > data Nostutter : List t -> Type where
 >   -- FILL IN HERE
->   RemoveMe : Nostutter [] -- needed for typechecking, shouldn't be empty
+>   RemoveMe : Nostutter [] -- needed for typechecking, data shouldn't be empty
 
 Make sure each of these tests succeeds, but feel free to change the suggested
 proof (in comments) if the given one doesn't work for you. Your definition might
@@ -1414,8 +1414,8 @@ and
     [4,3]
 ```
 
-Now, suppose we have a set \idr{x}, a function \idr{test : x->Bool}, and a list
-\idr{l} of type \idr{List x}. Suppose further that \idr{l} is an in-order merge
+Now, suppose we have a set \idr{t}, a function \idr{test : t->Bool}, and a list
+\idr{l} of type \idr{List t}. Suppose further that \idr{l} is an in-order merge
 of two lists, \idr{l1} and \idr{l2}, such that every item in \idr{l1} satisfies
 \idr{test} and no item in \idr{l2} satisfies \idr{test}. Then \idr{filter test l
 = l1}.
@@ -1494,22 +1494,22 @@ Recall the definition of the \idr{In} property from the \idr{Logic} chapter, whi
 that a value \idr{x} appears at least once in a list \idr{l}:
 
 ```idris
-In : (x : a) -> (l : List a) -> Type
+In : (x : t) -> (l : List t) -> Type
 In x [] = Void
 In x (x' :: xs) = (x' = x) `Either` In x xs
 ```
 
-Your first task is to use \idr{In} to define a proposition \idr{Disjoint {x} l1
+Your first task is to use \idr{In} to define a proposition \idr{Disjoint {t} l1
 l2}, which should be provable exactly when \idr{l1} and \idr{l2} are lists (with
-elements of type \idr{x}) that have no elements in common.
+elements of type \idr{t}) that have no elements in common.
 
 > -- FILL IN HERE
 
-Next, use \idr{In} to define an inductive proposition \idr{NoDup {x} l}, which
+Next, use \idr{In} to define an inductive proposition \idr{NoDup {t} l}, which
 should be provable exactly when \idr{l} is a list (with elements of type
-\idr{x}) where every member is different from every other. For example,
-\idr{NoDup {x=Nat} [1,2,3,4]} and \idr{NoDup {x=Bool} []} should be provable,
-while \idr{NoDup {x=Nat} [1,2,1]} and \idr{NoDup {x=Bool} [True,True]} should
+\idr{t}) where every member is different from every other. For example,
+\idr{NoDup {t=Nat} [1,2,3,4]} and \idr{NoDup {t=Bool} []} should be provable,
+while \idr{NoDup {t=Nat} [1,2,1]} and \idr{NoDup {t=Bool} [True,True]} should
 not be.
 
 > -- FILL IN HERE
@@ -1534,12 +1534,12 @@ First prove an easy useful lemma.
 > in_split : In x l -> (l1 ** l2 ** l = l1 ++ x :: l2)
 > in_split prf = ?in_split_rhs
 
-Now define a property \idr{Repeats} such that \idr{Repeats {x} l} asserts that
-\idr{l} contains at least one repeated element (of type \idr{x}).
+Now define a property \idr{Repeats} such that \idr{Repeats {t} l} asserts that
+\idr{l} contains at least one repeated element (of type \idr{t}).
 
-> data Repeats : {x : Type} -> List x -> Type where
+> data Repeats : List t -> Type where
 >   -- FILL IN HERE
->   RemoveMe' : Repeats [] -- needed for typechecking, shouldn't be empty
+>   RemoveMe' : Repeats [] -- needed for typechecking, data shouldn't be empty
 
 Now, here's a way to formalize the pigeonhole principle. Suppose list \idr{l2}
 represents a list of pigeonhole labels, and list \idr{l1} represents the labels
@@ -1552,13 +1552,12 @@ However, it is also possible to make the proof go through _without_ assuming
 that \idr{In} is decidable; if you manage to do this, you will not need the
 \idr{excluded_middle} hypothesis.
 
-> pigeonhole_principle: (l1, l2 : List a) ->
->                       ((x : a) -> In x l1 -> In x l2) ->
->                       ((length l2) <' (length l1)) ->
->                       Repeats l1
-> pigeonhole_principle l1 l2 f prf = ?pigeonhole_principle_rhs
+> pigeonhole_principle : ((x : t) -> In x l1 -> In x l2) ->
+>                        ((length l2) <' (length l1)) ->
+>                        Repeats l1
+> pigeonhole_principle f prf = ?pigeonhole_principle_rhs
 > where
->   excluded_middle : (a : Type) -> a `Either` (Not a)
+>   excluded_middle : (p : Type) -> p `Either` (Not p)
 >   excluded_middle p = really_believe_me p
 
 $\square$
