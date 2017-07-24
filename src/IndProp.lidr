@@ -321,12 +321,14 @@ recursive occurrence of the property in question.
 Let's try our current lemma again:
 
 > ev_even' : Ev n -> (k ** n = double k)
-> ev_even' Ev_0 = (Z ** Refl)
-> ev_even' (Ev_SS e') = let
->   (k**prf) = ev_even e'
->   cprf = cong {f=S} $ cong {f=S} prf
-> in
->   rewrite cprf in (S k ** Refl)
+> ev_even' Ev_0       = (Z ** Refl)
+> ev_even' (Ev_SS e') =
+>   let
+>     (k**prf) = ev_even e'
+>     cprf = cong {f=S} $ cong {f=S} prf
+>   in
+>     rewrite cprf in (S k ** Refl)
+>
 
 Here, we can see that Idris produced an `IH` that corresponds to `E'`, the single
 recursive occurrence of ev in its own definition. Since E' mentions n', the
@@ -925,22 +927,23 @@ We can then phrase our theorem as follows:
 
 > in_app_iff : (In a (l++l')) <-> (In a l `Either` In a l')
 > in_app_iff {l} {l'} = (to l l', fro l l')
-> where
->   to : (l, l' : List x) -> In a (l ++ l') -> (In a l) `Either` (In a l')
->   to [] [] prf = absurd prf
->   to [] _ prf = Right prf
->   to (_ :: _) _ (Left Refl) = Left $ Left Refl
->   to (_ :: xs) l' (Right prf) =
->     case to xs l' prf of
->       Left ixs => Left $ Right ixs
->       Right il' => Right il'
->   fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
->   fro [] _ (Left prf) = absurd prf
->   fro (_ :: _) _ (Left (Left Refl)) = Left Refl
->   fro (_ :: xs) l' (Left (Right prf)) = Right $ fro xs l' (Left prf)
->   fro _ [] (Right prf) = absurd prf
->   fro [] _ (Right prf) = prf
->   fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
+>   where
+>     to : (l, l' : List x) -> In a (l ++ l') -> (In a l) `Either` (In a l')
+>     to [] [] prf = absurd prf
+>     to [] _ prf = Right prf
+>     to (_ :: _) _ (Left Refl) = Left $ Left Refl
+>     to (_ :: xs) l' (Right prf) =
+>       case to xs l' prf of
+>         Left ixs => Left $ Right ixs
+>         Right il' => Right il'
+>     fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
+>     fro [] _ (Left prf) = absurd prf
+>     fro (_ :: _) _ (Left (Left Refl)) = Left Refl
+>     fro (_ :: xs) l' (Left (Right prf)) = Right $ fro xs l' (Left prf)
+>     fro _ [] (Right prf) = absurd prf
+>     fro [] _ (Right prf) = prf
+>     fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
+>
 
 \todo[inline]{Some unfortunate implicit plumbing}
 
@@ -1193,11 +1196,11 @@ repeated any number of times and the result, when combined with \idr{s1} and
 the empty string, this gives us a (constructive!) way to generate strings
 matching \idr{re} that are as long as we like.
 
->   pumping : (s =~ re) -> ((pumping_constant re) <=' (length s))
->             -> (s1 ** s2 ** s3 ** ( s = s1 ++ s2 ++ s3
->                                   , Not (s2 = [])
->                                   , (m:Nat) -> (s1 ++ napp m s2 ++ s3) =~ re
->                                   ))
+>   pumping : (s =~ re) -> ((pumping_constant re) <=' (length s)) ->
+>             (s1 ** s2 ** s3 ** ( s = s1 ++ s2 ++ s3
+>                                , Not (s2 = [])
+>                                , (m:Nat) -> (s1 ++ napp m s2 ++ s3) =~ re
+>                                ))
 
 \todo[inline]{Edit hint}
 
@@ -1305,12 +1308,11 @@ the second).
 
 > beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
 > beq_nat_true_iff n1 n2 = (to, fro n1 n2)
-> where
->   to : (beq_nat n1 n2 = True) -> (n1 = n2)
->   to = beq_nat_true {n=n1} {m=n2}
->   fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
->   fro n1 n1 Refl = sym $ beq_nat_refl n1
-
+>   where
+>     to : (beq_nat n1 n2 = True) -> (n1 = n2)
+>     to = beq_nat_true {n=n1} {m=n2}
+>     fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
+>     fro n1 n1 Refl = sym $ beq_nat_refl n1
 >
 > iff_sym : (p <-> q) -> (q <-> p)
 > iff_sym (pq, qp) = (qp, pq)
@@ -1333,14 +1335,18 @@ case of the destruct.)
 > filter_not_empty_In' {l=[]} contra = contra Refl
 > filter_not_empty_In' {n} {l=(x::xs)} contra with (beq_natP {n} {m=x})
 >   filter_not_empty_In' _ | (ReflectT eq _) = Left $ sym eq
->   filter_not_empty_In' {n} {l=(x::xs)} contra | (ReflectF _ notbeq) = let
+>   filter_not_empty_In' {n} {l=(x::xs)} contra | (ReflectF _ notbeq) =
+>     let
 
 \todo[inline]{How to rewrite more neatly here?}
 
->     contra' = replace notbeq contra {P = \a => Not ((if a
->                                       then x :: filter (beq_nat n) xs
->                                       else filter (beq_nat n) xs) = [])}
->   in Right $ filter_not_empty_In' contra'
+>       contra' = replace notbeq contra
+>                         {P = \a =>
+>                                Not ((if a
+>                                         then x :: filter (beq_nat n) xs
+>                                         else filter (beq_nat n) xs) = [])}
+>     in
+>       Right $ filter_not_empty_In' contra'
 >
 
 
