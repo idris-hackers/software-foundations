@@ -37,7 +37,7 @@ Require Import Idris.Logic.FunctionalExtensionality.
 ```
 
 Documentation for the standard library can be found at
-http://Idris.inria.fr/library/.
+\url{https://www.idris-lang.org/docs/current/}.
 
 The \idr{:search} command is a good way to look for theorems involving objects
 of specific types. Take a minute now to experiment with it.
