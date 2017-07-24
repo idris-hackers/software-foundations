@@ -1,13 +1,13 @@
-= IndProp : Inductively Defined Propositions
+= IndProp: Inductively Defined Propositions
 
 > module IndProp
-
+>
 > import Basics
 > import Induction
-
+>
 > %hide Basics.Numbers.pred
 > %hide Prelude.Stream.(::)
-
+>
 
 == Inductively Defined Propositions
 
@@ -74,6 +74,7 @@ corresponds to an inference rule:
 > data Ev : Nat -> Type where
 >   Ev_0 : Ev Z
 >   Ev_SS : {n : Nat} -> Ev n -> Ev (S (S n))
+>
 
 This definition is different in one crucial respect from previous uses of
 \idr{data}: its result is not a \idr{Type}, but rather a function from \idr{Nat}
@@ -119,11 +120,13 @@ functions to each other to prove \idr{Ev} for particular numbers...
 
 > ev_4 : Ev 4
 > ev_4 = Ev_SS {n=2} $ Ev_SS {n=0} Ev_0
+>
 
 We can also prove theorems that have hypotheses involving \idr{Ev}.
 
 > ev_plus4 : Ev n -> Ev (4 + n)
 > ev_plus4 x = Ev_SS $ Ev_SS x
+>
 
 More generally, we can show that any number multiplied by 2 is even:
 
@@ -132,6 +135,7 @@ More generally, we can show that any number multiplied by 2 is even:
 
 > ev_double : Ev (double n)
 > ev_double = ?ev_double_rhs
+>
 
 $\square$
 
@@ -162,7 +166,7 @@ Let's look at a few examples to see what this means in practice.
 
 === Pattern Matching on Evidence
 
-\todo[inline]{Edit the whole section to talk about dependent pattern matching}
+\ \todo[inline]{Edit the whole section to talk about dependent pattern matching}
 
 Suppose we are proving some fact involving a number \idr{n}, and we are given
 \idr{Ev n} as a hypothesis. We already know how to perform case analysis on
@@ -186,8 +190,9 @@ pass it a list of identifiers separated by `|` characters to name the arguments
 to each of the possible constructors.
 
 > ev_minus2 : Ev n -> Ev (pred (pred n))
-> ev_minus2 Ev_0 = Ev_0
+> ev_minus2 Ev_0       = Ev_0
 > ev_minus2 (Ev_SS e') = e'
+>
 
 In words, here is how the pattern match reasoning works in this proof:
 
@@ -217,6 +222,7 @@ not apply, and (2) that the \idr{n'} that appears on the \idr{Ev_SS} case must b
 same as \idr{n}. This allows us to complete the proof
 
 > evSS_ev (Ev_SS e') = e'
+>
 
 By using dependent pattern matching, we can also apply the principle of
 explosion to "obviously contradictory" hypotheses involving inductive
@@ -225,6 +231,7 @@ properties. For example:
 > one_not_even : Not (Ev 1)
 > one_not_even Ev_0 impossible
 > one_not_even (Ev_SS _) impossible
+>
 
 
 === Exercise: 1 star (inversion_practice)
@@ -233,9 +240,10 @@ Prove the following results using pattern matching.
 
 > SSSSev__even : Ev (S (S (S (S n)))) -> Ev n
 > SSSSev__even e = ?SSSSev__even_rhs
-
+>
 > even5_nonsense : Ev 5 -> 2 + 2 = 9
 > even5_nonsense e = ?even5_nonsense_rhs
+>
 
 $\square$
 
@@ -290,14 +298,15 @@ which is the same as the original statement, but with \idr{n'} instead of
 result suffices.
 
 > ev_even (Ev_SS e') = I $ ev_even e'
-> where
->   I : (k' ** n' = double k') -> (k ** S (S n') = double k)
->   I (k' ** prf) = (S k' ** cong {f=S} $ cong {f=S} prf)
+>   where
+>     I : (k' ** n' = double k') -> (k ** S (S n') = double k)
+>     I (k' ** prf) = (S k' ** cong {f=S} $ cong {f=S} prf)
+>
 
 
 === Induction on Evidence
 
-\todo[inline]{Edit, we've already just done an induction-style proof, the
+\ \todo[inline]{Edit, we've already just done an induction-style proof, the
 following is basically replacing `where` with `let`}
 
 If this looks familiar, it is no coincidence: We've encountered similar problems
@@ -330,14 +339,15 @@ follows.
 
 > iff : {p,q : Type} -> Type
 > iff {p} {q} = (p -> q, q -> p)
-
+>
 > syntax [p] "<->" [q] = iff {p} {q}
-
+>
 > ev_even_iff : (Ev n) <-> (k ** n = double k)
 > ev_even_iff = (ev_even, fro)
-> where
->   fro : (k ** n = double k) -> (Ev n)
->   fro (k**prf) = rewrite prf in ev_double {n=k}
+>   where
+>     fro : (k ** n = double k) -> (Ev n)
+>     fro (k ** prf) = rewrite prf in ev_double {n=k}
+>
 
 As we will see in later chapters, induction on evidence is a recurring technique
 across many areas, and in particular when formalizing the semantics of
@@ -352,6 +362,7 @@ familiarize yourself with it.
 
 > ev_sum : Ev n -> Ev m -> Ev (n + m)
 > ev_sum x y = ?ev_sum_rhs
+>
 
 $\square$
 
@@ -365,12 +376,14 @@ example, here's a (slightly contrived) alternative definition for \idr{Ev}:
 >   Ev'_0 : Ev' Z
 >   Ev'_2 : Ev' 2
 >   Ev'_sum : Ev' n -> Ev' m -> Ev' (n + m)
+>
 
 Prove that this definition is logically equivalent to the old one. (You may want
 to look at the previous theorem when you get to the induction step.)
 
 > ev'_ev : (Ev' n) <-> Ev n
 > ev'_ev = ?ev'_ev_rhs
+>
 
 $\square$
 
@@ -381,6 +394,7 @@ Finding the appropriate thing to do induction on is a bit tricky here:
 
 > ev_ev__ev : Ev (n+m) -> Ev n -> Ev m
 > ev_ev__ev x y = ?ev_ev__ev_rhs
+>
 
 $\square$
 
@@ -392,6 +406,7 @@ analysis is needed, though some of the rewriting may be tedious.
 
 > ev_plus_plus : Ev (n+m) -> Ev (n+p) -> Ev (m+p)
 > ev_plus_plus x y = ?ev_plus_plus_rhs
+>
 
 $\square$
 
@@ -414,8 +429,9 @@ than or equal to the predecessor of the second.
 > data Le : Nat -> Nat -> Type where
 >   Le_n : Le n n
 >   Le_S : Le n m -> Le n (S m)
-
+>
 > syntax [m] "<='" [n] = Le m n
+>
 
 Proofs of facts about \idr{<='} using the constructors \idr{Le_n} and \idr{Le_S}
 follow the same patterns as proofs about properties, like \idr{Ev} above. We can
@@ -432,30 +448,32 @@ simplifying computations.)
 
 > test_le1 : 3 <=' 3
 > test_le1 = Le_n
-
+>
 > test_le2 : 3 <=' 6
 > test_le2 = Le_S $ Le_S $ Le_S Le_n
-
+>
 > test_le3 : (2<='1) -> 2+2=5
 > test_le3 (Le_S Le_n) impossible
 > test_le3 (Le_S (Le_S _)) impossible
+>
 
 The "strictly less than" relation \idr{n < m} can now be defined in terms of
 \idr{Le}.
 
 > Lt : (n, m : Nat) -> Type
 > Lt n m = Le (S n) m
-
+>
 > syntax [m] "<'" [n] = Lt m n
+>
 
 Here are a few more simple relations on numbers:
 
 > data Square_of : Nat -> Nat -> Type where
 >   Sq : Square_of n (n * n)
-
+>
 > data Next_nat : Nat -> Nat -> Type where
 >   Nn : Next_nat n (S n)
-
+>
 > data Next_even : Nat -> Nat -> Type where
 >   Ne_1 : Ev (S n) -> Next_even n (S n)
 >   Ne_2 : Ev (S (S n)) -> Next_even n (S (S n))
@@ -467,6 +485,7 @@ Define an inductive binary relation \idr{Total_relation} that holds between
 every pair of natural numbers.
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -477,6 +496,7 @@ Define an inductive binary relation \idr{Empty_relation} (on numbers) that never
 holds.
 
 > --FILL IN HERE
+>
 
 $\square$
 
@@ -488,48 +508,52 @@ are going to need later in the course. The proofs make good practice exercises.
 
 > le_trans : (m <=' n) -> (n <=' o) -> (m <=' o)
 > le_trans x y = ?le_trans_rhs
-
+>
 > O_le_n : Z <=' n
 > O_le_n = ?O_le_n_rhs
-
+>
 > n_le_m__Sn_le_Sm : (n <=' m) -> ((S n) <=' (S m))
 > n_le_m__Sn_le_Sm x = ?n_le_m__Sn_le_Sm_rhs
-
+>
 > Sn_le_Sm__n_le_m : ((S n) <=' (S m)) -> (n <=' m)
 > Sn_le_Sm__n_le_m x = ?Sn_le_Sm__n_le_m_rhs
-
+>
 > le_plus_l : a <=' (a + b)
 > le_plus_l = ?le_plus_l_rhs
-
+>
 > plus_lt : ((n1 + n2) <' m) -> (n1 <' m, n2 <' m)
 > plus_lt x = ?plus_lt_rhs
-
+>
 > lt_S : (n <' m) -> (n <' S m)
 > lt_S x = ?lt_S_rhs
-
+>
 > leb_complete : leb n m = True -> (n <=' m)
 > leb_complete prf = ?leb_complete_rhs
+>
 
 Hint: The next one may be easiest to prove by induction on \idr{m}.
 
 > leb_correct : (n <=' m) -> leb n m = True
 > leb_correct x = ?leb_correct_rhs
+>
 
 Hint: This theorem can easily be proved without using induction.
 
 > leb_true_trans : leb n m = True -> leb m o = True -> leb n o = True
 > leb_true_trans prf prf1 = ?leb_true_trans_rhs
+>
 
 
 ==== Exercise: 2 stars, optional (leb_iff)
 
 > leb_iff : (leb n m = True) <-> (n <=' m)
 > leb_iff = ?leb_iff_rhs
+>
 
 $\square$
 
 > namespace R
-
+>
 
 ==== Exercise: 3 stars, recommendedM (R_provability)
 
@@ -543,6 +567,7 @@ relation on numbers:
 >     C3 : R m n o -> R m (S n) (S o)
 >     C4 : R (S m) (S n) (S (S o)) -> R m n o
 >     C5 : R m n o -> R n m o
+>
 
 Which of the following propositions are provable?
 
@@ -559,6 +584,7 @@ Which of the following propositions are provable?
     answer.
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -570,10 +596,10 @@ which function; then state and prove this equivalence in Idris?
 
 >   fR : Nat -> Nat -> Nat
 >   fR k j = ?fR_rhs
-
-
+>
 >   R_equiv_fR : (R m n o) <-> (fR m n = o)
 >   R_equiv_fR = ?R_equiv_fR_rhs
+>
 
 $\square$
 
@@ -633,6 +659,7 @@ Suppose we give Idris the following definition:
 >     C1' : R' 0 []
 >     C2' : R' n l -> R' (S n) (n :: l)
 >     C3' : R' (S n) l -> R' n l
+>
 
 Which of the following propositions are provable?
 
@@ -665,6 +692,7 @@ follows:
 >   App : Reg_exp t -> Reg_exp t -> Reg_exp t
 >   Union : Reg_exp t -> Reg_exp t -> Reg_exp t
 >   Star : Reg_exp t -> Reg_exp t
+>
 
 Note that this definition is _polymorphic_: Regular expressions in \idr{Reg_exp
 t} describe strings with characters drawn from\idr{t} -- that is, lists of
@@ -713,11 +741,13 @@ follows:
 >   MStarApp : Exp_match s1 re ->
 >              Exp_match s2 (Star re) ->
 >              Exp_match (s1 ++ s2) (Star re)
+>
 
 Again, for readability, we can also display this definition using inference-rule
 notation. At the same time, let's introduce a more readable infix notation.
 
 > syntax [s] "=~" [re] = (Exp_match s re)
+>
 
 \todo[inline]{Use proper TeX?}
 
@@ -769,6 +799,7 @@ Let's illustrate these rules with a few examples.
 
 > reg_exp_ex1 : [1] =~ (Chr 1)
 > reg_exp_ex1 = MChar
+>
 
 ```idris
 reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
@@ -782,6 +813,7 @@ drop the implicits:
 
 > reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
 > reg_exp_ex2 = MApp MChar MChar
+>
 
 Using pattern matching, we can also show that certain strings do not match a
 regular expression:
@@ -794,6 +826,7 @@ regular expression:
 > reg_exp_ex3 (MUnionR _) impossible
 > reg_exp_ex3 MStar0 impossible
 > reg_exp_ex3 (MStarApp _ _) impossible
+>
 
 We can define helper functions to help write down regular expressions. The
 \idr{reg_exp_of_list} function constructs a regular expression that matches
@@ -802,9 +835,10 @@ exactly the list that it receives as an argument:
 > reg_exp_of_list : List t -> Reg_exp t
 > reg_exp_of_list [] = EmptyStr
 > reg_exp_of_list (x :: xs) = App (Chr x) (reg_exp_of_list xs)
-
+>
 > reg_exp_ex4 : [1,2,3] =~ (reg_exp_of_list [1,2,3])
 > reg_exp_ex4 = MApp MChar $ MApp MChar $ MApp MChar MEmpty
+>
 
 We can also prove general facts about \idr{Exp_match}. For instance, the
 following lemma shows that every string \idr{s} that matches \idr{re} also
@@ -814,6 +848,7 @@ matches \idr{Star re}.
 > MStar1 {s} h =
 >   rewrite sym $ appendNilRightNeutral s in
 >   MStarApp h MStar0
+>
 
 (Note the use of \idr{appendNilRightNeutral} to change the goal of the theorem
 to exactly the same shape expected by \idr{MStarApp}.)
@@ -826,9 +861,10 @@ beginning of the chapter can be obtained from the formal inductive definition.
 
 > empty_is_empty : Not (s =~ EmptySet)
 > empty_is_empty = ?empty_is_empty_rhs
-
+>
 > MUnion' : (s =~ re1, s =~ re2) -> s =~ Union re1 re2
 > MUnion' m = ?MUnion'_rhs
+>
 
 The next lemma is stated in terms of the \idr{fold} function from the \idr{Poly}
 chapter: If \idr{ss : List (List t)} represents a sequence of strings \idr{s1,
@@ -840,14 +876,15 @@ together.
 > fold : (f : x -> y -> y) -> (l : List x) -> (b : y) -> y
 > fold f [] b = b
 > fold f (h::t) b = f h (fold f t b)
-
+>
 > In : (x : a) -> (l : List a) -> Type
 > In x [] = Void
 > In x (x' :: xs) = (x' = x) `Either` In x xs
-
+>
 > MStar' : ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
 > MStar' f = ?MStar'_rhs
+>
 
 $\square$
 
@@ -858,6 +895,7 @@ Prove that \idr{reg_exp_of_list} satisfies the following specification:
 
 > reg_exp_of_list_spec : (s1 =~ reg_exp_of_list s2) <-> (s1 = s2)
 > reg_exp_of_list_spec = ?reg_exp_of_list_spec_rhs
+>
 
 $\square$
 
@@ -870,15 +908,16 @@ first define a function \idr{re_chars} that lists all characters that occur in a
 regular expression:
 
 > re_chars : (re : Reg_exp t) -> List t
-> re_chars EmptySet = []
-> re_chars EmptyStr = []
-> re_chars (Chr x) = [x]
-> re_chars (App re1 re2) = re_chars re1 ++ re_chars re2
+> re_chars EmptySet        = []
+> re_chars EmptyStr        = []
+> re_chars (Chr x)         = [x]
+> re_chars (App re1 re2)   = re_chars re1 ++ re_chars re2
 > re_chars (Union re1 re2) = re_chars re1 ++ re_chars re2
-> re_chars (Star re) = re_chars re
-
+> re_chars (Star re)       = re_chars re
+>
 > re_star : re_chars (Star re) = re_chars re
 > re_star = Refl
+>
 
 We can then phrase our theorem as follows:
 
@@ -907,11 +946,12 @@ We can then phrase our theorem as follows:
 
 > destruct : In x (s1 ++ s2) -> (In x s1) `Either` (In x s2)
 > destruct {x} {s1} {s2} = fst $ in_app_iff {a=x} {l=s1} {l'=s2}
+>
 > construct : (In x (re_chars re1)) `Either` (In x (re_chars re2)) ->
 >             In x ((re_chars re1) ++ (re_chars re2))
 > construct {x} {re1} {re2} =
 >   snd $ in_app_iff {a=x} {l=(re_chars re1)} {l'=(re_chars re2)}
-
+>
 > in_re_match : (s =~ re) -> In x s -> In x (re_chars re)
 > in_re_match MEmpty prf = prf
 > in_re_match MChar prf = prf
@@ -935,6 +975,7 @@ which would not allow us to reason about the case \idr{In x s2}.
 
 >     Left prf' => in_re_match m prf'
 >     Right prfs => in_re_match ms prfs
+>
 
 
 ==== Exercise: 4 stars (re_not_empty)
@@ -944,16 +985,17 @@ expression matches some string. Prove that your function is correct.
 
 > re_not_empty : (re : Reg_exp t) -> Bool
 > re_not_empty re = ?re_not_empty_rhs
-
+>
 > re_not_empty_correct : (s ** s =~ re) <-> re_not_empty re = True
 > re_not_empty_correct = ?re_not_empty_correct_rhs
+>
 
 $\square$
 
 
 === The remember Tactic
 
-\todo[inline]{Rewrite the section, dependent pattern matching figures all of
+\ \todo[inline]{Rewrite the section, dependent pattern matching figures all of
 this out}
 
 One potentially confusing feature of the induction tactic is that it happily
@@ -966,6 +1008,7 @@ you unable to complete the proof. Here's an example:
 > star_app {s2} (MStarApp {s1=s11} {s2=s21} m ms) m2 =
 >  rewrite sym $ appendAssociative s11 s21 s2 in
 >    MStarApp m (star_app ms m2)
+>
 
 Just doing an inversion on H1 won't get us very far in the recursive cases. (Try
 it!). So we need induction. Here is a naive first attempt:
@@ -1096,6 +1139,7 @@ equivalent to the informal one given previously.
 >                (s = fold (++) ss [], (s': List t) -> In s' ss -> s' =~ re)
 >           )
 > MStar'' m = ?MStar''_rhs
+>
 
 $\square$
 
@@ -1114,30 +1158,32 @@ expression \idr{re}, the minimum length for strings \idr{s} to guarantee
 "pumpability."
 
 > namespace Pumping
-
+>
 >   pumping_constant : (re : Reg_exp t) -> Nat
->   pumping_constant EmptySet = 0
->   pumping_constant EmptyStr = 1
->   pumping_constant (Chr _) = 2
->   pumping_constant (App re1 re2) =
+>   pumping_constant EmptySet        = 0
+>   pumping_constant EmptyStr        = 1
+>   pumping_constant (Chr _)         = 2
+>   pumping_constant (App re1 re2)   =
 >     pumping_constant re1 + pumping_constant re2
 >   pumping_constant (Union re1 re2) =
 >     pumping_constant re1 + pumping_constant re2
->   pumping_constant (Star _) = 1
+>   pumping_constant (Star _)        = 1
+>
 
 Next, it is useful to define an auxiliary function that repeats a string
 (appends it to itself) some number of times.
 
 >   napp : (n : Nat) -> (l : List t) -> List t
->   napp Z _ = []
+>   napp Z _     = []
 >   napp (S k) l = l ++ napp k l
-
+>
 >   napp_plus: (n, m : Nat) -> (l : List t) ->
 >              napp (n + m) l = napp n l ++ napp m l
->   napp_plus Z _ _ = Refl
+>   napp_plus Z _ _     = Refl
 >   napp_plus (S k) m l =
 >    rewrite napp_plus k m l in
 >      appendAssociative l (napp k l) (napp m l)
+>
 
 Now, the pumping lemma itself says that, if \idr{s =~ re} and if the length of
 \idr{s} is at least the pumping constant of \idr{re}, then \idr{s} can be split
@@ -1163,6 +1209,7 @@ but feel free to experiment with it now if you like. The first case of the
 induction gives an example of how it is used.
 
 >   pumping m le = ?pumping_rhs
+>
 
 
 == Case Study: Improving Reflection
@@ -1180,7 +1227,7 @@ the following theorem:
 > beq_nat_true {n=Z} {m=(S _)} Refl impossible
 > beq_nat_true {n=(S n')} {m=(S m')} eq =
 >  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
-
+>
 > filter_not_empty_In : Not (filter (beq_nat n) l = []) -> In n l
 > filter_not_empty_In {l=[]} contra = contra Refl
 > filter_not_empty_In {l=(x::_)} {n} contra with (beq_nat n x) proof h
@@ -1188,6 +1235,7 @@ the following theorem:
 >     Left $ sym $ beq_nat_true $ sym h
 >   filter_not_empty_In contra | False =
 >     Right $ filter_not_empty_In contra
+>
 
 In the second case we explicitly apply the \idr{beq_nat_true} lemma to the
 equation generated by doing a dependent match on \idr{beq_nat n x}, to convert
@@ -1218,6 +1266,7 @@ parameter of the whole \idr{data} declaration.
 > data Reflect : (p : Type) -> (b : Bool) -> Type where
 >   ReflectT : p -> (b=True) -> Reflect p b
 >   ReflectF : (Not p) -> (b=False) -> Reflect p b
+>
 
 The reflect property takes two arguments: a proposition \idr{p} and a boolean
 \idr{b}. Intuitively, it states that the property \idr{p} is _reflected_ in
@@ -1235,12 +1284,14 @@ indeed equivalent:
 > iff_reflect : (p <-> (b = True)) -> Reflect p b
 > iff_reflect {b = False} (pb, _) = ReflectF (uninhabited . pb) Refl
 > iff_reflect {b = True} (_, bp) = ReflectT (bp Refl) Refl
+>
 
 
 ==== Exercise: 2 stars, recommended (reflect_iff)
 
 > reflect_iff : Reflect p b -> (p <-> (b = True))
 > reflect_iff x = ?reflect_iff_rhs
+>
 
 $\square$
 
@@ -1260,11 +1311,13 @@ the second).
 >   fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
 >   fro n1 n1 Refl = sym $ beq_nat_refl n1
 
+>
 > iff_sym : (p <-> q) -> (q <-> p)
 > iff_sym (pq, qp) = (qp, pq)
-
+>
 > beq_natP : Reflect (n = m) (beq_nat n m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
+>
 
 \todo[inline]{Edit - we basically trade the invocation of \idr{beq_nat_true} in
 \idr{Left} for an indirect rewrite in \idr{Right}}
@@ -1288,6 +1341,7 @@ case of the destruct.)
 >                                       then x :: filter (beq_nat n) xs
 >                                       else filter (beq_nat n) xs) = [])}
 >   in Right $ filter_not_empty_In' contra'
+>
 
 
 ==== Exercise: 3 stars, recommended (beq_natP_practice)
@@ -1297,9 +1351,10 @@ Use \idr{beq_natP} as above to prove the following:
 > count : (n : Nat) -> (l : List Nat) -> Nat
 > count _ [] = 0
 > count n (x :: xs) = (if beq_nat n x then 1 else 0) + count n xs
-
+>
 > beq_natP_practice : count n l = 0 -> Not (In n l)
 > beq_natP_practice prf = ?beq_natP_practice_rhs
+>
 
 $\square$
 
@@ -1334,6 +1389,7 @@ repeats but does not stutter.)
 > data Nostutter : List t -> Type where
 >   -- FILL IN HERE
 >   RemoveMe : Nostutter [] -- needed for typechecking, data shouldn't be empty
+>
 
 Make sure each of these tests succeeds, but feel free to change the suggested
 proof (in comments) if the given one doesn't work for you. Your definition might
@@ -1345,6 +1401,7 @@ as-is, but you can also prove each example with more basic tactics.)
 
 > test_nostutter_1 : Nostutter [3,1,4,1,5,6]
 > test_nostutter_1 = ?test_nostutter_1_rhs
+>
 
 ```coq
 (*
@@ -1355,6 +1412,7 @@ as-is, but you can also prove each example with more basic tactics.)
 
 > test_nostutter_2 : Nostutter []
 > test_nostutter_2 = ?test_nostutter_2_rhs
+>
 
 ```coq
 (*
@@ -1365,6 +1423,7 @@ as-is, but you can also prove each example with more basic tactics.)
 
 > test_nostutter_3 : Nostutter [5]
 > test_nostutter_3 = ?test_nostutter_3_rhs
+>
 
 ```coq
 (*
@@ -1374,6 +1433,7 @@ as-is, but you can also prove each example with more basic tactics.)
 
 > test_nostutter_4 : Not (Nostutter [3,1,1,4])
 > test_nostutter_4 = ?test_nostutter_4_rhs
+>
 
 ```coq
 (*
@@ -1425,6 +1485,7 @@ begin by defining what it means for one list to be a merge of two others. Do
 this with an inductive \idr{data} type, not a function.)
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -1437,6 +1498,7 @@ Among all subsequences of \idr{l} with the property that \idr{test} evaluates to
 this claim and prove it.
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -1469,6 +1531,7 @@ A palindrome is a sequence that reads the same backwards as forwards.
 ```
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -1484,6 +1547,7 @@ prove that
 ```
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -1504,6 +1568,7 @@ l2}, which should be provable exactly when \idr{l1} and \idr{l2} are lists (with
 elements of type \idr{t}) that have no elements in common.
 
 > -- FILL IN HERE
+>
 
 Next, use \idr{In} to define an inductive proposition \idr{NoDup {t} l}, which
 should be provable exactly when \idr{l} is a list (with elements of type
@@ -1513,11 +1578,13 @@ while \idr{NoDup {t=Nat} [1,2,1]} and \idr{NoDup {t=Bool} [True,True]} should
 not be.
 
 > -- FILL IN HERE
+>
 
 Finally, state and prove one or more interesting theorems relating
 \idr{Disjoint}, \idr{NoDup} and \idr{(++)} (list append).
 
 > -- FILL IN HERE
+>
 
 $\square$
 
@@ -1533,6 +1600,7 @@ First prove an easy useful lemma.
 
 > in_split : In x l -> (l1 ** l2 ** l = l1 ++ x :: l2)
 > in_split prf = ?in_split_rhs
+>
 
 Now define a property \idr{Repeats} such that \idr{Repeats {t} l} asserts that
 \idr{l} contains at least one repeated element (of type \idr{t}).
@@ -1540,6 +1608,7 @@ Now define a property \idr{Repeats} such that \idr{Repeats {t} l} asserts that
 > data Repeats : List t -> Type where
 >   -- FILL IN HERE
 >   RemoveMe' : Repeats [] -- needed for typechecking, data shouldn't be empty
+>
 
 Now, here's a way to formalize the pigeonhole principle. Suppose list \idr{l2}
 represents a list of pigeonhole labels, and list \idr{l1} represents the labels
@@ -1556,8 +1625,9 @@ that \idr{In} is decidable; if you manage to do this, you will not need the
 >                        ((length l2) <' (length l1)) ->
 >                        Repeats l1
 > pigeonhole_principle f prf = ?pigeonhole_principle_rhs
-> where
->   excluded_middle : (p : Type) -> p `Either` (Not p)
->   excluded_middle p = really_believe_me p
+>   where
+>     excluded_middle : (p : Type) -> p `Either` (Not p)
+>     excluded_middle p = really_believe_me p
+>
 
 $\square$
