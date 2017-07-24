@@ -187,7 +187,7 @@ the functional extensionality axiom, which is discussed in the `Logic` chapter.)
 
 First, the empty map returns its default element for all keys:
 
-> t_apply_empty: t_empty v x = v
+> t_apply_empty : t_empty v x = v
 > t_apply_empty = ?t_apply_empty_rhs
 
 $\square$
@@ -212,7 +212,7 @@ a different key \idr{x2} in the resulting map, we get the same result that
 \idr{m} would have given:
 
 > t_update_neq : Not (x1 = x2) -> (t_update x1 v m) x2 = m x2
-> t_update_neq x = ?t_update_neq_rhs
+> t_update_neq neq = ?t_update_neq_rhs
 
 $\square$
 
@@ -276,7 +276,7 @@ we do the updates.
 
 > t_update_permute : Not (x2 = x1) -> t_update x1 v1 $ t_update x2 v2 m
 >                                   = t_update x2 v2 $ t_update x1 v1 m
-> t_update_permute x = ?t_update_permute_rhs
+> t_update_permute neq = ?t_update_permute_rhs
 
 $\square$
 
@@ -302,20 +302,29 @@ partial maps.
 > apply_empty : empty {a} x = Nothing {a}
 > apply_empty = Refl
 
-\todo[inline]{Finish}
-
 > update_eq : (update x v m) x = Just v
-> update_eq = ?update_eq_rhs
+> update_eq {x} {v} {m} =
+>   rewrite t_update_eq {x} {v=Just v} {m} in
+>   Refl
 
 > update_neq : Not (x2 = x1) -> (update x2 v m) x1 = m x1
-> update_neq x = ?update_neq_rhs
+> update_neq {x1} {x2} {v} {m} neq =
+>   rewrite t_update_neq neq {x1=x2} {x2=x1} {v=Just v} {m} in
+>   Refl
 
 > update_shadow : update x v2 $ update x v1 m = update x v2 m
-> update_shadow = ?update_shadow_rhs
+> update_shadow {x} {v1} {v2} {m} =
+>   rewrite t_update_shadow {x} {v1=Just v1} {v2=Just v2} {m} in
+>   Refl
 
 > update_same : m x = Just v -> update x v m = m
-> update_same prf = ?update_same_rhs
+> update_same {x} {m} {v} prf =
+>   rewrite sym prf in
+>   rewrite t_update_same {x} {m} in
+>   Refl
 
 > update_permute : Not (x2 = x1) -> update x1 v1 $ update x2 v2 m
 >                                 = update x2 v2 $ update x1 v1 m
-> update_permute x = ?update_permute_rhs
+> update_permute {x1} {x2} {v1} {v2} {m} neq =
+>   rewrite t_update_permute neq {x1} {x2} {v1=Just v1} {v2=Just v2} {m} in
+>   Refl
