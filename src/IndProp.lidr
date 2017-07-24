@@ -33,16 +33,18 @@ We will see many definitions like this one during the rest of the course. For
 purposes of informal discussions, it is helpful to have a lightweight notation
 that makes them easy to read and write. _Inference rules_ are one such notation:
 
-\todo[inline]{Use proper TeX}
+\[
+  \begin{prooftree}
+    \infer0[\idr{ev_0}]{\idr{ev 0}}
+  \end{prooftree}
+\]
 
-```
-                                   ---- (ev_0)
-                                   ev 0	
-
-                                   ev n	
-                               ------------ (ev_SS)
-                               ev (S (S n))	
-```
+\[
+  \begin{prooftree}
+    \hypo{\idr{ev n}}
+    \infer1[\idr{ev_SS}]{\idr{ev (S (S n))}}
+  \end{prooftree}
+\]
 
 Each of the textual rules above is reformatted here as an inference rule; the
 intended reading is that, if the _premises_ above the line all hold, then the
@@ -54,14 +56,13 @@ We can represent a proof using these rules by combining rule applications into a
 _proof tree_. Here's how we might transcribe the above proof that \idr{4} is
 even:
 
-```
-                             ------  (ev_0)
-                              ev 0
-                             ------ (ev_SS)
-                              ev 2
-                             ------ (ev_SS)
-                              ev 4
-```
+\[
+  \begin{prooftree}
+    \infer0[\idr{ev_0}]{\idr{ev 0}}
+    \infer1[\idr{ev_SS}]{\idr{ev 2}}
+    \infer1[\idr{ev_SS}]{\idr{ev 4}}
+  \end{prooftree}
+\]
 
 Why call this a "tree" (rather than a "stack", for example)? Because, in
 general, inference rules can have multiple premises. We will see examples of
@@ -751,34 +752,54 @@ notation. At the same time, let's introduce a more readable infix notation.
 > syntax [s] "=~" [re] = (Exp_match s re)
 >
 
-\todo[inline]{Use proper TeX?}
+\[
+  \begin{prooftree}
+    \infer0[\idr{MEmpty}]{\idr{[] =~ EmptyStr}}
+  \end{prooftree}
+\]
 
-```idris
-                                     -------------- (MEmpty)
-                                     [] =~ EmptyStr
+\[
+  \begin{prooftree}
+    \infer0[\idr{MChar}]{\idr{[x] =~ Chr x}}
+  \end{prooftree}
+\]
 
-                                     ------------ (MChar)
-                                     [x] =~ Chr x
+\[
+  \begin{prooftree}
+    \hypo{\idr{s1 =~ re1}}
+    \hypo{\idr{s2 =~ r2}}
+    \infer2[\idr{MApp}]{\idr{s1 ++ s2 =~ App re1 re2}}
+  \end{prooftree}
+\]
 
-                               s1 =~ re1    s2 =~ re2	
-                              ----------------------- (MApp)
-                              s1 ++ s2 =~ App re1 re2	
+\[
+  \begin{prooftree}
+    \hypo{\idr{s1 =~ re1}}
+    \infer1[\idr{MUnionL}]{\idr{s1 =~ Union re1 re2}}
+  \end{prooftree}
+\]
 
-                                       s1 =~ re1	
-                                 ------------------- (MUnionL)
-                                 s1 =~ Union re1 re2
 
-                                       s2 =~ re2	
-                                 ------------------- (MUnionR)
-                                 s2 =~ Union re1 re2	
+\[
+  \begin{prooftree}
+    \hypo{\idr{s2 =~ re2}}
+    \infer1[\idr{MUnionR}]{\idr{s2 =~ Union re1 re2}}
+  \end{prooftree}
+\]
 
-                                    ------------- (MStar0)
-                                    [] =~ Star re	
+\[
+  \begin{prooftree}
+    \infer0[\idr{MStar0}]{\idr{[] =~ Star re}}
+  \end{prooftree}
+\]
 
-                             s1 =~ re    s2 =~ Star re
-                             ------------------------- (MStarApp)
-                                s1 ++ s2 =~ Star re	
-```
+\[
+  \begin{prooftree}
+    \hypo{\idr{s1 =~ re}}
+    \hypo{\idr{s2 =~ Star re}}
+    \infer2[\idr{MStarApp}]{\idr{s1 ++ s2 =~ Star re}}
+  \end{prooftree}
+\]
 
 Notice that these rules are not _quite_ the same as the informal ones that we
 gave at the beginning of the section. First, we don't need to include a rule
