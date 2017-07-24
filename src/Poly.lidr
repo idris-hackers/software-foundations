@@ -561,6 +561,8 @@ returns `True`.
 >                       then h :: (filter test t)
 >                       else filter test t
 
+(This is how it's defined in Idris's stdlib, too.)
+
 For example, if we apply `filter` to the predicate `evenb` and a list of numbers
 `l`, it returns a list containing just the even members of `l`.
 

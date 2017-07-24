@@ -35,6 +35,10 @@ file, or a .o file from a .c file. There are at least two ways to do it:
     Refer to the Idris man page (or \mintinline[]{sh}{idris --help} for
     descriptions of the flags.
 
+> %access public export
+
+> %default total
+
 
 == Proof by Induction
 
