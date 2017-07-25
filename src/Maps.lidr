@@ -328,13 +328,13 @@ Finally, we define _partial maps_ on top of total maps. A partial map with
 elements of type \idr{a} is simply a total map with elements of type \idr{Maybe
 a} and default element \idr{Nothing}.
 
-> partial_map : Type -> Type
-> partial_map a = TotalMap (Maybe a)
+> PartialMap : Type -> Type
+> PartialMap a = TotalMap (Maybe a)
 >
-> empty : partial_map a
+> empty : PartialMap a
 > empty = t_empty Nothing
 >
-> update : (x : Id) -> (v : a) -> (m : partial_map a) -> partial_map a
+> update : (x : Id) -> (v : a) -> (m : PartialMap a) -> PartialMap a
 > update x v m = t_update x (Just v) m
 >
 
