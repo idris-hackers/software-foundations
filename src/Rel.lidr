@@ -93,90 +93,96 @@ for a contradiction, that \idr{<='} is a partial function. But then, since
 so our assumption was contradictory.)
 
 > le_not_a_partial_function : Not (Partial_function Le)
-> le_not_a_partial_function f = ?le_not_a_partial_function_rhs
+> le_not_a_partial_function f = absurd $ f 0 0 1 Le_n (Le_S Le_n)
 
 
 ==== Exercise: 2 stars, optional
 
-Show that the total_relation defined in earlier is not a partial function.
+\ \todo[inline]{They mean exercises from `IndProp`}
 
-(* FILL IN HERE *)
+Show that the idr{Total_relation} defined in earlier is not a partial function.
+
+> -- FILL IN HERE
 
 $\square$
 
 
 ==== Exercise: 2 stars, optional
 
-Show that the empty_relation that we defined earlier is a partial function.
+Show that the idr{Empty_relation} that we defined earlier is a partial function.
 
-(* FILL IN HERE *)
+> --FILL IN HERE
 
 $\square$
 
 
 === Reflexive Relations
 
-A reflexive relation on a set X is one for which every element of X is related
-to itself.
+A _reflexive_ relation on a set \idr{t} is one for which every element of
+\idr{t} is related to itself.
 
-Definition reflexive {X: Type} (R: relation X) :=
-  ∀a : X, R a a.
+> Reflexive : (r : Relation t) -> Type
+> Reflexive {t} r = (a : t) -> r a a
 
-Theorem le_reflexive :
-  reflexive le.
+> le_reflexive : Reflexive Le
+> le_reflexive n = Le_n {n}
 
 
 === Transitive Relations
 
-A relation R is transitive if R a c holds whenever R a b and R b c do.
+A relation \idr{r} is _transitive_ if \idr{r a c} holds whenever \idr{r a b} and
+\idr{r b c} do.
 
-Definition transitive {X: Type} (R: relation X) :=
-  ∀a b c : X, (R a b) -> (R b c) -> (R a c).
+> Transitive : (r : Relation t) -> Type
+> Transitive {t} r = (a, b, c : t) -> r a b -> r b c -> r a c
 
-Theorem le_trans :
-  transitive le.
+> le_trans : Transitive Le
+> le_trans _ _ _ lab Le_n = lab
+> le_trans a b (S c) lab (Le_S lbc) = Le_S $ le_trans a b c lab lbc
 
-Theorem lt_trans:
-  transitive lt.
+\todo[inline]{Copied here}
+
+> Lt : (n, m : Nat) -> Type
+> Lt n m = Le (S n) m
+
+> syntax [m] "<'" [n] = Lt m n
+
+> lt_trans : Transitive Lt
+> lt_trans a b c lab lbc = le_trans (S a) (S b) c (Le_S lab) lbc
 
 
 ==== Exercise: 2 stars, optional
 
-We can also prove lt_trans more laboriously by induction, without using
-le_trans. Do this.
+We can also prove \idr{lt_trans} more laboriously by induction, without using
+\idr{le_trans}. Do this.
 
-Theorem lt_trans' :
-  transitive lt.
-Proof.
-  (* Prove this by induction on evidence that m is less than o. *)
-  unfold lt. unfold transitive.
-  intros n m o Hnm Hmo.
-  induction Hmo as [| m' Hm'o].
-    (* FILL IN HERE *) Admitted.
+> lt_trans' : Transitive Lt
+> -- Prove this by induction on evidence that a is less than c.
+> lt_trans' a b c lab lbc = ?lt_trans'_rhs
 
 $\square$
 
 
 ==== Exercise: 2 stars, optional
 
-Prove the same thing again by induction on o.
+Prove the same thing again by induction on \idr{c}.
 
-Theorem lt_trans'' :
-  transitive lt.
+> lt_trans'' : Transitive Lt
+> lt_trans'' a b c lab lbc = ?lt_trans'_rhs
 
 $\square$
 
-The transitivity of le, in turn, can be used to prove some facts that will be
-useful later (e.g., for the proof of antisymmetry below)...
+The transitivity of \idr{Le}, in turn, can be used to prove some facts that will
+be useful later (e.g., for the proof of antisymmetry below)...
 
-Theorem le_Sn_le : ∀n m, S n ≤ m -> n ≤ m.
+> le_Sn_le : ((S n) <=' m) -> (n <=' m)
+> le_Sn_le {n} {m} les = le_trans n (S n) m (Le_S Le_n) les
+
 
 ==== Exercise: 1 star, optional
 
-Theorem le_S_n : ∀n m,
-  (S n ≤ S m) -> (n ≤ m).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_S_n : ((S n) <=' (S m)) -> (n <=' m)
+> le_S_n less = ?le_S_n_rhs
 
 $\square$
 
@@ -185,22 +191,22 @@ $\square$
 
 Provide an informal proof of the following theorem:
 
-Theorem: For every n, ¬ (S n ≤ n)
+Theorem: For every \idr{n}, \idr{Not ((S n) <=' n)}
 
 A formal proof of this is an optional exercise below, but try writing an
 informal proof without doing the formal proof first.
 
-Proof: (* FILL IN HERE *)
+Proof:
+
+> -- FILL IN HERE
 
 $\square$
 
 
 ==== Exercise: 1 star, optional
 
-Theorem le_Sn_n : ∀n,
-  ¬ (S n ≤ n).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_Sn_n : Not ((S n) <=' n)
+> le_Sn_n = ?le_Sn_n_rhs
 
 $\square$
 
@@ -211,128 +217,140 @@ let's look at a few other common ones...
 
 === Symmetric and Antisymmetric Relations
 
-A relation R is symmetric if R a b implies R b a.
+A relation \idr{r} is _symmetric_ if \idr{r a b} implies \idr{r b a}.
 
-Definition symmetric {X: Type} (R: relation X) :=
-  ∀a b : X, (R a b) -> (R b a).
-
-
-==== Exercise: 2 stars, optional
-
-Theorem le_not_symmetric :
-  ¬ (symmetric le).
-Proof.
-  (* FILL IN HERE *) Admitted.
-$\square$
-A relation R is antisymmetric if R a b and R b a together imply a = b — that is, if the only "cycles" in R are trivial ones.
-
-Definition antisymmetric {X: Type} (R: relation X) :=
-  ∀a b : X, (R a b) -> (R b a) -> a = b.
+> Symmetric : (r : Relation t) -> Type
+> Symmetric {t} r = (a, b : t) -> r a b -> r b a
 
 
 ==== Exercise: 2 stars, optional
 
-Theorem le_antisymmetric :
-  antisymmetric le.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_not_symmetric : Not (Symmetric Le)
+> le_not_symmetric = ?le_not_symmetric_rhs
+
 $\square$
 
+A relation \idr{r} is _antisymmetric_ if \idr{r a b{} and \idr{r b a} together
+imply \idr{a = b} — that is, if the only "cycles" in \idr{r} are trivial ones.
+
+> Antisymmetric : (r : Relation t) -> Type
+> Antisymmetric {t} r = (a, b : t) -> r a b -> r b a -> a = b
+
 
 ==== Exercise: 2 stars, optional
 
-Theorem le_step : ∀n m p,
-  n < m ->
-  m ≤ S p ->
-  n ≤ p.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> le_antisymmetric : Antisymmetric Le
+> le_antisymmetric = ?le_antisymmetric_rhs
+
+$\square$
+
+
+==== Exercise: 2 stars, optional
+
+> le_step : (n <' m) -> (m <=' (S p)) -> (n <=' p)
+> le_step ltnm lemsp = ?le_step_rhs
+
 $\square$
 
 
 === Equivalence Relations
 
-A relation is an equivalence if it's reflexive, symmetric, and transitive.
+A relation is an _equivalence_ if it's reflexive, symmetric, and transitive.
 
-Definition equivalence {X:Type} (R: relation X) :=
-  (reflexive R) ∧ (symmetric R) ∧ (transitive R).
+> Equivalence : (r : Relation t) -> Type
+> Equivalence r = (Reflexive r, Symmetric r, Transitive r)
 
 
 === Partial Orders and Preorders
 
-A relation is a partial order when it's reflexive, anti-symmetric, and
+\ \todo[inline]{Edit}
+
+A relation is a _partial order_ when it's reflexive, _anti_-symmetric, and
 transitive. In the Idris standard library it's called just "order" for short.
 
-Definition order {X:Type} (R: relation X) :=
-  (reflexive R) ∧ (antisymmetric R) ∧ (transitive R).
+> Order : (r : Relation t) -> Type
+> Order r = (Reflexive r, Antisymmetric r, Transitive r)
 
 A preorder is almost like a partial order, but doesn't have to be antisymmetric.
 
-Definition preorder {X:Type} (R: relation X) :=
-  (reflexive R) ∧ (transitive R).
+> Preorder : (r : Relation t) -> Type
+> Preorder r = (Reflexive r, Transitive r)
 
-Theorem le_order :
-  order le.
+> le_order : Order Le
+> le_order = (le_reflexive, le_antisymmetric, le_trans)
 
 
 == Reflexive, Transitive Closure
 
-The reflexive, transitive closure of a relation R is the smallest relation that
-contains R and that is both reflexive and transitive. Formally, it is defined
-like this in the Relations module of the Idris standard library:
+\ \todo[inline]{Edit}
 
-Inductive clos_refl_trans {A: Type} (R: relation A) : relation A :=
-    | rt_step : ∀x y, R x y -> clos_refl_trans R x y
-    | rt_refl : ∀x, clos_refl_trans R x x
-    | rt_trans : ∀x y z,
-          clos_refl_trans R x y ->
-          clos_refl_trans R y z ->
-          clos_refl_trans R x z.
+The _reflexive, transitive closure_ of a relation \idr{r} is the smallest
+relation that contains \idr{r} and that is both reflexive and transitive.
+Formally, it is defined like this in the Relations module of the Idris standard
+library:
 
-For example, the reflexive and transitive closure of the next_nat relation
-coincides with the le relation.
+> data Clos_refl_trans : (r : Relation t) -> Relation t where
+>   Rt_step : r x y -> Clos_refl_trans r x y
+>   Rt_refl : Clos_refl_trans r x x
+>   Rt_trans : Clos_refl_trans r x y -> Clos_refl_trans r y z ->
+>              Clos_refl_trans r x z
 
-Theorem next_nat_closure_is_le : ∀n m,
-  (n ≤ m) <-> ((clos_refl_trans next_nat) n m).
+For example, the reflexive and transitive closure of the \idr{Next_nat} relation
+coincides with the \idr{Le} relation.
+
+\todo[inline]{Copied `<->` for now}
+
+> iff : {p,q : Type} -> Type
+> iff {p} {q} = (p -> q, q -> p)
+>
+> syntax [p] "<->" [q] = iff {p} {q}
+
+> next_nat_closure_is_le : (n <=' m) <-> (Clos_refl_trans Next_nat n m)
+> next_nat_closure_is_le = (to, fro)
+>   where
+>     to : Le n m -> Clos_refl_trans Next_nat n m
+>     to Le_n = Rt_refl
+>     to (Le_S {m} le) = Rt_trans {y=m} (to le) (Rt_step NN)
+>     fro : Clos_refl_trans Next_nat n m -> Le n m
+>     fro (Rt_step NN) = Le_S Le_n
+>     fro Rt_refl = Le_n
+>     fro (Rt_trans {x=n} {y} {z=m} ny ym) =
+>       le_trans n y m (fro ny) (fro ym)
 
 The above definition of reflexive, transitive closure is natural: it says,
-explicitly, that the reflexive and transitive closure of R is the least relation
-that includes R and that is closed under rules of reflexivity and transitivity.
-But it turns out that this definition is not very convenient for doing proofs,
-since the "nondeterminism" of the rt_trans rule can sometimes lead to tricky
-inductions. Here is a more useful definition:
+explicitly, that the reflexive and transitive closure of \idr{r} is the least
+relation that includes \idr{r} and that is closed under rules of reflexivity and
+transitivity. But it turns out that this definition is not very convenient for
+doing proofs, since the "nondeterminism" of the \idr{Rt_trans} rule can
+sometimes lead to tricky inductions. Here is a more useful definition:
 
-Inductive clos_refl_trans_1n {A : Type}
-                             (R : relation A) (x : A)
-                             : A -> Type :=
-  | rt1n_refl : clos_refl_trans_1n R x x
-  | rt1n_trans (y z : A) :
-      R x y -> clos_refl_trans_1n R y z ->
-      clos_refl_trans_1n R x z.
+> data Clos_refl_trans_1n : (r : Relation t) -> (x : t) -> t -> Type where
+>   Rt1n_refl : Clos_refl_trans_1n r x x
+>   Rt1n_trans : r x y -> Clos_refl_trans_1n r y z -> Clos_refl_trans_1n r x z
 
-Our new definition of reflexive, transitive closure "bundles" the rt_step and
-rt_trans rules into the single rule step. The left-hand premise of this step is
-a single use of R, leading to a much simpler induction principle.
+\todo[inline]{Edit}
+
+Our new definition of reflexive, transitive closure "bundles" the \idr{Rt_step}
+and \idr{Rt_trans} rules into the single rule step. The left-hand premise of
+this step is a single use of \idr{r}, leading to a much simpler induction
+principle.
 
 Before we go on, we should check that the two definitions do indeed define the
 same relation...
 
-First, we prove two lemmas showing that clos_refl_trans_1n mimics the behavior
-of the two "missing" clos_refl_trans constructors.
+First, we prove two lemmas showing that \idr{Clos_refl_trans_1n} mimics the
+behavior of the two "missing" \idr{Clos_refl_trans} constructors.
 
-Lemma rsc_R : ∀(X:Type) (R:relation X) (x y : X),
-       R x y -> clos_refl_trans_1n R x y.
+> rsc_R : r x y -> Clos_refl_trans_1n r x y
+> rsc_R rxy = Rt1n_trans rxy Rt1n_refl
 
 
 ==== Exercise: 2 stars, optional (rsc_trans)
 
-Lemma rsc_trans :
-  ∀(X:Type) (R: relation X) (x y z : X),
-      clos_refl_trans_1n R x y ->
-      clos_refl_trans_1n R y z ->
-      clos_refl_trans_1n R x z.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> rsc_trans : Clos_refl_trans_1n r x y -> Clos_refl_trans_1n r y z ->
+>             Clos_refl_trans_1n r x z
+> rsc_trans crxy cryz = ?rsc_trans_rhs
+
 $\square$
 
 Then we use these facts to prove that the two definitions of reflexive, transitive closure do indeed define the same relation.
@@ -340,10 +358,7 @@ Then we use these facts to prove that the two definitions of reflexive, transiti
 
 ==== Exercise: 3 stars, optional (rtc_rsc_coincide)
 
-Theorem rtc_rsc_coincide :
-         ∀(X:Type) (R: relation X) (x y : X),
-  clos_refl_trans R x y <-> clos_refl_trans_1n R x y.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> rtc_rsc_coincide : (Clos_refl_trans r x y) <-> (Clos_refl_trans_1n r x y)
+> rtc_rsc_coincide = ?rtc_rsc_coincide_rhs
 
 $\square$
