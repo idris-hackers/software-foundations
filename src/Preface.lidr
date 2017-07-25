@@ -310,7 +310,7 @@ treatment of a particular topic will find suggestions for further reading in the
 \todo[inline]{Copy/recreate deps.html}
 
 A diagram of the dependencies between chapters and some suggested
-paths through the material can be found in the file [deps.html].
+paths through the material can be found in the file `deps.html`.
 
 === System Requirements
 
