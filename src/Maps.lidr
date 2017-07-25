@@ -149,8 +149,8 @@ simplifies proofs that use maps.
 We build partial maps in two steps. First, we define a type of _total maps_ that
 return a default value when we look up a key that is not present in the map.
 
-> total_map : Type -> Type
-> total_map a = Id -> a
+> TotalMap : Type -> Type
+> TotalMap a = Id -> a
 >
 
 Intuitively, a total map over an element type \idr{a} is just a function that
@@ -159,7 +159,7 @@ can be used to look up \idr{Id}s, yielding \idr{a}s.
 The function \idr{t_empty} yields an empty total map, given a default element;
 this map always returns the default element when applied to any id.
 
-> t_empty : (v : a) -> total_map a
+> t_empty : (v : a) -> TotalMap a
 > t_empty v = \_ => v
 >
 
@@ -173,7 +173,7 @@ More interesting is the \idr{update} function, which (as before) takes a map
 \idr{m}, a key \idr{x}, and a value \idr{v} and returns a new map that takes
 \idr{x} to \idr{v} and takes every other key to whatever \idr{m} does.
 
-> t_update : (x : Id) -> (v : a) -> (m : total_map a) -> total_map a
+> t_update : (x : Id) -> (v : a) -> (m : TotalMap a) -> TotalMap a
 > t_update x v m = \x' => if beq_id x x' then v else m x'
 >
 
@@ -187,7 +187,7 @@ this:
 
 \todo[inline]{Seems like a wrong description in the book here}
 
-> examplemap : total_map Bool
+> examplemap : TotalMap Bool
 > examplemap = t_update (MkId "foo") False $
 >              t_update (MkId "bar") True $
 >              t_empty False
@@ -329,7 +329,7 @@ elements of type \idr{a} is simply a total map with elements of type \idr{Maybe
 a} and default element \idr{Nothing}.
 
 > partial_map : Type -> Type
-> partial_map a = total_map (Maybe a)
+> partial_map a = TotalMap (Maybe a)
 >
 > empty : partial_map a
 > empty = t_empty Nothing
