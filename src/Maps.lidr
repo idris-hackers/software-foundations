@@ -360,13 +360,13 @@ partial maps.
 >           Refl
 >
 > update_same : m x = Just v -> update x v m = m
-> update_same {x} {m} {v} prf =
+> update_same {x} {m} prf =
 >   rewrite sym prf in
 >   rewrite t_update_same {x} {m} in
 >           Refl
 >
 > update_permute : Not (x2 = x1) -> update x1 v1 $ update x2 v2 m
 >                                 = update x2 v2 $ update x1 v1 m
-> update_permute {x1} {x2} {v1} {v2} {m} neq =
->   rewrite t_update_permute neq {x1} {x2} {v1=Just v1} {v2=Just v2} {m} in
->   Refl
+> update_permute {v1} {v2} {m} neq =
+>   rewrite t_update_permute neq {v1=Just v1} {v2=Just v2} {m} in
+>           Refl
