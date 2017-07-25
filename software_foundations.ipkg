@@ -7,6 +7,8 @@ modules    = Basics
            , Tactics
            , Logic
            , IndProp
+           , Maps
+           , ProofObjects
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
