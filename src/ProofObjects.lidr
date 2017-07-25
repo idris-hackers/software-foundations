@@ -2,9 +2,9 @@
 
 > module ProofObjects
 
-\[ 
+\[
   \say{"\textit{Algorithms are the computational content of proofs.}" - Robert
-Harper} 
+Harper}
 \]
 
 We have seen that Idris has mechanisms both for _programming_, using inductive
@@ -128,7 +128,7 @@ programs in the language.
 
 == Proof Scripts
 
-\todo[inline]{Rewrite, keep explanation about holes? Seems a bit late for that}
+\ \todo[inline]{Rewrite, keep explanation about holes? Seems a bit late for that}
 
 The _proof objects_ we've been discussing lie at the core of how Idris operates.
 When Idris is following a proof script, what is happening internally is that it
@@ -185,7 +185,7 @@ Print ev_4'''.
 
 ==== Exercise: 1 star (eight_is_even)
 
-\todo[inline]{Remove?}
+\ \todo[inline]{Remove?}
 
 Give a tactic proof and a proof object showing that \idr{Ev 8}.
 
@@ -197,84 +197,86 @@ $\square$
 
 ==== Quantifiers, Implications, Functions
 
+\ \todo[inline]{Edit the section}
+
 In Idris's computational universe (where data structures and programs live),
-there are two sorts of values with arrows in their types: constructors
-introduced by Inductive-ly defined data types, and functions.
+there are two sorts of values with arrows in their types: _constructors_
+introduced by \idr{data} definitions, and _functions_.
 
 Similarly, in Idris's logical universe (where we carry out proofs), there are
 two ways of giving evidence for an implication: constructors introduced by
-Inductive-ly defined propositions, and... functions!
+\idr{data}-defined propositions, and... functions!
 
 For example, consider this statement:
 
-Theorem ev_plus4 : ∀n, ev n -> ev (4 + n).
-Proof.
-  intros n H. simpl.
-  apply ev_SS.
-  apply ev_SS.
-  apply H.
-Qed.
+> ev_plus4 : Ev n -> Ev (4 + n)
+> ev_plus4 x = Ev_SS $ Ev_SS x
 
 What is the proof object corresponding to ev_plus4?
 
-We're looking for an expression whose type is ∀ n, ev n -> ev (4 + n) — that is,
-a function that takes two arguments (one number and a piece of evidence) and
-returns a piece of evidence! Here it is:
+We're looking for an expression whose type is \idr{{n: Nat} -> Ev n -> Ev (4 +
+n)} — that is, a function that takes two arguments (one number and a piece of
+evidence) and returns a piece of evidence! Here it is:
 
+```coq
 Definition ev_plus4' : ∀n, ev n -> ev (4 + n) :=
   fun (n : Nat) => fun (H : ev n) =>
     ev_SS (S (S n)) (ev_SS n H).
+```
 
-Recall that fun n => blah means "the function that, given n, yields blah," and
-that Idris treats 4 + n and S (S (S (S n))) as synonyms. Another equivalent way
-to write this definition is:
+Recall that `fun n => blah` means "the function that, given \idr{n}, yields
+\idr{blah}," and that Idris treats \idr{4 + n} and \idr{S (S (S (S n)))} as
+synonyms. Another equivalent way to write this definition is:
 
+```coq
 Definition ev_plus4'' (n : Nat) (H : ev n) : ev (4 + n) :=
   ev_SS (S (S n)) (ev_SS n H).
 
 Check ev_plus4''.
 (* ===> ev_plus4'' : forall n : Nat, ev n -> ev (4 + n) *)
+```
 
-When we view the proposition being proved by ev_plus4 as a function type, one
-aspect of it may seem a little unusual. The second argument's type, ev n,
-mentions the value of the first argument, n. While such dependent types are not
-found in conventional programming languages, they can be useful in programming
-too, as the recent flurry of activity in the functional programming community
-demonstrates.
+When we view the proposition being proved by \idr{ev_plus4} as a function type,
+one aspect of it may seem a little unusual. The second argument's type, \idr{Ev
+n}, mentions the _value_ of the first argument, \idr{n}. While such _dependent
+types_ are not found in conventional programming languages, they can be useful
+in programming too, as the recent flurry of activity in the functional
+programming community demonstrates.
 
-Notice that both implication (->) and quantification (∀) correspond to functions
-on evidence. In fact, they are really the same thing: -> is just a shorthand for
-a degenerate use of ∀ where there is no dependency, i.e., no need to give a name
-to the type on the left-hand side of the arrow.
+\todo[inline]{Reword?}
+
+Notice that both implication (\idr{->}) and quantification (\idr{(x : t) -> f
+x}) correspond to functions on evidence. In fact, they are really the same
+thing: \idr{->} is just a shorthand for a degenerate use of quantification where
+there is no dependency, i.e., no need to give a name to the type on the
+left-hand side of the arrow.
 
 For example, consider this proposition:
 
-Definition ev_plus2 : Prop :=
-  ∀n, ∀(E : ev n), ev (n + 2).
+> ev_plus2 : Type
+> ev_plus2 = (n : Nat) -> (e : Ev n) -> Ev (n + 2)
 
 A proof term inhabiting this proposition would be a function with two arguments:
-a number n and some evidence E that n is even. But the name E for this evidence
-is not used in the rest of the statement of ev_plus2, so it's a bit silly to
-bother making up a name for it. We could write it like this instead, using the
-dummy identifier _ in place of a real name:
+a number \idr{n} and some evidence \idr{e} that \idr{n} is even. But the name
+\idr{e} for this evidence is not used in the rest of the statement of
+\idr{ev_plus2}, so it's a bit silly to bother making up a name for it. We could
+write it like this instead:
 
-Definition ev_plus2' : Prop :=
-  ∀n, ∀(_ : ev n), ev (n + 2).
+> ev_plus2' : Type
+> ev_plus2' = (n : Nat) -> Ev n -> Ev (n + 2)
 
-Or, equivalently, we can write it in more familiar notation:
-
-Definition ev_plus2'' : Prop :=
-  ∀n, ev n -> ev (n + 2).
-
-In general, "P -> Q" is just syntactic sugar for "∀ (_:P), Q".
+In general, "\idr{p -> q}" is just syntactic sugar for "\idr{(_ : p) -> q}".
 
 
 == Programming with Tactics
 
+\ \todo[inline]{Edit and move to an appendix about ElabReflection/Pruviloj?}
+
 If we can build proofs by giving explicit terms rather than executing tactic
-scripts, you may be wondering whether we can build programs using tactics rather
+scripts, you may be wondering whether we can build _programs_ using _tactics_ rather
 than explicit terms. Naturally, the answer is yes!
 
+```coq
 Definition add1 : Nat -> Nat.
 intro n.
 Show Proof.
@@ -290,12 +292,14 @@ Print add1.
 
 Compute add1 2.
 (* ==> 3 : Nat *)
+```
 
-Notice that we terminate the Definition with a . rather than with := followed by
-a term. This tells Idris to enter proof scripting mode to build an object of
-type Nat -> Nat. Also, we terminate the proof with Defined rather than Qed; this
-makes the definition transparent so that it can be used in computation like a
-normally-defined function. (Qed-defined objects are opaque during computation.)
+Notice that we terminate the `Definition` with a `.` rather than with `:=`
+followed by a term. This tells Idris to enter _proof scripting mode_ to build an
+object of type \idr{Nat -> Nat}. Also, we terminate the proof with `Defined`
+rather than `Qed`; this makes the definition _transparent_ so that it can be
+used in computation like a normally-defined function. (`Qed`-defined objects are
+opaque during computation.)
 
 This feature is mainly useful for writing functions with dependent types, which
 we won't explore much further in this book. But it does illustrate the
@@ -309,52 +313,52 @@ quantifiers we have seen so far. Indeed, only universal quantification (and thus
 implication) is built into Idris; all the others are defined inductively. We'll
 see these definitions in this section.
 
-Module Props.
-
 
 === Conjunction
 
-To prove that P ∧ Q holds, we must present evidence for both P and Q. Thus, it
-makes sense to define a proof object for P ∧ Q as consisting of a pair of two
-proofs: one for P and another one for Q. This leads to the following definition.
+\ \todo[inline]{Edit/remove most of this}
 
-Module And.
+To prove that \idr{(p,q)} holds, we must present evidence for both \idr{p} and
+\idr{q}. Thus, it makes sense to define a proof object for \idr{(p,q)} as
+consisting of a pair of two proofs: one for \idr{p} and another one for \idr{q}.
+This leads to the following definition.
 
-Inductive and (P Q : Prop) : Prop :=
-| conj : P -> Q -> and P Q.
+> data And : (p, q : Type) -> Type where
+>   Conj : p -> q -> And p q
 
-End And.
-
-Notice the similarity with the definition of the prod type, given in chapter
-Poly; the only difference is that prod takes Type arguments, whereas and takes
+Notice the similarity with the definition of the \idr{Prod} type, given in chapter
+`Poly`; the only difference is that \idr{Prod} takes Type arguments, whereas and takes
 Prop arguments.
 
-Print prod.
-(* ===>
-   Inductive prod (X Y : Type) : Type :=
-   | pair : X -> Y -> X * Y. *)
+```idris
+data Prod : (x, y : Type) -> Type where
+  PPair : x -> y -> Prod x y
+```
 
-This should clarify why destruct and intros patterns can be used on a
-conjunctive hypothesis. Case analysis allows us to consider all possible ways in
-which P ∧ Q was proved — here just one (the conj constructor). Similarly, the
-split tactic actually works for any inductively defined proposition with only
-one constructor. In particular, it works for and:
+This should clarify why pattern matching can be used on a conjunctive
+hypothesis. Case analysis allows us to consider all possible ways in which
+\idr{(p,q)} was proved — here just one (the \idr{Conj} constructor). Similarly,
+the `split` tactic actually works for any inductively defined proposition with
+only one constructor. In particular, it works for \idr{And}:
 
-Lemma and_comm : ∀P Q : Prop, P ∧ Q ↔ Q ∧ P.
-Proof.
-  intros P Q. split.
-  - intros [HP HQ]. split.
-    + apply HQ.
-    + apply HP.
-  - intros [HP HQ]. split.
-    + apply HQ.
-    + apply HP.
-Qed.
+\todo[inline]{Copied `<->` for now}
+
+> iff : {p,q : Type} -> Type
+> iff {p} {q} = (p -> q, q -> p)
+>
+> syntax [p] "<->" [q] = iff {p} {q}
+
+
+> and_comm : (And p q) <-> (And q p)
+> and_comm = (\(Conj x y) => Conj y x,
+>             \(Conj y x) => Conj x y)
+
 
 This shows why the inductive definition of and can be manipulated by tactics as
 we've been doing. We can also use it to build proofs directly, using
 pattern-matching. For instance:
 
+```coq
 Definition and_comm'_aux P Q (H : P ∧ Q) :=
   match H with
   | conj HP HQ => conj HQ HP
@@ -362,14 +366,15 @@ Definition and_comm'_aux P Q (H : P ∧ Q) :=
 
 Definition and_comm' P Q : P ∧ Q ↔ Q ∧ P :=
   conj (and_comm'_aux P Q) (and_comm'_aux Q P).
+```
 
 
 ==== Exercise: 2 stars, optional (conj_fact)
 
 Construct a proof object demonstrating the following proposition.
 
-Definition conj_fact : ∀P Q R, P ∧ Q -> Q ∧ R -> P ∧ R 
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> conj_fact : And p q -> And q r -> And p r
+> conj_fact pq qr = ?conj_fact_rhs
 
 $\square$
 
@@ -379,203 +384,209 @@ $\square$
 The inductive definition of disjunction uses two constructors, one for each side
 of the disjunct:
 
-Module Or.
+> data Or : (p, q : Type) -> Type where
+>   IntroL : p -> Or p q
+>   IntroR : q -> Or p q
 
-Inductive or (P Q : Prop) : Prop :=
-| or_introl : P -> or P Q
-| or_intror : Q -> or P Q.
+This declaration explains the behavior of pattern matching on a disjunctive
+hypothesis, since the generated subgoals match the shape of the \idr{IntroL} and
+\idr{IntroR} constructors.
 
-End Or.
-
-This declaration explains the behavior of the destruct tactic on a disjunctive
-hypothesis, since the generated subgoals match the shape of the or_introl and
-or_intror constructors.
-
-Once again, we can also directly write proof objects for theorems involving or,
-without resorting to tactics.
+Once again, we can also directly write proof objects for theorems involving
+\idr{Or}, without resorting to tactics.
 
 
 ==== Exercise: 2 stars, optional (or_commut'')
 
-Try to write down an explicit proof object for or_commut (without using Print to
-peek at the ones we already defined!).
+\ \todo[inline]{Edit}
 
-Definition or_comm : ∀P Q, P ∨ Q -> Q ∨ P 
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Try to write down an explicit proof object for \idr{or_commut} (without using
+`Print` to peek at the ones we already defined!).
+
+> or_comm : Or p q -> Or q p
+> or_comm pq = ?or_comm_rhs
 
 $\square$
 
 
 === Existential Quantification
 
-To give evidence for an existential quantifier, we package a witness x together
-with a proof that x satisfies the property P:
+To give evidence for an existential quantifier, we package a witness \idr{x}
+together with a proof that \idr{x} satisfies the property \idr{p}:
 
-Module Ex.
-
-Inductive ex {A : Type} (P : A -> Prop) : Prop :=
-| ex_intro : ∀x : A, P x -> ex P.
-
-End Ex.
+> data Ex : (p : a -> Type) -> Type where
+>   ExIntro : (x : a) -> p x -> Ex p
 
 This may benefit from a little unpacking. The core definition is for a type
-former ex that can be used to build propositions of the form ex P, where P
-itself is a function from witness values in the type A to propositions. The
-ex_intro constructor then offers a way of constructing evidence for ex P, given
-a witness x and a proof of P x.
+former \idr{Ex} that can be used to build propositions of the form \idr{Ex p},
+where \idr{p} itself is a function from witness values in the type \idr{a} to
+propositions. The \idr{ExIntro} constructor then offers a way of constructing
+evidence for \idr{Ex p}, given a witness \idr{x} and a proof of \idr{p x}.
 
-The more familiar form ∃ x, P x desugars to an expression involving ex:
+The more familiar form \idr{(x ** p x)} desugars to an expression involving
+\idr{Ex}:
 
+\todo[inline]{Edit}
+
+```coq
 Check ex (fun n => ev n).
 (* ===> exists n : Nat, ev n
         : Prop *)
+```
 
-Here's how to define an explicit proof object involving ex:
+Here's how to define an explicit proof object involving \idr{Ex}:
 
-Definition some_nat_is_even : ∃n, ev n :=
-  ex_intro ev 4 (ev_SS 2 (ev_SS 0 ev_0)).
+> some_nat_is_even : Ex (\n => Ev n)
+> some_nat_is_even = ExIntro 4 (Ev_SS $ Ev_SS Ev_0)
 
 
 ==== Exercise: 2 stars, optional (ex_ev_Sn)
 
 Complete the definition of the following proof object:
 
-Definition ex_ev_Sn : ex (fun n => ev (S n)) 
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> ex_ev_Sn : Ex (\n => Ev (S n))
+> ex_ev_Sn = ?ex_ev_Sn_rhs
 
 $\square$
 
 
-=== True and False
+=== \idr{Unit} and \idr{Void}
 
-The inductive definition of the True proposition is simple:
+The inductive definition of the \idr{Unit} proposition is simple:
 
-Inductive True : Prop :=
-  | I : True.
+```idris
+data Unit : Type where
+  () : Unit
+```
 
-It has one constructor (so every proof of True is the same, so being given a
-proof of True is not informative.)
+It has one constructor (so every proof of \idr{Unit} is the same, so being given
+a proof of\idr{Unit} is not informative.)
 
-False is equally simple — indeed, so simple it may look syntactically wrong at
-first glance!
+\idr{Void} is equally simple — indeed, so simple it may look syntactically wrong
+at first glance!
 
-Inductive False : Prop :=.
+\todo[inline]{Edit, this actually is wrong, stdlib uses \idr{%runElab} to define
+it}
 
-That is, False is an inductive type with no constructors — i.e., no way to build
-evidence for it.
+```idris
+data Void : Type where
+```
 
-End Props.
+That is, \idr{Void} is an inductive type with _no_ constructors — i.e., no way
+to build evidence for it.
 
 
 == Equality
+
+\ \todo[inline]{Edit, it actually is built in}
 
 Even Idris's equality relation is not built in. It has the following inductive
 definition. (Actually, the definition in the standard library is a small variant
 of this, which gives an induction principle that is slightly easier to use.)
 
-Module MyEquality.
+> data PropEq : {t : Type} -> t -> t -> Type where
+>   EqRefl : PropEq x x
 
-Inductive eq {X:Type} : X -> X -> Prop :=
-| eq_refl : ∀x, eq x x.
+> syntax [x] "='" [y] = PropEq x y
 
-Notation "x = y" := (eq x y)
-                    (at level 70, no associativity)
-                    : type_scope.
-
-The way to think about this definition is that, given a set X, it defines a
-family of propositions "x is equal to y," indexed by pairs of values (x and y)
-from X. There is just one way of constructing evidence for each member of this
-family: applying the constructor eq_refl to a type X and a value x : X yields
-evidence that x is equal to x.
+The way to think about this definition is that, given a set \idr{t}, it defines
+a _family_ of propositions "\idr{x} is equal to \idr{y}," indexed by pairs of
+values (\idr{x} and \idr{y}) from \idr{t}. There is just one way of constructing
+evidence for each member of this family: applying the constructor \idr{EqRefl}
+to a type \idr{t} and a value \idr{x : t} yields evidence that \idr{x} is equal
+to \idr{x}.
 
 
 ==== Exercise: 2 stars (leibniz_equality)
 
-The inductive definition of equality corresponds to Leibniz equality: what we
-mean when we say "x and y are equal" is that every property on P that is true of
-x is also true of y.
+The inductive definition of equality corresponds to _Leibniz equality_: what we
+mean when we say "\idr{x} and \idr{y} are equal" is that every property \idr{p}
+that is true of \idr{x} is also true of \idr{y}.
 
-Lemma leibniz_equality : ∀(X : Type) (x y: X),
-  x = y -> ∀P:X->Prop, P x -> P y.
-Proof.
-(* FILL IN HERE *) Admitted.
+> leibniz_equality : (x =' y) -> ((p : t -> Type) -> p x -> p y)
+> leibniz_equality eq p px = ?leibniz_equality_rhs
 
 $\square$
 
-We can use eq_refl to construct evidence that, for example, 2 = 2. Can we also
-use it to construct evidence that 1 + 1 = 2? Yes, we can. Indeed, it is the very
-same piece of evidence! The reason is that Idris treats as "the same" any two
-terms that are convertible according to a simple set of computation rules. These
-rules, which are similar to those used by Compute, include evaluation of
-function application, inlining of definitions, and simplification of matches.
+\todo[inline]{Edit}
 
-Lemma four: 2 + 2 = 1 + 3.
-Proof.
-  apply eq_refl.
-Qed.
+We can use \idr{EqRefl} to construct evidence that, for example, \idr{2 = 2}.
+Can we also use it to construct evidence that \idr{1 + 1 = 2}? Yes, we can.
+Indeed, it is the very same piece of evidence! The reason is that Idris treats
+as "the same" any two terms that are _convertible_ according to a simple set of
+computation rules. These rules, which are similar to those used by `Compute`,
+include evaluation of function application, inlining of definitions, and
+simplification of `match`es.
 
-The reflexivity tactic that we have used to prove equalities up to now is
-essentially just short-hand for apply refl_equal.
+> four : (2 + 2) =' (1 + 3)
+> four = EqRefl
+
+The \idr{Refl} that we have used to prove equalities up to now is essentially
+just an application of an equality constructor.
+
+\todo[inline]{Edit}
 
 In tactic-based proofs of equality, the conversion rules are normally hidden in
-uses of simpl (either explicit or implicit in other tactics such as
-reflexivity). But you can see them directly at work in the following explicit
+uses of `simpl` (either explicit or implicit in other tactics such as
+`reflexivity`). But you can see them directly at work in the following explicit
 proof objects:
 
+```coq
 Definition four' : 2 + 2 = 1 + 3 :=
   eq_refl 4.
+```
 
-Definition singleton : ∀(X:Set) (x:X), []++[x] = x::[] :=
-  fun (X:Set) (x:X) => eq_refl [x].
+> singleton : ([]++[x]) =' (x::[])
+> singleton = EqRefl
 
-End MyEquality.
-
-Definition quiz6 : ∃x, x + 3 = 4
-  := ex_intro (fun z => (z + 3 = 4)) 1 (refl_equal 4).
+> quiz6 : Ex (\x => (x + 3) =' 4)
+> quiz6 = ExIntro 1 EqRefl
 
 
 === Inversion, Again
 
-We've seen inversion used with both equality hypotheses and hypotheses about
+\ \todo[inline]{Edit/remove}
+
+We've seen `inversion` used with both equality hypotheses and hypotheses about
 inductively defined propositions. Now that we've seen that these are actually
-the same thing, we're in a position to take a closer look at how inversion
+the same thing, we're in a position to take a closer look at how `inversion`
 behaves.
 
-In general, the inversion tactic...
+In general, the `inversion` tactic...
 
-  - takes a hypothesis H whose type P is inductively defined, and
+  - takes a hypothesis `H` whose type `P` is inductively defined, and
 
-  - for each constructor C in P's definition,
+  - for each constructor `C` in `P`'s definition,
 
-    - generates a new subgoal in which we assume H was built with C,
+    - generates a new subgoal in which we assume `H` was built with `C`,
 
-    - adds the arguments (premises) of C to the context of the subgoal as extra
-      hypotheses,
+    - adds the arguments (premises) of `C` to the context of the subgoal as
+      extra hypotheses,
 
-    - matches the conclusion (result type) of C against the current goal and
-      calculates a set of equalities that must hold in order for C to be
+    - matches the conclusion (result type) of `C` against the current goal and
+      calculates a set of equalities that must hold in order for `C` to be
       applicable,
 
     - adds these equalities to the context (and, for convenience, rewrites them
       in the goal), and
 
-    - if the equalities are not satisfiable (e.g., they involve things like S n
-      = O), immediately solves the subgoal.
+    - if the equalities are not satisfiable (e.g., they involve things like `S n
+      = Z`), immediately solves the subgoal.
 
-_Example_: If we invert a hypothesis built with or, there are two constructors,
-so two subgoals get generated. The conclusion (result type) of the constructor
-(P ∨ Q) doesn't place any restrictions on the form of P or Q, so we don't get
-any extra equalities in the context of the subgoal.
+_Example_: If we invert a hypothesis built with \idr{Or}, there are two
+constructors, so two subgoals get generated. The conclusion (result type) of the
+constructor (\idr{Or p q}) doesn't place any restrictions on the form of \idr{p}
+or \idr{q}, so we don't get any extra equalities in the context of the subgoal.
 
-_Example_: If we invert a hypothesis built with and, there is only one
+_Example_: If we invert a hypothesis built with \idr{And}, there is only one
 constructor, so only one subgoal gets generated. Again, the conclusion (result
-type) of the constructor (P ∧ Q) doesn't place any restrictions on the form of P
-or Q, so we don't get any extra equalities in the context of the subgoal. The
-constructor does have two arguments, though, and these can be seen in the
-context in the subgoal.
+type) of the constructor (\idr{And p q}) doesn't place any restrictions on the
+form of \idr{p} or \idr{q}, so we don't get any extra equalities in the context
+of the subgoal. The constructor does have two arguments, though, and these can
+be seen in the context in the subgoal.
 
-_Example_: If we invert a hypothesis built with eq, there is again only one
-constructor, so only one subgoal gets generated. Now, though, the form of the
-refl_equal constructor does give us some extra information: it tells us that the
-two arguments to eq must be the same! The inversion tactic adds this fact to the
-context.
+_Example_: If we invert a hypothesis built with \idr{PropEq}, there is again
+only one constructor, so only one subgoal gets generated. Now, though, the form
+of the \idr{EqRefl} constructor does give us some extra information: it tells us
+that the two arguments to \idr{PropEq} must be the same! The `inversion` tactic
+adds this fact to the context.
