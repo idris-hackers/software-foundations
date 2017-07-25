@@ -109,8 +109,6 @@ propositions. These tools fall into two broad categories:
     difficult aspects. Widely used \glspl{proof assistant} include Isabelle,
     Agda, Twelf, ACL2, PVS, Coq, and Idris among many others.
 
-\todo[inline]{Edit the following}
-
 This course is based around Idris, a general purpose pure functional programming
 language with _dependent types_ that has been under development since 2006 and
 that in recent years has attracted a large community of users in both research
@@ -122,7 +120,7 @@ specified precisely in the \gls{type}. On top of this kernel, the Idris
 environment provides high-level facilities for proof development, including
 powerful tactics for constructing complex proofs semi-automatically, and a large
 library of common definitions and lemmas. In some ways, Idris's theorem-proving
-is similar to Coq.
+is similar to Coq's.
 
 \todo[inline]{Consider comparing Coq and Idris here, or at least qualifying
 "some ways"}
