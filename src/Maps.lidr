@@ -345,28 +345,17 @@ partial maps.
 > apply_empty = Refl
 >
 > update_eq : (update x v m) x = Just v
-> update_eq {x} {v} {m} =
->   rewrite t_update_eq {x} {v=Just v} {m} in
->           Refl
+> update_eq {v} = t_update_eq {v=Just v}
 >
 > update_neq : Not (x2 = x1) -> (update x2 v m) x1 = m x1
-> update_neq {x1} {x2} {v} {m} neq =
->   rewrite t_update_neq neq {x1=x2} {x2=x1} {v=Just v} {m} in
->           Refl
+> update_neq {x1} {x2} {v} = t_update_neq {x1=x2} {x2=x1} {v=Just v}
 >
 > update_shadow : update x v2 $ update x v1 m = update x v2 m
-> update_shadow {x} {v1} {v2} {m} =
->   rewrite t_update_shadow {x} {v1=Just v1} {v2=Just v2} {m} in
->           Refl
+> update_shadow {v1} {v2} = t_update_shadow {v1=Just v1} {v2=Just v2}
 >
 > update_same : m x = Just v -> update x v m = m
-> update_same {x} {m} prf =
->   rewrite sym prf in
->   rewrite t_update_same {x} {m} in
->           Refl
+> update_same prf = rewrite sym prf in t_update_same
 >
 > update_permute : Not (x2 = x1) -> update x1 v1 $ update x2 v2 m
 >                                 = update x2 v2 $ update x1 v1 m
-> update_permute {v1} {v2} {m} neq =
->   rewrite t_update_permute neq {v1=Just v1} {v2=Just v2} {m} in
->           Refl
+> update_permute {v1} {v2} = t_update_permute {v1=Just v1} {v2=Just v2}
