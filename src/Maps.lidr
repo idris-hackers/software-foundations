@@ -1,6 +1,7 @@
 = Maps: Total and Partial Maps
 
 > module Maps
+>
 
 Maps (or dictionaries) are ubiquitous data structures both generally and in the
 theory of programming languages in particular; we're going to need them in many
@@ -52,9 +53,10 @@ equality comparison function for \idr{Id} and its fundamental property.
 
 > data Id : Type where
 >   MkId : String -> Id
-
+>
 > beq_id : (x1, x2 : Id) -> Bool
 > beq_id (MkId n1) (MkId n2) = decAsBool $ decEq n1 n2
+>
 
 \todo[inline]{Edit}
 
@@ -68,8 +70,9 @@ present purposes you can think of it as just a fancy \idr{Bool}.)
 
 > beq_id_refl : (x : Id) -> True = beq_id x x
 > beq_id_refl (MkId n) with (decEq n n)
->   beq_id_refl _ | Yes _ = Refl
+>   beq_id_refl _ | Yes _     = Refl
 >   beq_id_refl _ | No contra = absurd $ contra Refl
+>
 
 The following useful property of  \idr{beq_id} follows from an analogous lemma
 about strings:
@@ -78,25 +81,33 @@ about strings:
 
 > iff : {p,q : Type} -> Type
 > iff {p} {q} = (p -> q, q -> p)
-
+>
 > syntax [p] "<->" [q] = iff {p} {q}
+>
 
-\todo[inline]{Somehow this doesn't work if put under \idr{where} as usual}
+\todo[inline]{Remove when a release with
+https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-> bto : (beq_id x y = True) -> x = y
-> bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
->   bto Refl | (Yes eq) = cong {f=MkId} eq
->   bto prf | (No _) = absurd prf
-> bfro : (x = y) -> beq_id x y = True
-> bfro {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
->   bfro _ | (Yes _) = Refl
->   bfro prf | (No contra) = absurd $ contra $ idInj prf
->   where
->     idInj : MkId x = MkId y -> x = y
->     idInj Refl = Refl
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
+>
 
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
 > beq_id_true_iff = (bto, bfro)
+>   where
+>     bto : (beq_id x y = True) -> x = y
+>     bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
+>       bto Refl | Yes eq = cong {f=MkId} eq
+>       bto prf  | No _   = absurd prf
+>
+>     idInj : MkId x = MkId y -> x = y
+>     idInj Refl = Refl
+>
+>     bfro : (x = y) -> beq_id x y = True
+>     bfro {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
+>       bfro _   | Yes _     = Refl
+>       bfro prf | No contra = absurd $ contra $ idInj prf
+>
 
 Similarly:
 
@@ -106,17 +117,20 @@ for now}
 > not_true_and_false : (b = False) -> Not (b = True)
 > not_true_and_false {b=False} _ Refl impossible
 > not_true_and_false {b=True} Refl _ impossible
+>
 > not_true_is_false : Not (b = True) -> b = False
 > not_true_is_false {b=False} h = Refl
-> not_true_is_false {b=True} h = absurd $ h Refl
-
+> not_true_is_false {b=True} h  = absurd $ h Refl
+>
 > beq_id_false_iff : (beq_id x y = False) <-> Not (x = y)
 > beq_id_false_iff = (to, fro)
-> where
->   to : (beq_id x y = False) -> Not (x = y)
->   to beqf = not_true_and_false beqf . bfro
->   fro : (Not (x = y)) -> beq_id x y = False
->   fro noteq = not_true_is_false $ noteq . bto
+>   where
+>     to : (beq_id x y = False) -> Not (x = y)
+>     to beqf = not_true_and_false beqf . (snd beq_id_true_iff)
+>
+>     fro : (Not (x = y)) -> beq_id x y = False
+>     fro noteq = not_true_is_false $ noteq . (fst beq_id_true_iff)
+>
 
 
 == Total Maps
@@ -135,8 +149,9 @@ simplifies proofs that use maps.
 We build partial maps in two steps. First, we define a type of _total maps_ that
 return a default value when we look up a key that is not present in the map.
 
-> total_map : Type -> Type
-> total_map a = Id -> a
+> TotalMap : Type -> Type
+> TotalMap a = Id -> a
+>
 
 Intuitively, a total map over an element type \idr{a} is just a function that
 can be used to look up \idr{Id}s, yielding \idr{a}s.
@@ -144,8 +159,9 @@ can be used to look up \idr{Id}s, yielding \idr{a}s.
 The function \idr{t_empty} yields an empty total map, given a default element;
 this map always returns the default element when applied to any id.
 
-> t_empty : (v : a) -> total_map a
+> t_empty : (v : a) -> TotalMap a
 > t_empty v = \_ => v
+>
 
 We can also write this as:
 
@@ -157,8 +173,9 @@ More interesting is the \idr{update} function, which (as before) takes a map
 \idr{m}, a key \idr{x}, and a value \idr{v} and returns a new map that takes
 \idr{x} to \idr{v} and takes every other key to whatever \idr{m} does.
 
-> t_update : (x : Id) -> (v : a) -> (m : total_map a) -> total_map a
+> t_update : (x : Id) -> (v : a) -> (m : TotalMap a) -> TotalMap a
 > t_update x v m = \x' => if beq_id x x' then v else m x'
+>
 
 This definition is a nice example of higher-order programming: \idr{t_update}
 takes a _function_ \idr{m} and yields a new function \idr{\x' => ...} that
@@ -170,25 +187,27 @@ this:
 
 \todo[inline]{Seems like a wrong description in the book here}
 
-> examplemap : total_map Bool
+> examplemap : TotalMap Bool
 > examplemap = t_update (MkId "foo") False $
 >              t_update (MkId "bar") True $
 >              t_empty False
+>
 
 This completes the definition of total maps. Note that we don't need to define a
 \idr{find} operation because it is just function application!
 
 > update_example1 : examplemap (MkId "baz") = False
 > update_example1 = Refl
-
+>
 > update_example2 : examplemap (MkId "foo") = False
 > update_example2 = Refl
-
+>
 > update_example3 : examplemap (MkId "quux") = False
 > update_example3 = Refl
-
+>
 > update_example4 : examplemap (MkId "bar") = True
 > update_example4 = Refl
+>
 
 To use maps in later chapters, we'll need several fundamental facts about how
 they behave. Even if you don't work the following exercises, make sure you
@@ -202,6 +221,7 @@ First, the empty map returns its default element for all keys:
 
 > t_apply_empty : t_empty v x = v
 > t_apply_empty = ?t_apply_empty_rhs
+>
 
 $\square$
 
@@ -214,6 +234,7 @@ then look up \idr{x} in the map resulting from the \idr{update}, we get back
 
 > t_update_eq : (t_update x v m) x = v
 > t_update_eq = ?t_update_eq_rhs
+>
 
 $\square$
 
@@ -226,6 +247,7 @@ a _different_ key \idr{x2} in the resulting map, we get the same result that
 
 > t_update_neq : Not (x1 = x2) -> (t_update x1 v m) x2 = m x2
 > t_update_neq neq = ?t_update_neq_rhs
+>
 
 $\square$
 
@@ -239,6 +261,7 @@ simpler map obtained by performing just the second \idr{update} on \idr{m}:
 
 > t_update_shadow : t_update x v2 $ t_update x v1 m = t_update x v2 m
 > t_update_shadow = ?t_update_shadow_rhs
+>
 
 $\square$
 
@@ -258,9 +281,10 @@ following:
 > data Reflect : Type -> Bool -> Type where
 >   ReflectT : (p : Type) -> Reflect p True
 >   ReflectF : (p : Type) -> (Not p) -> Reflect p False
-
+>
 > beq_idP : Reflect (x = y) (beq_id x y)
 > beq_idP = ?beq_idP_rhs
+>
 
 $\square$
 
@@ -279,6 +303,7 @@ the following theorem, which states that if we update a map to assign key
 
 > t_update_same : t_update x (m x) m = m
 > t_update_same = ?t_update_same_rhs
+>
 
 $\square$
 
@@ -292,6 +317,7 @@ we do the updates.
 > t_update_permute : Not (x2 = x1) -> t_update x1 v1 $ t_update x2 v2 m
 >                                   = t_update x2 v2 $ t_update x1 v1 m
 > t_update_permute neq = ?t_update_permute_rhs
+>
 
 $\square$
 
@@ -302,44 +328,45 @@ Finally, we define _partial maps_ on top of total maps. A partial map with
 elements of type \idr{a} is simply a total map with elements of type \idr{Maybe
 a} and default element \idr{Nothing}.
 
-> partial_map : Type -> Type
-> partial_map a = total_map (Maybe a)
-
-> empty : partial_map a
+> PartialMap : Type -> Type
+> PartialMap a = TotalMap (Maybe a)
+>
+> empty : PartialMap a
 > empty = t_empty Nothing
-
-> update : (x : Id) -> (v : a) -> (m : partial_map a) -> partial_map a
+>
+> update : (x : Id) -> (v : a) -> (m : PartialMap a) -> PartialMap a
 > update x v m = t_update x (Just v) m
+>
 
 We now straightforwardly lift all of the basic lemmas about total maps to
 partial maps.
 
 > apply_empty : empty {a} x = Nothing {a}
 > apply_empty = Refl
-
+>
 > update_eq : (update x v m) x = Just v
 > update_eq {x} {v} {m} =
 >   rewrite t_update_eq {x} {v=Just v} {m} in
->   Refl
-
+>           Refl
+>
 > update_neq : Not (x2 = x1) -> (update x2 v m) x1 = m x1
 > update_neq {x1} {x2} {v} {m} neq =
 >   rewrite t_update_neq neq {x1=x2} {x2=x1} {v=Just v} {m} in
->   Refl
-
+>           Refl
+>
 > update_shadow : update x v2 $ update x v1 m = update x v2 m
 > update_shadow {x} {v1} {v2} {m} =
 >   rewrite t_update_shadow {x} {v1=Just v1} {v2=Just v2} {m} in
->   Refl
-
+>           Refl
+>
 > update_same : m x = Just v -> update x v m = m
-> update_same {x} {m} {v} prf =
+> update_same {x} {m} prf =
 >   rewrite sym prf in
 >   rewrite t_update_same {x} {m} in
->   Refl
-
+>           Refl
+>
 > update_permute : Not (x2 = x1) -> update x1 v1 $ update x2 v2 m
 >                                 = update x2 v2 $ update x1 v1 m
-> update_permute {x1} {x2} {v1} {v2} {m} neq =
->   rewrite t_update_permute neq {x1} {x2} {v1=Just v1} {v2=Just v2} {m} in
->   Refl
+> update_permute {v1} {v2} {m} neq =
+>   rewrite t_update_permute neq {v1=Just v1} {v2=Just v2} {m} in
+>           Refl
