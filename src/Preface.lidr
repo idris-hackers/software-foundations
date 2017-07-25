@@ -366,8 +366,12 @@ search engines.
 
 === Downloading the Idris Files
 
-\todo[inline]{Edit the following, generate HTML files (update pandoc-minted.hs
-accordingly) and update the URL.}
+\todo[inline]{See
+\href{https://github.com/idris-hackers/software-foundations/issues/25}{\#25} and
+\href{ https://github.com/idris-hackers/software-foundations/issues/30}{\#30}}
+
+\todo[inline]{Generate a "release" after the Rel chapter and update this
+subsection accordingly.}
 
 A tar file containing the full sources for the "release version" of these notes
 (as a collection of Coq scripts and HTML files) is available here:
