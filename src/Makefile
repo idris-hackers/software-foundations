@@ -19,8 +19,8 @@ LIDR_FILES := Preface.lidr \
 	Tactics.lidr \
 	Logic.lidr \
 	IndProp.lidr \
-        Maps.lidr \
-        ProofObjects.lidr
+	Maps.lidr \
+	ProofObjects.lidr
 # TODO: Add more chapters, in order, here.
 
 
