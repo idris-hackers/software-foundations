@@ -85,22 +85,29 @@ about strings:
 > syntax [p] "<->" [q] = iff {p} {q}
 >
 
-\todo[inline]{Somehow this doesn't work if put under \idr{where} as usual}
+\todo[inline]{Remove when a release with
+https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-> bto : (beq_id x y = True) -> x = y
-> bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
->   bto Refl | (Yes eq) = cong {f=MkId} eq
->   bto prf | (No _) = absurd prf
-> bfro : (x = y) -> beq_id x y = True
-> bfro {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
->   bfro _ | (Yes _) = Refl
->   bfro prf | (No contra) = absurd $ contra $ idInj prf
->   where
->     idInj : MkId x = MkId y -> x = y
->     idInj Refl = Refl
+> Uninhabited (False = True) where
+>   uninhabited Refl impossible
+>
 
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
 > beq_id_true_iff = (bto, bfro)
+>   where
+>     bto : (beq_id x y = True) -> x = y
+>     bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
+>       bto Refl | Yes eq = cong {f=MkId} eq
+>       bto prf  | No _   = absurd prf
+>
+>     idInj : MkId x = MkId y -> x = y
+>     idInj Refl = Refl
+>
+>     bfro : (x = y) -> beq_id x y = True
+>     bfro {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
+>       bfro _   | Yes _     = Refl
+>       bfro prf | No contra = absurd $ contra $ idInj prf
+>
 
 Similarly:
 
@@ -117,11 +124,13 @@ for now}
 >
 > beq_id_false_iff : (beq_id x y = False) <-> Not (x = y)
 > beq_id_false_iff = (to, fro)
-> where
->   to : (beq_id x y = False) -> Not (x = y)
->   to beqf = not_true_and_false beqf . bfro
->   fro : (Not (x = y)) -> beq_id x y = False
->   fro noteq = not_true_is_false $ noteq . bto
+>   where
+>     to : (beq_id x y = False) -> Not (x = y)
+>     to beqf = not_true_and_false beqf . (snd beq_id_true_iff)
+>
+>     fro : (Not (x = y)) -> beq_id x y = False
+>     fro noteq = not_true_is_false $ noteq . (fst beq_id_true_iff)
+>
 
 
 == Total Maps
