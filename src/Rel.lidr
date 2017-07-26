@@ -2,6 +2,8 @@
 
 > module Rel
 
+\todo[inline]{Add hyperlinks}
+
 This short (and optional) chapter develops some basic definitions and a few
 theorems about binary relations in Idris. The key definitions are repeated where
 they are actually used (in the `Smallstep` chapter), so readers who are already
@@ -10,8 +12,6 @@ relations are also a good source of exercises for developing facility with
 Idris's basic reasoning facilities, so it may be useful to look at this material
 just after the `IndProp` chapter.
 
-Require Export IndProp.
-
 A binary _relation_ on a set \idr{t} is a family of propositions parameterized
 by two elements of \idr{t} — i.e., a proposition about pairs of elements of
 \idr{t}.
@@ -19,7 +19,8 @@ by two elements of \idr{t} — i.e., a proposition about pairs of elements of
 > Relation : Type -> Type
 > Relation t = t -> t -> Type
 
-\todo[inline]{Edit}
+\todo[inline]{Edit, there's n-relation \idr{Data.Rel} in \idr{contrib}, but no
+\idr{Relation}}
 
 Confusingly, the Idris standard library hijacks the generic term "relation" for
 this specific instance of the idea. To maintain consistency with the library, we
@@ -29,8 +30,8 @@ refer to a binary relation between some set and itself, whereas the English word
 concept of a relation between any number of possibly different sets. The context
 of the discussion should always make clear which is meant.
 
-\todo[inline]{Called \idr{LTE} in \idr{Prelude.Nat}, but defined via induction
-from zero there}
+\todo[inline]{There's a similar concept called \idr{LTE} in \idr{Prelude.Nat},
+but it's defined by induction from zero}
 
 An example relation on \idr{Nat} is \idr{Le}, the less-than-or-equal-to
 relation, which we usually write \idr{n1 <= n2}.
@@ -48,7 +49,7 @@ relation, which we usually write \idr{n1 <= n2}.
 Le : Nat -> Nat -> Type
 ```
 
-\todo[inline]{Edit, it probably doesn't matter in Idris}
+\todo[inline]{Edit to show it (probably) doesn't matter in Idris}
 
 (Why did we write it this way instead of starting with \idr{data Le : Relation
 Nat ...}? Because we wanted to put the first \idr{Nat} to the left of the
@@ -67,12 +68,14 @@ relation from another, etc. For example...
 
 === Partial Functions
 
-A relation \idr{r} on a set \idr{t} is a partial function if, for every \idr{x},
-there is at most one \idr{y} such that \idr{r x y} — i.e., \idr{r x y1} and
-\idr{r x y2} together imply \idr{y1 = y2}.
+A relation \idr{r} on a set \idr{t} is a _partial function_ if, for every
+\idr{x}, there is at most one \idr{y} such that \idr{r x y} — i.e., \idr{r x y1}
+and \idr{r x y2} together imply \idr{y1 = y2}.
 
 > Partial_function : (r : Relation t) -> Type
 > Partial_function {t} r = (x, y1, y2 : t) -> r x y1 -> r x y2 -> y1 = y2
+
+\todo[inline]{"Earlier" = in \idr{IndProp}, add hyperlink?}
 
 For example, the \idr{Next_nat} relation defined earlier is a partial function.
 
@@ -98,7 +101,7 @@ so our assumption was contradictory.)
 
 ==== Exercise: 2 stars, optional
 
-\ \todo[inline]{They mean exercises from `IndProp`}
+\ \todo[inline]{Again, "earlier" = \idr{IndProp}}
 
 Show that the idr{Total_relation} defined in earlier is not a partial function.
 
@@ -158,17 +161,19 @@ We can also prove \idr{lt_trans} more laboriously by induction, without using
 
 > lt_trans' : Transitive Lt
 > -- Prove this by induction on evidence that a is less than c.
-> lt_trans' a b c lab lbc = ?lt_trans'_rhs
+> lt_trans' a b c lab lbc = ?lt_trans__rhs
 
 $\square$
 
 
 ==== Exercise: 2 stars, optional
 
+\ \todo[inline]{Not sure how is this different from \idr{lt_trans'}?}
+
 Prove the same thing again by induction on \idr{c}.
 
 > lt_trans'' : Transitive Lt
-> lt_trans'' a b c lab lbc = ?lt_trans'_rhs
+> lt_trans'' a b c lab lbc = ?lt_trans___rhs
 
 $\square$
 
@@ -176,7 +181,7 @@ The transitivity of \idr{Le}, in turn, can be used to prove some facts that will
 be useful later (e.g., for the proof of antisymmetry below)...
 
 > le_Sn_le : ((S n) <=' m) -> (n <=' m)
-> le_Sn_le {n} {m} les = le_trans n (S n) m (Le_S Le_n) les
+> le_Sn_le {n} {m} = le_trans n (S n) m (Le_S Le_n)
 
 
 ==== Exercise: 1 star, optional
@@ -230,7 +235,7 @@ A relation \idr{r} is _symmetric_ if \idr{r a b} implies \idr{r b a}.
 
 $\square$
 
-A relation \idr{r} is _antisymmetric_ if \idr{r a b{} and \idr{r b a} together
+A relation \idr{r} is _antisymmetric_ if \idr{r a b} and \idr{r b a} together
 imply \idr{a = b} — that is, if the only "cycles" in \idr{r} are trivial ones.
 
 > Antisymmetric : (r : Relation t) -> Type
@@ -353,7 +358,8 @@ behavior of the two "missing" \idr{Clos_refl_trans} constructors.
 
 $\square$
 
-Then we use these facts to prove that the two definitions of reflexive, transitive closure do indeed define the same relation.
+Then we use these facts to prove that the two definitions of reflexive,
+transitive closure do indeed define the same relation.
 
 
 ==== Exercise: 3 stars, optional (rtc_rsc_coincide)
