@@ -299,7 +299,7 @@ existing definition, and \idr{infixl} specifies left-associative fixity.
 >
 
 
-=== Exercise: 1 star (nandb)
+==== Exercise: 1 star (nandb)
 
 Fill in the hole \idr{?nandb_rhs} and complete the following function; then make
 sure that the assertions below can each be verified by Idris. (Fill in each of
@@ -325,7 +325,7 @@ should return \idr{True} if either or both of its inputs are \idr{False}.
 $\square$
 
 
-=== Exercise: 1 star (andb3)
+==== Exercise: 1 star (andb3)
 
 Do the same for the \idr{andb3} function below. This function should return
 \idr{True} when all of its inputs are \idr{True}, and \idr{False} otherwise.
@@ -576,7 +576,7 @@ right-hand side. This avoids the need to invent a bogus variable name.
 >
 
 
-=== Exercise: 1 star (factorial)
+==== Exercise: 1 star (factorial)
 
 Recall the standard mathematical factorial function:
 
@@ -634,27 +634,29 @@ yielding a \idr{b}oolean.
 >   beq_nat (S k) (S j) = beq_nat k j
 >
 
-The \idr{leb} function tests whether its first argument is less than or equal to
+The \idr{lte} function tests whether its first argument is less than or equal to
 its second argument, yielding a boolean.
 
->   ||| Test whether a number is less than or equal to another.
->   leb : (n, m : Nat) -> Bool
->   leb  Z     m    = True
->   leb (S k)  Z    = False
->   leb (S k) (S j) = leb k j
+```idris
+||| Test whether a number is less than or equal to another.
+lte : (n, m : Nat) -> Bool
+lte  Z     m    = True
+lte  n     Z    = False
+lte (S k) (S j) = lte k j
+```
+
+>   testLte1 : lte 2 2 = True
+>   testLte1 = Refl
 >
->   testLeb1 : leb 2 2 = True
->   testLeb1 = Refl
+>   testLte2 : lte 2 4 = True
+>   testLte2 = Refl
 >
->   testLeb2 : leb 2 4 = True
->   testLeb2 = Refl
->
->   testLeb3 : leb 4 2 = False
->   testLeb3 = Refl
+>   testLte3 : lte 4 2 = False
+>   testLte3 = Refl
 >
 
 
-=== Exercise: 1 star (blt_nat)
+==== Exercise: 1 star (blt_nat)
 
 The \idr{blt_nat} function tests \idr{Nat}ural numbers for
 \idr{l}ess-\idr{t}han, yielding a \idr{b}oolean. Instead of making up a new
@@ -780,7 +782,7 @@ tells Idris to rewrite the current goal (\idr{n + n = m + m}) by replacing the
 left side of the equality hypothesis \idr{prf} with the right side.
 
 
-=== Exercise: 1 star (plus_id_exercise)
+==== Exercise: 1 star (plus_id_exercise)
 
 Fill in the proof.
 
@@ -816,7 +818,7 @@ Unlike in Coq, we don't need to perform such a rewrite for \idr{mult_0_plus} in
 Idris and can just use \idr{Refl} instead.
 
 
-=== Exercise: 2 starts (mult_S_1)
+==== Exercise: 2 starts (mult_S_1)
 
 >   mult_S_1 : (n, m : Nat) -> (m = S n) -> m * (1 + n) = m * m
 >   mult_S_1 n m prf = ?mult_S_1_rhs
@@ -920,7 +922,7 @@ In more complex proofs, it is often better to lift subgoals to lemmas:
 >
 
 
-=== Exercise: 2 stars (andb_true_elim2)
+==== Exercise: 2 stars (andb_true_elim2)
 
 Prove the following claim, lift cases (and subcases) to lemmas when case split.
 
@@ -931,7 +933,7 @@ Prove the following claim, lift cases (and subcases) to lemmas when case split.
 $\square$
 
 
-=== Exercise: 1 star (zero_nbeq_plus_1)
+==== Exercise: 1 star (zero_nbeq_plus_1)
 
 >   zero_nbeq_plus_1 : (n : Nat) -> beq_nat 0 (n + 1) = False
 >   zero_nbeq_plus_1 n = ?zero_nbeq_plus_1_rhs
@@ -973,7 +975,8 @@ unnatural ways.
 
 == More Exercises
 
-=== Exercise: 2 stars (boolean_functions)
+
+==== Exercise: 2 stars (boolean_functions)
 
 Use the tactics you have learned so far to prove the following theorem about
 boolean functions.
@@ -994,7 +997,7 @@ the property that \idr{f x = negb x}.
 $\square$
 
 
-=== Exercise: 2 start (andb_eq_orb)
+==== Exercise: 2 start (andb_eq_orb)
 
 Prove the following theorem. (You may want to first prove a subsidiary lemma or
 two. Alternatively, remember that you do not have to introduce all hypotheses at
@@ -1006,7 +1009,7 @@ the same time.)
 $\square$
 
 
-=== Exercise: 3 stars (binary)
+==== Exercise: 3 stars (binary)
 
 Consider a different, more efficient representation of natural numbers using a
 binary rather than unary system. That is, instead of saying that each natural

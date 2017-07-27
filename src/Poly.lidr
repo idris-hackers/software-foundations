@@ -1,4 +1,4 @@
-= Poly: Polymorphism and Higher-Order Functions
+= Poly : Polymorphism and Higher-Order Functions
 
 > module Poly
 
@@ -38,8 +38,8 @@ for example...
 
 ... but this would quickly become tedious, partly because we have to make up
 different constructor names for each datatype, but mostly because we would also
-need to define new versions of all our list manipulating functions (`length`,
-`rev`, etc.) for each new datatype definition.
+need to define new versions of all our list manipulating functions
+(\idr{length}, \idr{rev}, etc.) for each new datatype definition.
 
 To avoid all this repetition, Idris supports _polymorphic_ inductive type
 definitions. For example, here is a _polymorphic list_ datatype.
@@ -50,33 +50,33 @@ data List : (x : Type) -> Type where
   Cons : x -> List x -> List x
 ```
 
-(This type is already defined in Idris' standard library, but the `Cons`
-constructor is named `(::)`).
+(This type is already defined in Idris' standard library, but the \idr{Cons}
+constructor is named \idr{(::)}).
 
-This is exactly like the definition of `NatList` from the previous chapter,
-except that the `Nat` argument to the `Cons` constructor has been replaced by an
-arbitrary type `x`, a binding for `x` has been added to the header, and the
-occurrences of `NatList` in the types of the constructors have been replaced by
-`List x`. (We can re-use the constructor names `Nil` and `Cons` because the
-earlier definition of `NatList` was inside of a `module` definition that is now
-out of scope.)
+This is exactly like the definition of \idr{NatList} from the previous chapter,
+except that the \idr{Nat} argument to the \idr{Cons} constructor has been
+replaced by an arbitrary type \idr{x}, a binding for \idr{x} has been added to
+the header, and the occurrences of \idr{NatList} in the types of the
+constructors have been replaced by \idr{List x}. (We can re-use the constructor
+names \idr{Nil} and \idr{Cons} because the earlier definition of \idr{NatList}
+was inside of a \idr{namespace} definition that is now out of scope.)
 
-What sort of thing is `List` itself? One good way to think about it is that
-`List` is a _function_ from `Type`s to inductive definitions; or, to put it
-another way, `List` is a function from `Type`s to `Type`s. For any particular
-type `x`, the type `List x` is an inductively defined set of lists whose
-elements are of type `x`.
+What sort of thing is \idr{List} itself? One good way to think about it is that
+\idr{List} is a _function_ from \idr{Type}s to inductive definitions; or, to put
+it another way, \idr{List} is a function from \idr{Type}s to \idr{Type}s. For
+any particular type \idr{x}, the type \idr{List x} is an inductively defined set
+of lists whose elements are of type \idr{x}.
 
-With this definition, when we use the constructors `Nil` and `Cons` to build
-lists, we need to tell Idris the type of the elements in the lists we are
-building -- that is, `Nil` and `Cons` are now _polymorphic constructors_.
-Observe the types of these constructors:
+With this definition, when we use the constructors \idr{Nil} and \idr{Cons} to
+build lists, we need to tell Idris the type of the elements in the lists we are
+building -- that is, \idr{Nil} and \idr{Cons} are now _polymorphic
+constructors_. Observe the types of these constructors:
 
 ```idris
 λΠ> :t Nil
--- Prelude.List.Nil : List elem
+Prelude.List.Nil : List elem
 λΠ> :t (::)
--- Prelude.List.(::) : elem -> List elem -> List elem
+Prelude.List.(::) : elem -> List elem -> List elem
 ```
 
 \todo[inline]{How to edit these 3 paragraphs? Implicits are defined later in
@@ -90,39 +90,40 @@ difference in meaning.)
 
 The "∀ X" in these types can be read as an additional argument to the
 constructors that determines the expected types of the arguments that follow.
-When `Nil` and `Cons` are used, these arguments are supplied in the same way as
-the others. For example, the list containing `2` and `1` is written like this:
+When \idr{Nil} and \idr{Cons} are used, these arguments are supplied in the same
+way as the others. For example, the list containing \idr{2} and \idr{1} is
+written like this:
 
 Check (cons nat 2 (cons nat 1 (nil nat))).
 
-(We've written `Nil` and `Cons` explicitly here because we haven't yet defined
-the `[]` and `::` notations for the new version of lists. We'll do that in a
-bit.)
+(We've written \idr{Nil} and \idr{Cons} explicitly here because we haven't yet
+defined the \idr{[]} and \idr{::} notations for the new version of lists. We'll
+do that in a bit.)
 
 We can now go back and make polymorphic versions of all the list-processing
-functions that we wrote before. Here is `repeat`, for example:
+functions that we wrote before. Here is \idr{repeat}, for example:
 
 > repeat : (x_ty : Type) -> (x : x_ty) -> (count : Nat) -> List x_ty
 > repeat x_ty x Z = Nil
 > repeat x_ty x (S count') = x :: repeat x_ty x count'
 
-As with `Nil` and `Cons`, we can use `repeat` by applying it first to a type and
-then to its list argument:
+As with \idr{Nil} and \idr{Cons}, we can use \idr{repeat} by applying it first
+to a type and then to its list argument:
 
 > test_repeat1 : repeat Nat 4 2 = 4 :: (4 :: Nil)
 > test_repeat1 = Refl
 
-To use `repeat` to build other kinds of lists, we simply instantiate it with an
-appropriate type parameter:
+To use \idr{repeat} to build other kinds of lists, we simply instantiate it with
+an appropriate type parameter:
 
 > test_repeat2 : repeat Bool False 1 = False :: Nil
 > test_repeat2 = Refl
 
 
-\todo[inline]{Explain implicits and \idr{{x=foo}} syntax first? Move after the
-"Supplying Type Arguments Explicitly" section?}
-
 ==== Exercise: 2 starsM (mumble_grumble)
+
+\ \todo[inline]{Explain implicits and \idr{{x=foo}} syntax first? Move after the
+"Supplying Type Arguments Explicitly" section?}
 
 > namespace MumbleGrumble
 
@@ -137,15 +138,16 @@ Consider the following two inductively defined types.
 >     D : Mumble -> Grumble x
 >     E : x -> Grumble x
 
-Which of the following are well-typed elements of `Grumble x` for some type `x`?
+Which of the following are well-typed elements of \idr{Grumble x} for some type
+\idr{x}?
 
-  - `D (B A 5)`
-  - `D (B A 5) {x=Mumble}`
-  - `D (B A 5) {x=Bool}`
-  - `E True {x=Bool}`
-  - `E (B C 0) {x=Mumble}`
-  - `E (B C 0) {x=Bool}`
-  - `C`
+  - \idr{D (B A 5)}
+  - \idr{D (B A 5) {x=Mumble}}
+  - \idr{D (B A 5) {x=Bool}}
+  - \idr{E True {x=Bool}}
+  - \idr{E (B C 0) {x=Mumble}}
+  - \idr{E (B C 0) {x=Bool}}
+  - \idr{C}
 
 > -- FILL IN HERE
 
@@ -154,27 +156,29 @@ $\square$
 \todo[inline]{Merge 3 following sections into one about Idris implicits? Mention
 the lowercase/uppercase distinction.}
 
+
 ==== Type Annotation Inference
 
-\todo[inline]{This has already happened earlier at `repeat`, delete most of
+\todo[inline]{This has already happened earlier at \idr{repeat}, delete most of
 this?}
 
-Let's write the definition of `repeat` again, but this time we won't specify the
-types of any of the arguments. Will Idris still accept it?
+Let's write the definition of \idr{repeat} again, but this time we won't specify
+the types of any of the arguments. Will Idris still accept it?
 
 Fixpoint repeat' X x count : list X :=
   match count with | 0 ⇒ nil X | S count' ⇒ cons X x (repeat' X x count') end.
 
-Indeed it will. Let's see what type Idris has assigned to `repeat'`:
+Indeed it will. Let's see what type Idris has assigned to \idr{repeat'}:
 
 Check repeat'. (* ===> forall X : Type, X -> nat -> list X *) Check repeat. (*
 ===> forall X : Type, X -> nat -> list X *)
 
-It has exactly the same type type as `repeat`. Idris was able to use _type
-inference_ to deduce what the types of `X`, `x`, and `count` must be, based on
-how they are used. For example, since `X` is used as an argument to `Cons`, it
-must be a `Type`, since `Cons` expects a `Type` as its first argument; matching
-`count` with `Z` and `S` means it must be a `Nat`; and so on.
+It has exactly the same type type as \idr{repeat}. Idris was able to use _type
+inference_ to deduce what the types of \idr{X}, \idr{x}, and \idr{count} must
+be, based on how they are used. For example, since \idr{X} is used as an
+argument to \idr{Cons}, it must be a \idr{Type}, since \idr{Cons} expects a
+\idr{Type} as its first argument; matching \idr{count} with \idr{Z} and \idr{S}
+means it must be a \idr{Nat}; and so on.
 
 This powerful facility means we don't always have to write explicit type
 annotations everywhere, although explicit type annotations are still quite
@@ -192,17 +196,18 @@ this in Idris}
 
 To use a polymorphic function, we need to pass it one or more types in addition
 to its other arguments. For example, the recursive call in the body of the
-`repeat` function above must pass along the type `x_ty`. But since the second
-argument to `repeat` is an element of `x_ty`, it seems entirely obvious that the
-first argument can only be `x_ty` — why should we have to write it explicitly?
+\idr{repeat} function above must pass along the type \idr{x_ty}. But since the
+second argument to \idr{repeat} is an element of \idr{x_ty}, it seems entirely
+obvious that the first argument can only be \idr{x_ty} — why should we have to
+write it explicitly?
 
 Fortunately, Idris permits us to avoid this kind of redundancy. In place of any
-type argument we can write the "implicit argument" `_`, which can be read as
+type argument we can write the "implicit argument" \idr{_}, which can be read as
 "Please try to figure out for yourself what belongs here." More precisely, when
-Idris encounters a `_`, it will attempt to _unify_ all locally available
+Idris encounters a \idr{_}, it will attempt to _unify_ all locally available
 information -- the type of the function being applied, the types of the other
 arguments, and the type expected by the context in which the application appears
--- to determine what concrete type should replace the `_`.
+-- to determine what concrete type should replace the \idr{_}.
 
 This may sound similar to type annotation inference -- indeed, the two
 procedures rely on the same underlying mechanisms. Instead of simply omitting
@@ -210,21 +215,21 @@ the types of some arguments to a function, like
 
       repeat' X x count : list X :=
 
-we can also replace the types with `_`
+we can also replace the types with \idr{_}
 
       repeat' (X : _) (x : _) (count : _) : list X :=
 
 to tell Idris to attempt to infer the missing information.
 
-Using implicit arguments, the `count` function can be written like this:
+Using implicit arguments, the \idr{count} function can be written like this:
 
 Fixpoint repeat'' X x count : list X :=
   match count with | 0 ⇒ nil _ | S count' ⇒ cons _ x (repeat'' _ x count') end.
 
-In this instance, we don't save much by writing `_` instead of `x`. But in many
-cases the difference in both keystrokes and readability is nontrivial. For
-example, suppose we want to write down a list containing the numbers `1`, `2`,
-and `3`. Instead of writing this...
+In this instance, we don't save much by writing \idr{_} instead of \idr{x}. But
+in many cases the difference in both keystrokes and readability is nontrivial.
+For example, suppose we want to write down a list containing the numbers
+\idr{1}, \idr{2}, and \idr{3}. Instead of writing this...
 
 Definition list123 :=
   cons nat 1 (cons nat 2 (cons nat 3 (nil nat))).
@@ -237,12 +242,12 @@ Definition list123' :=
 
 ==== Implicit Arguments
 
-We can go further and even avoid writing `_`'s in most cases by telling Idris
-_always_ to infer the type argument(s) of a given function. The Arguments
+We can go further and even avoid writing \idr{_}'s in most cases by telling
+Idris _always_ to infer the type argument(s) of a given function. The Arguments
 directive specifies the name of the function (or constructor) and then lists its
 argument names, with curly braces around any arguments to be treated as
 implicit. (If some arguments of a definition don't have a name, as is often the
-case for constructors, they can be marked with a wildcard pattern _.)
+case for constructors, they can be marked with a wildcard pattern \idr{_}.)
 
 Arguments nil {X}. Arguments cons {X} _ _. Arguments repeat {X} x count.
 
@@ -259,28 +264,29 @@ example:
 > repeat' x (S count') = x :: repeat' x count'
 
 (Note that we didn't even have to provide a type argument to the recursive call
-to `repeat'`; indeed, it would be invalid to provide one!)
+to \idr{repeat'}; indeed, it would be invalid to provide one!)
 
 We will use the latter style whenever possible, but we will continue to use
 explicit declarations in data types. The reason for this is that marking the
 parameter of an inductive type as implicit causes it to become implicit for the
 type itself, not just for its constructors. For instance, consider the following
-alternative definition of the `List` type:
+alternative definition of the \idr{List} type:
 
 > data List' : {x : Type} -> Type where
 >   Nil' : List'
 >   Cons' : x -> List' -> List'
 
-Because `x` is declared as implicit for the _entire_ inductive definition
-including `List'` itself, we now have to write just `List'` whether we are
-talking about lists of numbers or booleans or anything else, rather than `List'
-Nat` or `List' Bool` or whatever; this is a step too far.
+Because \idr{x} is declared as implicit for the _entire_ inductive definition
+including \idr{List'} itself, we now have to write just \idr{List'} whether we
+are talking about lists of numbers or booleans or anything else, rather than
+\idr{List' Nat} or \idr{List' Bool} or whatever; this is a step too far.
 
 \todo[inline]{Added the implicit inference explanation here}
+
 There's another step towards conciseness that we can take in Idris -- drop the
 implicit argument completely in function definitions! Idris will automatically
-insert them for us when it encounters unknown variables. _Note that by convention
-this will only happen for variables starting on a lowercase letter_.
+insert them for us when it encounters unknown variables. _Note that by
+convention this will only happen for variables starting on a lowercase letter_.
 
 > repeat'' : (x : x_ty) -> (count : Nat) -> List x_ty
 > repeat'' x Z = Nil
@@ -320,13 +326,13 @@ this time. For example, suppose we write this:
 
 ```idris
 λΠ> :let mynil = Nil
--- (input):Can't infer argument elem to []
+(input):Can't infer argument elem to []
 ```
 
 Here, Idris gives us an error because it doesn't know what type argument to
-supply to `Nil`. We can help it by providing an explicit type declaration via
-`the` function (so that Idris has more information available when it gets to the
-"application" of `Nil`):
+supply to \idr{Nil}. We can help it by providing an explicit type declaration
+via \idr{the} function (so that Idris has more information available when it
+gets to the "application" of \idr{Nil}):
 
 ```idris
 λΠ> :let mynil = the (List Nat) Nil
@@ -362,7 +368,7 @@ Now lists can be written just the way we'd hope:
 
 ==== Exercise: 2 stars, optional (poly_exercises)
 
-Here are a few simple exercises, just like ones in the `Lists` chapter, for
+Here are a few simple exercises, just like ones in the \idr{Lists} chapter, for
 practice with polymorphism. Complete the proofs below.
 
 > app_nil_r : (l : List x) -> l ++ [] = l
@@ -404,7 +410,7 @@ concrete notation.
 
 > syntax "(" [x] "," [y] ")" = PPair x y
 
-We can also use the `syntax` mechanism to define the standard notation for
+We can also use the \idr{syntax} mechanism to define the standard notation for
 product _types_:
 
 > syntax [x_ty] "*" [y_ty] = Prod x_ty y_ty
@@ -412,10 +418,10 @@ product _types_:
 (The annotation : type_scope tells Coq that this abbreviation should only be
 used when parsing types. This avoids a clash with the multiplication symbol.)
 
-It is easy at first to get `(x,y)` and `x_ty*y_ty` confused. Remember that
-`(x,y)` is a value built from two other values, while `x_ty*y_ty` is a type
-built from two other types. If `x` has type `x` and `y` has type `y`, then
-`(x,y)` has type `x_ty*y_ty`.
+It is easy at first to get \idr{(x,y)} and \idr{x_ty*y_ty} confused. Remember
+that \idr{(x,y)} is a value built from two other values, while \idr{x_ty*y_ty}
+is a type built from two other types. If \idr{x} has type \idr{x_ty} and \idr{y}
+has type \idr{y_ty}, then \idr{(x,y)} has type \idr{x_ty*y_ty}.
 
 The first and second projection functions now look pretty much as they would in
 any functional programming language.
@@ -426,9 +432,11 @@ any functional programming language.
 > snd : (p : x*y) -> y
 > snd (x,y) = y
 
+\todo[inline]{Edit}
+
 The following function takes two lists and combines them into a list of pairs.
-In functional languages, it is usually called `zip` (though the Coq's standard
-library calls it `combine`).
+In functional languages, it is usually called \idr{zip} (though the Coq's
+standard library calls it \idr{combine}).
 
 > zip : (lx : List x) -> (ly : List y) -> List (x*y)
 > zip [] _ = []
@@ -441,23 +449,20 @@ library calls it `combine`).
 Try answering the following questions on paper and checking your answers in
 Idris:
 
-- What is the type of `zip` (i.e., what does `:t zip` print?)
+- What is the type of \idr{zip} (i.e., what does \idr{:t zip} print?)
 
-- What does
-
-  `combine [1,2] [False,False,True,True]`
-
-  print?
+- What does \idr{combine [1,2] [False,False,True,True]} print?
 
 $\square$
 
 
 ==== Exercise: 2 stars, recommended (split)
 
-The function `split` is the right inverse of `zip`: it takes a list of pairs and
-returns a pair of lists. In many functional languages, it is called `unzip`.
+The function \idr{split} is the right inverse of \idr{zip}: it takes a list of
+pairs and returns a pair of lists. In many functional languages, it is called
+\idr{unzip}.
 
-Fill in the definition of `split` below. Make sure it passes the given unit
+Fill in the definition of \idr{split} below. Make sure it passes the given unit
 test.
 
 > split : (l : List (x*y)) -> (List x) * (List y)
@@ -472,17 +477,17 @@ $\square$
 ==== Polymorphic Options
 
 One last polymorphic type for now: _polymorphic options_, which generalize
-`NatOption` from the previous chapter:
+\idr{NatOption} from the previous chapter:
 
 > data Option : (x : Type) -> Type where
 >  Some : x -> Option x
 >  None : Option x
 
-In Idris' standard library this type is called `Maybe`, with constructors `Just
-x` and `Nothing`.
+In Idris' standard library this type is called \idr{Maybe}, with constructors
+\idr{Just x} and \idr{Nothing}.
 
-We can now rewrite the `nth_error` function so that it works with any type of
-lists.
+We can now rewrite the \idr{nth_error} function so that it works with any type
+of lists.
 
 > nth_error : (l : List x) -> (n : Nat) -> Option x
 > nth_error [] n = None
@@ -502,8 +507,8 @@ lists.
 
 ==== Exercise: 1 star, optional (hd_error_poly)
 
-Complete the definition of a polymorphic version of the `hd_error` function from
-the last chapter. Be sure that it passes the unit tests below.
+Complete the definition of a polymorphic version of the \idr{hd_error} function
+from the last chapter. Be sure that it passes the unit tests below.
 
 > hd_error : (l : List x) -> Option x
 > hd_error l = ?hd_error_rhs
@@ -533,8 +538,8 @@ functions. Here's a simple one:
 > doit3times : (f: x -> x) -> (n : x) -> x
 > doit3times f n = f (f (f n))
 
-The argument `f` here is itself a function (from `x` to `x`); the body of
-`doit3times` applies `f` three times to some value `n`.
+The argument \idr{f} here is itself a function (from \idr{x} to \idr{x}); the
+body of \idr{doit3times} applies \idr{f} three times to some value \idr{n}.
 
 ```idris
 λΠ> :t doit3times
@@ -550,10 +555,10 @@ The argument `f` here is itself a function (from `x` to `x`); the body of
 
 === Filter
 
-Here is a more useful higher-order function, taking a list of `x`s and a
-_predicate_ on `x` (a function from `x` to `Bool`) and "filtering" the list,
-returning a new list containing just those elements for which the predicate
-returns `True`.
+Here is a more useful higher-order function, taking a list of \idr{x}s and a
+_predicate_ on \idr{x} (a function from \idr{x} to \idr{Bool}) and "filtering"
+the list, returning a new list containing just those elements for which the
+predicate returns \idr{True}.
 
 > filter : (test : x -> Bool) -> (l: List x) -> List x
 > filter test [] = []
@@ -563,8 +568,8 @@ returns `True`.
 
 (This is how it's defined in Idris's stdlib, too.)
 
-For example, if we apply `filter` to the predicate `evenb` and a list of numbers
-`l`, it returns a list containing just the even members of `l`.
+For example, if we apply \idr{filter} to the predicate \idr{evenb} and a list of
+numbers \idr{l}, it returns a list containing just the even members of \idr{l}.
 
 > test_filter1 : filter Numbers.evenb [1,2,3,4] = [2,4]
 > test_filter1 = Refl
@@ -580,8 +585,8 @@ works with \idr{{x=_}}!}
 >                     = [        [3], [4],              [8] ]
 > test_filter2 = Refl
 
-We can use `filter` to give a concise version of the `countoddmembers` function
-from the `Lists` chapter.
+We can use \idr{filter} to give a concise version of the \idr{countoddmembers}
+function from the `Lists` chapter.
 
 > countoddmembers' : (l: List Nat) -> Nat
 > countoddmembers' l = length (filter Numbers.oddb l)
@@ -599,24 +604,25 @@ from the `Lists` chapter.
 === Anonymous Functions
 
 It is arguably a little sad, in the example just above, to be forced to define
-the function `length_is_1` and give it a name just to be able to pass it as an
-argument to `filter`, since we will probably never use it again. Moreover, this
-is not an isolated example: when using higher-order functions, we often want to
-pass as arguments "one-off" functions that we will never use again; having to
-give each of these functions a name would be tedious.
+the function \idr{length_is_1} and give it a name just to be able to pass it as
+an argument to \idr{filter}, since we will probably never use it again.
+Moreover, this is not an isolated example: when using higher-order functions, we
+often want to pass as arguments "one-off" functions that we will never use
+again; having to give each of these functions a name would be tedious.
 
 Fortunately, there is a better way. We can construct a function "on the fly"
 without declaring it at the top level or giving it a name.
 
-\todo[inline]{Can't use `*` here due to the interference from our tuple sugar}
+\todo[inline]{Can't use \idr{*} here due to the interference from our tuple
+sugar}
 
 > test_anon_fun' : doit3times (\n => mult n n) 2 = 256
 > test_anon_fun' = Refl
 
-The expression `\n => mult n n` can be read as "the function that, given a
-number `n`, yields `n * n`."
+The expression \idr{\n => mult n n} can be read as "the function that, given a
+number \idr{n}, yields \idr{n * n}."
 
-Here is the `filter` example, rewritten to use an anonymous function.
+Here is the \idr{filter} example, rewritten to use an anonymous function.
 
 > test_filter2' : filter (\l => beq_nat (length l) 1)
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
@@ -626,9 +632,9 @@ Here is the `filter` example, rewritten to use an anonymous function.
 
 ==== Exercise: 2 stars (filter_even_gt7)
 
-Use `filter` (instead of function definition) to write an Idris function
-`filter_even_gt7` that takes a list of natural numbers as input and returns a
-list of just those that are even and greater than `7`.
+Use \idr{filter} (instead of function definition) to write an Idris function
+\idr{filter_even_gt7} that takes a list of natural numbers as input and returns
+a list of just those that are even and greater than \idr{7}.
 
 > filter_even_gt7 : (l : List Nat) -> List Nat
 > filter_even_gt7 l = ?filter_even_gt7_rhs
@@ -644,16 +650,17 @@ $\square$
 
 ==== Exercise: 3 stars (partition)
 
-Use `filter` to write an Idris function `partition`:
+Use \idr{filter} to write an Idris function \idr{partition}:
 
 > partition : (test : x -> Bool) -> (l : List x) -> (List x) * (List x)
 > partition f xs = ?partition_rhs
 
-Given a set `x`, a test function of type `x -> Bool` and a `List x`, `partition`
-should return a pair of lists. The first member of the pair is the sublist of
-the original list containing the elements that satisfy the test, and the second
-is the sublist containing those that fail the test. The order of elements in the
-two sublists should be the same as their order in the original list.
+Given a set \idr{x}, a test function of type \idr{x -> Bool} and a \idr{List x},
+\idr{partition} should return a pair of lists. The first member of the pair is
+the sublist of the original list containing the elements that satisfy the test,
+and the second is the sublist containing those that fail the test. The order of
+elements in the two sublists should be the same as their order in the original
+list.
 
 > test_partition1 : partition Numbers.oddb [1,2,3,4,5] = ([1,3,5], [2,4])
 > test_partition1 = ?test_partition1_rhs
@@ -666,22 +673,23 @@ $\square$
 
 === Map
 
-Another handy higher-order function is called `map`.
+Another handy higher-order function is called \idr{map}.
 
 > map : (f : x -> y) -> (l : List x) -> List y
 > map f [] = []
 > map f (h::t) = (f h) :: map f t
 
-It takes a function `f` and a list `l = [n1, n2, n3, ...]` and returns the list
-`[f n1, f n2, f n3,...]`, where `f` has been applied to each element of `l` in
-turn. For example:
+It takes a function \idr{f} and a list \idr{l} = \idr{[n1, n2, n3, ...]} and
+returns the list \idr{[f n1, f n2, f n3,...]}, where \idr{f} has been applied to
+each element of \idr{l} in turn. For example:
 
 > test_map1 : map (\x => plus 3 x) [2,0,2] = [5,3,5]
 > test_map1 = Refl
 
 The element types of the input and output lists need not be the same, since
-`map` takes _two_ type arguments, `x` and `y`; it can thus be applied to a list
-of numbers and a function from numbers to booleans to yield a list of booleans:
+\idr{map} takes _two_ type arguments, \idr{x} and \idr{y}; it can thus be
+applied to a list of numbers and a function from numbers to booleans to yield a
+list of booleans:
 
 > test_map2 : map Numbers.oddb [2,1,2,5] = [False,True,False,True]
 > test_map2 = Refl
@@ -696,7 +704,8 @@ _lists_ of booleans to yield a _list of lists_ of booleans:
 
 ==== Exercise: 3 stars (map_rev)
 
-Show that `map` and `rev` commute. You may need to define an auxiliary lemma.
+Show that \idr{map} and \idr{rev} commute. You may need to define an auxiliary
+lemma.
 
 > map_rev : (f : x -> y) -> (l : List x) -> map f (rev l) = rev (map f l)
 > map_rev f l = ?map_rev_rhs
@@ -706,10 +715,10 @@ $\square$
 
 ==== Exercise: 2 stars, recommended (flat_map)
 
-The function `map` maps a `List x` to a `List y` using a function of type `x ->
-y`. We can define a similar function, `flat_map`, which maps a `List x` to a
-`List y` using a function `f` of type `X -> List y`. Your definition should work
-by 'flattening' the results of `f`, like so:
+The function \idr{map} maps a \idr{List x} to a \idr{List y} using a function of
+type \idr{x -> y}. We can define a similar function, \idr{flat_map}, which maps
+a \idr{List x} to a \idr{List y} using a function \idr{f} of type \idr{x -> List
+y}. Your definition should work by 'flattening' the results of \idr{f}, like so:
 
 ```idris
 flat_map (\n => [n,n+1,n+2]) [1,5,10] = [1,2,3, 5,6,7, 10,11,12]
@@ -723,8 +732,8 @@ flat_map (\n => [n,n+1,n+2]) [1,5,10] = [1,2,3, 5,6,7, 10,11,12]
 
 $\square$
 
-Lists are not the only inductive type that we can write a `map` function for.
-Here is the definition of `map` for the `Option` type:
+Lists are not the only inductive type that we can write a \idr{map} function
+for. Here is the definition of \idr{map} for the \idr{Option} type:
 
 > option_map : (f : x -> y) -> (xo : Option x) -> Option y
 > option_map f None = None
@@ -733,41 +742,42 @@ Here is the definition of `map` for the `Option` type:
 
 ==== Exercise: 2 stars, optional (implicit_args)
 
-The definitions and uses of `filter` and `map` use implicit arguments in many
-places. Add explicit type parameters where necessary and use Idris to check that
-you've done so correctly. (This exercise is not to be turned in; it is probably
-easiest to do it on a copy of this file that you can throw away afterwards.)
+The definitions and uses of \idr{filter} and \idr{map} use implicit arguments in
+many places. Add explicit type parameters where necessary and use Idris to check
+that you've done so correctly. (This exercise is not to be turned in; it is
+probably easiest to do it on a copy of this file that you can throw away
+afterwards.)
 
 $\square$
 
 
 === Fold
 
-An even more powerful higher-order function is called `fold`. This function is
-the inspiration for the `"reduce"` operation that lies at the heart of Google's
-map/reduce distributed programming framework.
+An even more powerful higher-order function is called \idr{fold}. This function
+is the inspiration for the `"reduce"` operation that lies at the heart of
+Google's map/reduce distributed programming framework.
 
 > fold : (f : x -> y -> y) -> (l : List x) -> (b : y) -> y
 > fold f [] b = b
 > fold f (h::t) b = f h (fold f t b)
 
-Intuitively, the behavior of the `fold` operation is to insert a given binary
-operator `f` between every pair of elements in a given list. For example, `fold
-plus [1;2;3;4]` intuitively means `1+2+3+4`. To make this precise, we also need
-a "starting element" that serves as the initial second input to `f`. So, for
-example,
+Intuitively, the behavior of the \idr{fold} operation is to insert a given
+binary operator \idr{f} between every pair of elements in a given list. For
+example, \idr{fold plus [1,2,3,4]} intuitively means \idr{1+2+3+4}. To make this
+precise, we also need a "starting element" that serves as the initial second
+input to \idr{f}. So, for example,
 
-`fold plus [1,2,3,4] 0`
+\idr{fold plus [1,2,3,4] 0}
 
 yields
 
-`1 + (2 + (3 + (4 + 0)))`
+\idr{1 + (2 + (3 + (4 + 0)))}
 
 Some more examples:
 
 ```idris
 λΠ> :t fold andb
--- fold andb : List Bool -> Bool -> Bool
+fold andb : List Bool -> Bool -> Bool
 ```
 
 > fold_example1 : fold Nat.mult [1,2,3,4] 1 = 24
@@ -782,12 +792,12 @@ Some more examples:
 
 ==== Exercise: 1 star, advancedM (fold_types_different)
 
-Observe that the type of `fold` is parameterized by _two_ type variables, `x`
-and `y`, and the parameter `f` is a binary operator that takes an `x` and a `y`
-and returns a `y`. Can you think of a situation where it would be useful for `x`
-and `y` to be different?
+Observe that the type of \idr{fold} is parameterized by _two_ type variables,
+\idr{x} and \idr{y}, and the parameter \idr{f} is a binary operator that takes
+an \idr{x} and a \idr{y} and returns a \idr{y}. Can you think of a situation
+where it would be useful for \idr{x} and \idr{y} to be different?
 
--- FILL IN HERE
+> -- FILL IN HERE
 
 $\square$
 
@@ -796,9 +806,10 @@ $\square$
 
 Most of the higher-order functions we have talked about so far take functions as
 arguments. Let's look at some examples that involve _returning_ functions as the
-results of other functions. To begin, here is a function that takes a value `x`
-(drawn from some type `x`) and returns a function from `Nat` to `x` that yields
-`x` whenever it is called, ignoring its `Nat` argument.
+results of other functions. To begin, here is a function that takes a value
+\idr{x} (drawn from some type \idr{x}) and returns a function from \idr{Nat} to
+\idr{x} that yields \idr{x} whenever it is called, ignoring its \idr{Nat}
+argument.
 
 > constfun : (x : x_ty) -> Nat -> x_ty
 > constfun x = \k => x
@@ -813,20 +824,20 @@ results of other functions. To begin, here is a function that takes a value `x`
 > constfun_example2 = Refl
 
 In fact, the multiple-argument functions we have already seen are also examples
-of passing functions as data. To see why, recall the type of `plus`.
+of passing functions as data. To see why, recall the type of \idr{plus}.
 
 ```idris
 λΠ> :t plus
 Prelude.Nat.plus : Nat -> Nat -> Nat
 ```
 
-Each `->` in this expression is actually a _binary_ operator on types. This
-operator is _right-associative_, so the type of `plus` is really a shorthand for
-`Nat -> (Nat -> Nat)` -- i.e., it can be read as saying that "`plus` is a
-one-argument function that takes a `Nat` and returns a one-argument function
-that takes another `Nat` and returns a `Nat`." In the examples above, we have
-always applied `plus` to both of its arguments at once, but if we like we can
-supply just the first. This is called _partial application_.
+Each \idr{->} in this expression is actually a _binary_ operator on types. This
+operator is _right-associative_, so the type of \idr{plus} is really a shorthand
+for \idr{Nat -> (Nat -> Nat)} -- i.e., it can be read as saying that "\idr{plus}
+is a one-argument function that takes a \idr{Nat} and returns a one-argument
+function that takes another \idr{Nat} and returns a \idr{Nat}." In the examples
+above, we have always applied \idr{plus} to both of its arguments at once, but
+if we like we can supply just the first. This is called _partial application_.
 
 > plus3 : Nat -> Nat
 > plus3 = plus 3
@@ -855,8 +866,8 @@ https://github.com/idris-lang/Idris-dev/issues/3908}
 
 ==== Exercise: 2 stars (fold_length)
 
-Many common functions on lists can be implemented in terms of `fold`. For
-example, here is an alternative definition of `length`:
+Many common functions on lists can be implemented in terms of \idr{fold}. For
+example, here is an alternative definition of \idr{length}:
 
 >   fold_length : (l : List x) -> Nat
 >   fold_length l = fold (\_, n => S n) l 0
@@ -864,7 +875,7 @@ example, here is an alternative definition of `length`:
 >   test_fold_length1 : fold_length [4,7,0] = 3
 >   test_fold_length1 = Refl
 
-Prove the correctness of `fold_length`.
+Prove the correctness of \idr{fold_length}.
 
 >   fold_length_correct : (l : List x) -> fold_length l = length l
 >   fold_length_correct l = ?fold_length_correct_rhs
@@ -874,13 +885,13 @@ $\square$
 
 ==== Exercise: 3 starsM (fold_map)
 
-We can also define `map` in terms of fold. Finish `fold_map` below.
+We can also define \idr{map} in terms of fold. Finish \idr{fold_map} below.
 
 >   fold_map : (f : x -> y) -> (l : List x) -> List y
 >   fold_map f l = ?fold_map_rhs
 
-Write down a theorem `fold_map_correct` in Idris stating that `fold_map` is
-correct, and prove it.
+Write down a theorem \idr{fold_map_correct} in Idris stating that \idr{fold_map}
+is correct, and prove it.
 
 >   fold_map_correct : ?fold_map_correct
 
@@ -889,23 +900,23 @@ $\square$
 
 ==== Exercise: 2 stars, advanced (currying)
 
-In Idris, a function `f: a -> b -> c` really has the type `a -> (b -> c)`. That
-is, if you give `f` a value of type `a`, it will give you function `f' : b ->
-c`. If you then give `f'` a value of type `b`, it will return a value of type
-`c`. This allows for partial application, as in `plus3`. Processing a list of
-arguments with functions that return functions is called _currying_, in honor of
-the logician Haskell Curry.
+In Idris, a function \idr{f: a -> b -> c} really has the type \idr{a -> (b ->
+c)}. That is, if you give \idr{f} a value of type \idr{a}, it will give you
+function \idr{f' : b -> c}. If you then give \idr{f'} a value of type \idr{b},
+it will return a value of type \idr{c}. This allows for partial application, as
+in \idr{plus3}. Processing a list of arguments with functions that return
+functions is called _currying_, in honor of the logician Haskell Curry.
 
-Conversely, we can reinterpret the type `a -> b -> c` as `(a * b) -> c`. This is
-called _uncurrying_. With an uncurried binary function, both arguments must be
-given at once as a pair; there is no partial application.
+Conversely, we can reinterpret the type \idr{a -> b -> c} as \idr{(a * b) -> c}.
+This is called _uncurrying_. With an uncurried binary function, both arguments
+must be given at once as a pair; there is no partial application.
 
 We can define currying as follows:
 
 >   prod_curry : (f : (x * y) -> z) -> (x_val : x) -> (y_val : y) -> z
 >   prod_curry f x_val y_val = f (x_val, y_val)
 
-As an exercise, define its inverse, `prod_uncurry`. Then prove the theorems
+As an exercise, define its inverse, \idr{prod_uncurry}. Then prove the theorems
 below to show that the two are inverses.
 
 >   prod_uncurry : (f : x -> y -> z) -> (p : x * y) -> z
@@ -922,7 +933,7 @@ one of the examples that we saw above:
 \todo[inline]{Didn't we just write out these types explicitly?}
 
 Thought exercise: before running the following commands, can you calculate the
-types of `prod_curry` and `prod_uncurry`?
+types of \idr{prod_curry} and \idr{prod_uncurry}?
 
 ```idris
 λΠ> :t prod_curry
@@ -942,7 +953,7 @@ $\square$
 
 ==== Exercise: 2 stars, advancedM (nth_error_informal)
 
-Recall the definition of the `nth_error` function:
+Recall the definition of the \idr{nth_error} function:
 
 ```idris
   nth_error : (l : List x) -> (n : Nat) -> Option x
@@ -954,9 +965,9 @@ Recall the definition of the `nth_error` function:
 
 Write an informal proof of the following theorem:
 
-  `n -> l -> length l = n -> nth_error l n = None`
+\idr{n -> l -> length l = n -> nth_error l n = None}
 
-  -- FILL IN HERE
+> -- FILL IN HERE
 
 $\square$
 
@@ -965,8 +976,8 @@ $\square$
 
 This exercise explores an alternative way of defining natural numbers, using the
 so-called _Church numerals_, named after mathematician Alonzo Church. We can
-represent a natural number `n` as a function that takes a function `f` as a
-parameter and returns `f` iterated `n` times.
+represent a natural number \idr{n} as a function that takes a function \idr{f}
+as a parameter and returns \idr{f} iterated \idr{n} times.
 
 > namespace Church
 
@@ -979,91 +990,96 @@ once should be the same as just applying it. Thus:
 >   one : Nat'
 >   one f x = f x
 
-Similarly, `two` should apply `f` twice to its argument:
+Similarly, \idr{two} should apply \idr{f} twice to its argument:
 
 >   two : Nat'
 >   two f x = f (f x)
 
-Defining `zero` is somewhat trickier: how can we "apply a function zero times"?
-The answer is actually simple: just return the argument untouched.
+Defining \idr{zero} is somewhat trickier: how can we "apply a function zero
+times"? The answer is actually simple: just return the argument untouched.
 
 >   zero : Nat'
 >   zero f x = x
 
-More generally, a number `n` can be written as `\f, x => f (f ... (f x) ...)`,
-with `n` occurrences of `f`. Notice in particular how the `doit3times` function
-we've defined previously is actually just the Church representation of `3`.
+More generally, a number \idr{n} can be written as \idr{\f, x => f (f ... (f x)
+...)}, with \idr{n} occurrences of \idr{f}. Notice in particular how the
+\idr{doit3times} function we've defined previously is actually just the Church
+representation of \idr{3}.
 
 >   three : Nat'
 >   three = doit3times
 
 Complete the definitions of the following functions. Make sure that the
-corresponding unit tests pass by proving them with `Refl`.
+corresponding unit tests pass by proving them with \idr{Refl}.
 
 Successor of a natural number:
 
 >   succ' : (n : Nat' {x}) -> Nat' {x}
->   succ' n = ?succ'_rhs
+>   succ' n = ?succ__rhs
+
+\todo[inline]{Even if you add \idr{f x} on both sides of \idr{=}, these "unit
+tests" don't seem to work neither with \idr{Refl} nor with more advanced
+tecnhiques currently}
 
 >   succ'_1 : succ' zero = one
->   succ'_1 = ?succ_1_rhs
+>   succ'_1 = ?succ__1_rhs
 
 >   succ'_2 : succ' one = two
->   succ'_2 = ?succ_2_rhs
+>   succ'_2 = ?succ__2_rhs
 
 >   succ'_3 : succ' two = three
->   succ'_3 = ?succ'_3_rhs
+>   succ'_3 = ?succ__3_rhs
 
 Addition of two natural numbers:
 
 >   plus' : (n, m : Nat' {x}) -> Nat' {x}
->   plus' n m = ?plus'_rhs
+>   plus' n m = ?plus__rhs
 
 >   plus'_1 : plus' zero one = one
->   plus'_1 = ?plus'_1_rhs
+>   plus'_1 = ?plus__1_rhs
 
 >   plus'_2 : plus' two three = plus' three two
->   plus'_2 = ?plus'_2_rhs
+>   plus'_2 = ?plus__2_rhs
 
 >   plus'_3 : plus' (plus' two two) three = plus' one (plus' three three)
->   plus'_3 = ?plus'_3_rhs
+>   plus'_3 = ?plus__3_rhs
 
 Multiplication:
 
 >   mult' : (n, m : Nat' {x}) -> Nat' {x}
->   mult' n m = ?mult'_rhs
+>   mult' n m = ?mult__rhs
 
 >   mult'_1 : mult' one one = one
->   mult'_1 = ?mult'_1_rhs
+>   mult'_1 = ?mult__1_rhs
 
 >   mult'_2 : mult' zero (plus' three three) = zero
->   mult'_2 = ?mult'_2_rhs
+>   mult'_2 = ?mult__2_rhs
 
 >   mult'_3 : mult' two three = plus' three three
->   mult'_3 = ?mult'_3_rhs
+>   mult'_3 = ?mult__3_rhs
 
 Exponentiation:
 
-\todo[inline]{Edit the hint. Can't make it work with `exp' : (n, m : Nat' {x})
--> Nat' {x}`.}
+\todo[inline]{Edit the hint. Can't make it work with \idr{exp' : (n, m : Nat'
+{x}) -> Nat' {x}}.}
 
 (Hint: Polymorphism plays a crucial role here. However, choosing the right type
 to iterate over can be tricky. If you hit a "Universe inconsistency" error, try
-iterating over a different type: `Nat'` itself is usually problematic.)
+iterating over a different type: \idr{Nat'} itself is usually problematic.)
 
 >   exp' : (n : Nat' {x}) -> (m : Nat' {x=x->x}) -> Nat' {x}
->   exp' n m = ?exp'_rhs
+>   exp' n m = ?exp__rhs
 
-\todo[inline]{This won't typecheck under this signature of `exp` because of 2
-instances of `two`}
+\todo[inline]{This won't typecheck under this signature of \idr{exp} because of
+2 instances of \idr{two}}
 
 >   -- exp'_1 : exp' two two = plus' two two
->   -- exp'_1 = ?exp'_1_rhs
+>   -- exp'_1 = ?exp__1_rhs
 
 >   exp'_2 : exp' three two = plus' (mult' two (mult' two two)) one
->   exp'_2 = ?exp'_2_rhs
+>   exp'_2 = ?exp__2_rhs
 
 >   exp'_3 : exp' three zero = one
->   exp'_3 = ?exp'_3_rhs
+>   exp'_3 = ?exp__3_rhs
 
 $\square$

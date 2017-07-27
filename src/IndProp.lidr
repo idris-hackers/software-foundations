@@ -385,7 +385,7 @@ Prove that this definition is logically equivalent to the old one. (You may want
 to look at the previous theorem when you get to the induction step.)
 
 > ev'_ev : (Ev' n) <-> Ev n
-> ev'_ev = ?ev'_ev_rhs
+> ev'_ev = ?ev__ev_rhs
 >
 
 $\square$
@@ -530,27 +530,27 @@ are going to need later in the course. The proofs make good practice exercises.
 > lt_S : (n <' m) -> (n <' S m)
 > lt_S x = ?lt_S_rhs
 >
-> leb_complete : leb n m = True -> (n <=' m)
-> leb_complete prf = ?leb_complete_rhs
+> lte_complete : lte n m = True -> (n <=' m)
+> lte_complete prf = ?lte_complete_rhs
 >
 
 Hint: The next one may be easiest to prove by induction on \idr{m}.
 
-> leb_correct : (n <=' m) -> leb n m = True
-> leb_correct x = ?leb_correct_rhs
+> lte_correct : (n <=' m) -> lte n m = True
+> lte_correct x = ?lte_correct_rhs
 >
 
 Hint: This theorem can easily be proved without using induction.
 
-> leb_true_trans : leb n m = True -> leb m o = True -> leb n o = True
-> leb_true_trans prf prf1 = ?leb_true_trans_rhs
+> lte_true_trans : lte n m = True -> lte m o = True -> lte n o = True
+> lte_true_trans prf prf1 = ?lte_true_trans_rhs
 >
 
 
-==== Exercise: 2 stars, optional (leb_iff)
+==== Exercise: 2 stars, optional (lte_iff)
 
-> leb_iff : (leb n m = True) <-> (n <=' m)
-> leb_iff = ?leb_iff_rhs
+> lte_iff : (lte n m = True) <-> (n <=' m)
+> lte_iff = ?lte_iff_rhs
 >
 
 $\square$
@@ -886,7 +886,7 @@ beginning of the chapter can be obtained from the formal inductive definition.
 > empty_is_empty = ?empty_is_empty_rhs
 >
 > MUnion' : (s =~ re1, s =~ re2) -> s =~ Union re1 re2
-> MUnion' m = ?MUnion'_rhs
+> MUnion' m = ?MUnion__rhs
 >
 
 The next lemma is stated in terms of the \idr{fold} function from the \idr{Poly}
@@ -906,7 +906,7 @@ together.
 >
 > MStar' : ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
-> MStar' f = ?MStar'_rhs
+> MStar' f = ?MStar__rhs
 >
 
 $\square$
@@ -1162,7 +1162,7 @@ equivalent to the informal one given previously.
 >           (ss : List (List t) **
 >                (s = fold (++) ss [], (s': List t) -> In s' ss -> s' =~ re)
 >           )
-> MStar'' m = ?MStar''_rhs
+> MStar'' m = ?MStar___rhs
 >
 
 $\square$
