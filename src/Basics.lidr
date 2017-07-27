@@ -249,10 +249,12 @@ standard library.
 
 Functions over booleans can be defined in the same way as above:
 
->   negb : (b : Bool) -> Bool
->   negb True  = False
->   negb False = True
->
+```idris
+  not : (b : Bool) -> Bool
+  not True  = False
+  not False = True
+```
+
 >   andb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   andb True  b2 = b2
 >   andb False b2 = False
@@ -286,15 +288,17 @@ We can also introduce some familiar syntax for the boolean operations we have
 just defined. The \idr{syntax} command defines a new symbolic notation for an
 existing definition, and \idr{infixl} specifies left-associative fixity.
 
->   infixl 4 /\, \/
->
->   (/\) : Bool -> Bool -> Bool
->   (/\) = andb
->
->   (\/) : Bool -> Bool -> Bool
->   (\/) = orb
->
->   testOrb5 : False \/ False \/ True = True
+```idris
+  infixl 4 &&, ||
+
+  (&&) : Bool -> Bool -> Bool
+  (&&) = andb
+
+  (||) : Bool -> Bool -> Bool
+  (||) = orb
+```
+
+>   testOrb5 : False || False || True = True
 >   testOrb5 = Refl
 >
 
@@ -355,27 +359,27 @@ Every expression in Idris has a type, describing what sort of thing it computes.
 The \idr{:type} (or \idr{:t}) REPL command asks Idris to print the type of an
 expression.
 
-For example, the type of \idr{negb True} is \idr{Bool}.
+For example, the type of \idr{not True} is \idr{Bool}.
 
 ```idris
 λΠ> :type True
 True : Bool
-λΠ> :t negb True
-negb True : Bool
+λΠ> :t not True
+not True : Bool
 ```
 
 \todo[inline]{Confirm the "function types" wording.}
 
-Functions like \idr{negb} itself are also data values, just like \idr{True} and
+Functions like \idr{not} itself are also data values, just like \idr{True} and
 \idr{False}. Their types are called \glspl{function type}, and they are written
 with arrows.
 
 ```idris
-λΠ> :t negb
-negb : Bool -> Bool
+λΠ> :t not
+not : Bool -> Bool
 ```
 
-The type of \idr{negb}, written \idr{Bool -> Bool} and pronounced "\idr{Bool}
+The type of \idr{not}, written \idr{Bool -> Bool} and pronounced "\idr{Bool}
 arrow \idr{Bool}," can be read, "Given an input of type \idr{Bool}, this
 function produces an output of type \idr{Bool}." Similarly, the type of
 \idr{andb}, written \idr{Bool -> Bool -> Bool}, can be read, "Given two inputs,
@@ -499,7 +503,7 @@ simpler definition that is a bit easier to work with:
 >   ||| Determine whether a number is odd.
 >   ||| @n a number
 >   oddb : (n : Nat) -> Bool
->   oddb n = negb (evenb n)
+>   oddb n = not (evenb n)
 >
 >   testOddb1 : oddb 1 = True
 >   testOddb1 = Refl
@@ -886,9 +890,9 @@ For example, we use it next to prove that boolean negation is involutive --
 i.e., that negation is its own inverse.
 
 >   ||| A proof that boolean negation is involutive.
->   negb_involutive : (b : Bool) -> negb (negb b) = b
->   negb_involutive True  = Refl
->   negb_involutive False = Refl
+>   not_involutive : (b : Bool) -> not (not b) = b
+>   not_involutive True  = Refl
+>   not_involutive False = Refl
 >
 
 Note that the case splitting here doesn't introduce any variables because none
@@ -898,7 +902,7 @@ any names.
 It is sometimes useful to case split on more than one parameter, generating yet
 more proof obligations. For example:
 
->   andb_commutative : (b, c : Bool) -> andb b c = andb c b
+>   andb_commutative : (b, c : Bool) -> b && c = c && b
 >   andb_commutative True  True  = Refl
 >   andb_commutative True  False = Refl
 >   andb_commutative False True  = Refl
@@ -908,15 +912,15 @@ more proof obligations. For example:
 In more complex proofs, it is often better to lift subgoals to lemmas:
 
 
->   andb_commutative'_rhs_1 : (c : Bool) -> c = andb c True
+>   andb_commutative'_rhs_1 : (c : Bool) -> c = c && True
 >   andb_commutative'_rhs_1 True  = Refl
 >   andb_commutative'_rhs_1 False = Refl
 >
->   andb_commutative'_rhs_2 : (c : Bool) -> False = andb c False
+>   andb_commutative'_rhs_2 : (c : Bool) -> False = c && False
 >   andb_commutative'_rhs_2 True  = Refl
 >   andb_commutative'_rhs_2 False = Refl
 >
->   andb_commutative' : (b, c : Bool) -> andb b c = andb c b
+>   andb_commutative' : (b, c : Bool) -> b && c = c && b
 >   andb_commutative' True  = andb_commutative'_rhs_1
 >   andb_commutative' False = andb_commutative'_rhs_2
 >
@@ -926,7 +930,7 @@ In more complex proofs, it is often better to lift subgoals to lemmas:
 
 Prove the following claim, lift cases (and subcases) to lemmas when case split.
 
->   andb_true_elim_2 : (b, c : Bool) -> (andb b c = True) -> c = True
+>   andb_true_elim_2 : (b, c : Bool) -> (b && c = True) -> c = True
 >   andb_true_elim_2 b c prf = ?andb_true_elim_2_rhs
 >
 
@@ -988,7 +992,7 @@ boolean functions.
 
 Now state and prove a theorem \idr{negation_fn_applied_twice} similar to the
 previous one but where the second hypothesis says that the function \idr{f} has
-the property that \idr{f x = negb x}.
+the property that \idr{f x = not x}.
 
 >
 >   -- FILL IN HERE
@@ -1003,7 +1007,7 @@ Prove the following theorem. (You may want to first prove a subsidiary lemma or
 two. Alternatively, remember that you do not have to introduce all hypotheses at
 the same time.)
 
->   andb_eq_orb : (b, c : Bool) -> (andb b c = orb b c) -> b = c
+>   andb_eq_orb : (b, c : Bool) -> (b && c = b || c) -> b = c
 >   andb_eq_orb b c prf = ?andb_eq_orb_rhs
 
 $\square$

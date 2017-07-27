@@ -546,10 +546,14 @@ body of \idr{doit3times} applies \idr{f} three times to some value \idr{n}.
 -- doit3times : (x -> x) -> x -> x
 ```
 
+\todo[inline]{Explain that the prefixes are needed to avoid the implicit scoping
+rule, seems that this fires up more often when passing functions as parameters
+to other functions}
+
 > test_doit3times : doit3times Numbers.minusTwo 9 = 3
 > test_doit3times = Refl
 
-> test_doit3times' : doit3times Booleans.negb True = False
+> test_doit3times' : doit3times Bool.not True = False
 > test_doit3times' = Refl
 
 
@@ -775,12 +779,16 @@ yields
 
 Some more examples:
 
+\todo[inline]{We go back to \idr{andb} here because \idr{(&&)}'s second
+parameter is lazy, with the left fold the return type is inferred to be lazy
+too, leading to type mismatch.}
+
 ```idris
 λΠ> :t fold andb
 fold andb : List Bool -> Bool -> Bool
 ```
 
-> fold_example1 : fold Nat.mult [1,2,3,4] 1 = 24
+> fold_example1 : fold (*) [1,2,3,4] 1 = 24
 > fold_example1 = Refl
 
 > fold_example2 : fold Booleans.andb [True,True,False,True] True = False
@@ -849,11 +857,9 @@ if we like we can supply just the first. This is called _partial application_.
 > test_plus3 : plus3 4 = 7
 > test_plus3 = Refl
 
-\todo[inline]{This is apparently a bug in Idris,
-https://github.com/idris-lang/Idris-dev/issues/3908}
 
-> -- test_plus3' : doit3times plus3 0 = 9
-> -- test_plus3' = Refl
+> test_plus3' : doit3times Poly.plus3 0 = 9
+> test_plus3' = Refl
 
 > test_plus3'' : doit3times (plus 3) 0 = 9
 > test_plus3'' = Refl

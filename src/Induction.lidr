@@ -129,7 +129,7 @@ n} harder when done by induction on \idr{n}, since we may need an induction
 hypothesis about \idr{n - 2}. The following lemma gives a better
 characterization of \idr{evenb (S n)}:
 
-> evenb_S : (n : Nat) -> evenb (S n) = negb (evenb n)
+> evenb_S : (n : Nat) -> evenb (S n) = not (evenb n)
 > evenb_S n = ?evenb_S_rhs
 
 $\square$
@@ -236,7 +236,7 @@ your piece of paper; this is just to encourage you to reflect before you hack!)
 > zero_nbeq_S : (n : Nat) -> beq_nat 0 (S n) = False
 > zero_nbeq_S n = ?zero_nbeq_S_rhs
 
-> andb_false_r : (b : Bool) -> andb b False = False
+> andb_false_r : (b : Bool) -> b && False = False
 > andb_false_r b = ?andb_false_r_rhs
 
 > plus_ble_compat_l : (n, m, p : Nat) ->
@@ -250,10 +250,7 @@ your piece of paper; this is just to encourage you to reflect before you hack!)
 > mult_1_l n = ?mult_1_l_rhs
 
 > all3_spec : (b, c : Bool) ->
->             orb (andb b c)
->                 (orb (negb b)
->                      (negb c))
->             = True
+>             (b && c) || ((not b) || (not c)) = True
 > all3_spec b c = ?all3_spec_rhs
 
 > mult_plus_distr_r : (n, m, p : Nat) -> (n + m) * p = (n * p) + (m * p)

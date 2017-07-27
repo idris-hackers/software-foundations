@@ -1,4 +1,4 @@
-= Tactics: More Basic Tactics
+= Tactics : More Basic Tactics
 
 This chapter introduces several additional proof strategies and tactics that
 allow us to begin proving more interesting properties of functional programs. We
@@ -1193,7 +1193,7 @@ checks whether every element in a list satisfies a given predicate:
 
       \idr{forallb oddb [1,3,5,7,9] = True}
 
-      \idr{forallb negb [False,False] = True}
+      \idr{forallb not [False,False] = True}
 
       \idr{forallb evenb [0,2,4,5] = False}
 
@@ -1204,14 +1204,14 @@ given predicate:
 
       \idr{existsb (beq_nat 5) [0,2,3,6] = False}
 
-      \idr{existsb (andb True) [True,True,False] = True}
+      \idr{existsb ((&&) True) [True,True,False] = True}
 
       \idr{existsb oddb [1,0,0,0,0,3] = True}
 
       \idr{existsb evenb [] = False}
 
 Next, define a _nonrecursive_ version of \idr{existsb} -- call it \idr{existsb'}
--- using \idr{forallb} and \idr{negb}.
+-- using \idr{forallb} and \idr{not}.
 
 Finally, prove a theorem \idr{existsb_existsb'} stating that \idr{existsb'} and
 \idr{existsb} have the same behavior.
