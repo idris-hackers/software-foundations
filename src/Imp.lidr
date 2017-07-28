@@ -1,5 +1,7 @@
 = Imp : Simple Imperative Programs
 
+> module Imp
+
 In this chapter, we begin a new direction that will continue for the rest of the
 course. Up to now most of our attention has been focused on various aspects of
 Idris itself, while from now on we'll mostly be using Idris to formalize other
@@ -33,8 +35,12 @@ Require Import Idris.omega.Omega.
 Require Import Idris.Lists.List.
 Import ListNotations.
 
+> import Maps
+
 Require Import Maps.
 (* /IMPORTS *)
+
+> %default total
 
 
 == Arithmetic and Boolean Expressions
@@ -572,14 +578,14 @@ together with a declaration of what the notation means.
 
 Reserved Notation "e '\||/' n" (at level 50, left associativity).
 
-> data (\||/) : AExp -> Nat -> Type where
+> data (\||/) : AExp -> (n : Nat) -> Type where
 >   E_ANum : (ANum n) \||/ n
->   E_APlus : 
->     (e1 \||/ n1) -> (e2 \||/ n2) -> (APlus e1 e2) \||/ (n1 + n2)
->   E_AMinus : 
->     (e1 \||/ n1) -> (e2 \||/ n2) -> (AMinus e1 e2) \||/ (n1 `minus` n2)
->   E_AMult : 
->      (e1 \||/ n1) -> (e2 \||/ n2) -> (AMult e1 e2) \||/ (n1 * n2)
+>   E_APlus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 + n2) -> 
+>     (APlus e1 e2) \||/ n
+>   E_AMinus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 `minus` n2) -> 
+>     (AMinus e1 e2) \||/ n
+>   E_AMult : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 * n2) -> 
+>     (AMult e1 e2) \||/ n
 
   where "e '\||/' n" := (AevalR e n) : type_scope.
 
@@ -634,11 +640,42 @@ AMult e1 e2 \||/ n1*n2
 It is straightforward to prove that the relational and functional definitions of
 evaluation agree:
 
-Theorem aeval_iff_aevalR : ∀a n,
-  (a \||/ n) ↔ aeval a = n.
+\todo[inline]{Copypasted `<->` for now}
+
+ iff : {p,q : Type} -> Type
+ iff {p} {q} = (p -> q, q -> p)
+
+ syntax [p] "<->" [q] = iff {p} {q}
+
+> aeval_iff_aevalR : (a \||/ n) <-> aeval a = n
+> aeval_iff_aevalR = (to, fro)
+> where
+>   to : (a \||/ n) -> aeval a = n
+>   to E_ANum = Refl
+>   to (E_APlus x y xy) =  
+>     rewrite xy in rewrite to x in rewrite to y in Refl
+>   to (E_AMinus x y xy) = 
+>     rewrite xy in rewrite to x in rewrite to y in Refl
+>   to (E_AMult x y xy) = 
+>     rewrite xy in rewrite to x in rewrite to y in Refl
+>   fro : (aeval a = n) -> (a \||/ n)
+>   fro {a=ANum n} Refl = E_ANum
+>   fro {a=APlus x y} prf = 
+>     E_APlus (fro {a=x} {n=aeval x} Refl) 
+>             (fro {a=y} {n=aeval y} Refl) 
+>             (sym prf)
+>   fro {a=AMinus x y} prf = 
+>     E_AMinus (fro {a=x} {n=aeval x} Refl) 
+>              (fro {a=y} {n=aeval y} Refl)
+>              (sym prf)
+>   fro {a=AMult x y} prf = 
+>     E_AMult (fro {a=x} {n=aeval x} Refl) 
+>             (fro {a=y} {n=aeval y} Refl) 
+>             (sym prf)
 
 We can make the proof quite a bit shorter by making more use of tacticals.
 
+```coq
 Theorem aeval_iff_aevalR' : ∀a n,
   (a \||/ n) ↔ aeval a = n.
 Proof.
@@ -651,26 +688,19 @@ Proof.
     induction a; simpl; intros; subst; constructor;
        try apply IHa1; try apply IHa2; Refl.
 Qed.
-
+```
 
 ==== Exercise: 3 stars (bevalR)
 
-Write a relation bevalR in the same style as AevalR, and prove that it is
-equivalent to beval.
+Write a relation \idr{BevalR} in the same style as \idr{AevalR}, and prove that
+it is equivalent to \idr{beval}.
 
-Inductive bevalR: BExp -> Bool -> Type :=
+ data BevalR : BExp -> (b : Bool) -> Type where
+   -- FILL IN HERE
 
-> -- FILL IN HERE
-
-
-Lemma beval_iff_bevalR : ∀b bv,
-  bevalR b bv ↔ beval b = bv.
-Proof.
-  (* FILL IN HERE *) Admitted.
+ beval_iff_bevalR : (BevalR b bv) <-> beval b = bv
 
 $\square$
-
-End AExp.
 
 
 === Computational vs. Relational Definitions
@@ -687,32 +717,31 @@ Module aevalR_division.
 For example, suppose that we wanted to extend the arithmetic operations by
 considering also a division operation:
 
-Inductive AExp : Type :=
-  | ANum : Nat -> AExp
-  | APlus : AExp -> AExp -> AExp
-  | AMinus : AExp -> AExp -> AExp
-  | AMult : AExp -> AExp -> AExp
-  | ADiv : AExp -> AExp -> AExp. (* <--- new *)
+> data AExpD : Type where
+>   ANumD : Nat -> AExpD
+>   APlusD : AExpD -> AExpD -> AExpD
+>   AMinusD : AExpD -> AExpD -> AExpD
+>   AMultD : AExpD -> AExpD -> AExpD
+>   ADivD : AExpD -> AExpD -> AExpD -- <--- new
 
-Extending the definition of aeval to handle this new operation would not be
-straightforward (what should we return as the result of ADiv (ANum 5) (ANum
-0)?). But extending AevalR is straightforward.
+Extending the definition of \idr{aeval} to handle this new operation would not
+be straightforward (what should we return as the result of \idr{ADiv (ANum 5)
+(ANum 0)}?). But extending \idr{AevalR} is straightforward.
 
-Reserved Notation "e '\||/' n"
-                  (at level 50, left associativity).
+> infix 5 \||//
 
-Inductive AevalR : AExp -> Nat -> Type :=
-  | E_ANum : ∀(n:Nat),
-      (ANum n) \||/ n
-  | E_APlus : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (APlus a1 a2) \||/ (n1 + n2)
-  | E_AMinus : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (AMinus a1 a2) \||/ (n1 - n2)
-  | E_AMult : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (AMult a1 a2) \||/ (n1 * n2)
-  | E_ADiv : ∀(a1 a2: AExp) (n1 n2 n3: Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (n2 > 0) ->
-      (mult n2 n3 = n1) -> (ADiv a1 a2) \||/ n3
+Reserved Notation "e '\||/' n" (at level 50, left associativity).
+
+> data (\||//) : AExpD -> (n : Nat) -> Type where
+>   E_ANumD : (ANumD n) \||// n
+>   E_APlusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 + n2) -> 
+>     (APlusD e1 e2) \||// n
+>   E_AMinusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 `minus` n2) -> 
+>     (AMinusD e1 e2) \||// n
+>   E_AMultD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 * n2) -> 
+>     (AMultD e1 e2) \||// n
+>   E_ADivD : (e1 \||// n1) -> (e2 \||// n2) -> (n2 `GT` 0) -> (n1 = n2*n3) -> 
+>     (ADivD e1 e2) \||// n3
 
 where "a '\||/' n" := (AevalR a n) : type_scope.
 
@@ -721,35 +750,33 @@ End aevalR_division.
 Module aevalR_extended.
 
 Suppose, instead, that we want to extend the arithmetic operations by a
-nondeterministic number generator any that, when evaluated, may yield any
-number. (Note that this is not the same as making a probabilistic choice among
+nondeterministic number generator \idr{any} that, when evaluated, may yield any
+number. (Note that this is not the same as making a _probabilistic_ choice among
 all possible numbers — we're not specifying any particular distribution of
-results, but just saying what results are possible.)
+results, but just saying what results are _possible_.)
 
-Reserved Notation "e '\||/' n" (at level 50, left associativity).
+> data AExpA : Type where
+>   AAnyA : AExpA -- <--- new
+>   ANumA : Nat -> AExpA
+>   APlusA : AExpA -> AExpA -> AExpA
+>   AMinusA : AExpA -> AExpA -> AExpA
+>   AMultA : AExpA -> AExpA -> AExpA
 
-Inductive AExp : Type :=
-  | AAny : AExp (* <--- NEW *)
-  | ANum : Nat -> AExp
-  | APlus : AExp -> AExp -> AExp
-  | AMinus : AExp -> AExp -> AExp
-  | AMult : AExp -> AExp -> AExp.
+Again, extending \idr{aeval} would be tricky, since now evaluation is _not_ a
+deterministic function from expressions to numbers, but extending \idr{AevalR}
+is no problem:
 
-Again, extending aeval would be tricky, since now evaluation is not a
-deterministic function from expressions to numbers, but extending AevalR is no
-problem:
+> infix 5 \||/\
 
-Inductive AevalR : AExp -> Nat -> Type :=
-  | E_Any : ∀(n:Nat),
-      AAny \||/ n (* <--- new *)
-  | E_ANum : ∀(n:Nat),
-      (ANum n) \||/ n
-  | E_APlus : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (APlus a1 a2) \||/ (n1 + n2)
-  | E_AMinus : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (AMinus a1 a2) \||/ (n1 - n2)
-  | E_AMult : ∀(a1 a2: AExp) (n1 n2 : Nat),
-      (a1 \||/ n1) -> (a2 \||/ n2) -> (AMult a1 a2) \||/ (n1 * n2)
+> data (\||/\) : AExpA -> (n : Nat) -> Type where
+>   E_AnyA : AAnyA \||/\ n
+>   E_ANumA : (ANumA n) \||/\ n
+>   E_APlusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 + n2) -> 
+>     (APlusA e1 e2) \||/\ n
+>   E_AMinusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 `minus` n2) -> 
+>     (AMinusA e1 e2) \||/\ n
+>   E_AMultA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 * n2) -> 
+>     (AMultA e1 e2) \||/\ n
 
 where "a '\||/' n" := (AevalR a n) : type_scope.
 
@@ -758,12 +785,12 @@ End aevalR_extended.
 At this point you maybe wondering: which style should I use by default? The
 examples above show that relational definitions are fundamentally more powerful
 than functional ones. For situations like these, where the thing being defined
-is not easy to express as a function, or indeed where it is not a function,
+is not easy to express as a function, or indeed where it is _not_ a function,
 there is no choice. But what about when both styles are workable?
 
 One point in favor of relational definitions is that some people feel they are
 more elegant and easier to understand. Another is that Idris automatically
-generates nice inversion and induction principles from Inductive definitions.
+generates nice inversion and induction principles from function definitions.
 
 On the other hand, functional definitions can often be more convenient:
 
@@ -778,7 +805,7 @@ or Haskell.
 
 Ultimately, the choice often comes down to either the specifics of a particular
 situation or simply a question of taste. Indeed, in large Idris developments it
-is common to see a definition given in both functional and relational styles,
+is common to see a definition given in _both_ functional and relational styles,
 plus a lemma stating that the two coincide, allowing further proofs to switch
 from one point of view to the other at will.
 
@@ -794,22 +821,24 @@ numbers.
 === States
 
 Since we'll want to look variables up to find out their current values, we'll
-reuse the type id from the Maps chapter for the type of variables in Imp.
+reuse the type \idr{Id} from the `Maps` chapter for the type of variables in
+Imp.
 
-A machine state (or just state) represents the current values of all variables
-at some point in the execution of a program.
+A _machine state_ (or just _state_) represents the current values of _all_
+variables at some point in the execution of a program.
 
-For simplicity, we assume that the state is defined for all variables, even
+For simplicity, we assume that the state is defined for _all_ variables, even
 though any given program is only going to mention a finite number of them. The
 state captures all of the information stored in memory. For Imp programs,
 because each variable stores a natural number, we can represent the state as a
-mapping from identifiers to Nat. For more complex programming languages, the
-state might have more structure.
+mapping from identifiers to \idr{Nat}. For more complex programming languages,
+the state might have more structure.
 
-Definition state := total_map Nat.
+> State : Type
+> State = TotalMap Nat
 
-Definition empty_state : state :=
-  t_empty 0.
+> empty_state : State
+> empty_state = t_empty 0
 
 
 === Syntax
@@ -817,35 +846,40 @@ Definition empty_state : state :=
 We can add variables to the arithmetic expressions we had before by simply
 adding one more constructor:
 
-Inductive AExp : Type :=
-  | ANum : Nat -> AExp
-  | AId : id -> AExp (* <----- NEW *)
-  | APlus : AExp -> AExp -> AExp
-  | AMinus : AExp -> AExp -> AExp
-  | AMult : AExp -> AExp -> AExp.
+> data AExpS : Type where
+>   ANumS : Nat -> AExpS
+>   AIdS : Id -> AExpS -- <----- NEW 
+>   APlusS : AExpS -> AExpS -> AExpS
+>   AMinusS : AExpS -> AExpS -> AExpS
+>   AMultS : AExpS -> AExpS -> AExpS
 
 Defining a few variable names as notational shorthands will make examples easier
 to read:
 
-Definition W : id := Id "W".
-Definition X : id := Id "X".
-Definition Y : id := Id "Y".
-Definition Z : id := Id "Z".
+> W : Id
+> W = MkId "W"
+> X : Id
+> X = MkId "X"
+> Y : Id
+> Y = MkId "Y"
+> Z : Id
+> Z = MkId "Z"
 
-(This convention for naming program variables (X, Y, Z) clashes a bit with our
-earlier use of uppercase letters for types. Since we're not using polymorphism
-heavily in the chapters devoped to Imp, this overloading should not cause
-confusion.)
+(This convention for naming program variables (\idr{X}, \idr{Y}, \idr{Z})
+clashes a bit with our earlier use of uppercase letters for types. Since we're
+not using polymorphism heavily in the chapters devoped to Imp, this overloading
+should not cause confusion.)
 
-The definition of bexps is unchanged (except for using the new aexps):
+The definition of \idr{BExp}s is unchanged (except for using the new
+\idr{AExp}s):
 
-Inductive BExp : Type :=
-  | BTrue : BExp
-  | BFalse : BExp
-  | BEq : AExp -> AExp -> BExp
-  | BLe : AExp -> AExp -> BExp
-  | BNot : BExp -> BExp
-  | BAnd : BExp -> BExp -> BExp.
+> data BExpS : Type where
+>   BTrueS : BExpS
+>   BFalseS : BExpS
+>   BEqS : AExpS -> AExpS -> BExpS
+>   BLeS : AExpS -> AExpS -> BExpS
+>   BNotS : BExpS -> BExpS
+>   BAndS : BExpS -> BExpS -> BExpS
 
 
 === Evaluation
@@ -853,99 +887,95 @@ Inductive BExp : Type :=
 The arith and boolean evaluators are extended to handle variables in the obvious
 way, taking a state as an extra argument:
 
-Fixpoint aeval (st : state) (a : AExp) : Nat :=
-  match a with
-  | ANum n => n
-  | AId x => st x (* <----- NEW *)
-  | APlus a1 a2 => (aeval st a1) + (aeval st a2)
-  | AMinus a1 a2 => (aeval st a1) - (aeval st a2)
-  | AMult a1 a2 => (aeval st a1) * (aeval st a2)
-  end.
+> aevalS : (st : State) -> (a : AExpS) -> Nat 
+> aevalS _ (ANumS n) = n
+> aevalS st (AIdS i) = st i
+> aevalS st (APlusS a1 a2) = (aevalS st a1) + (aevalS st a2)
+> aevalS st (AMinusS a1 a2) = (aevalS st a1) `minus` (aevalS st a2)
+> aevalS st (AMultS a1 a2) = (aevalS st a1) * (aevalS st a2)
+>
+> bevalS : (st : State) -> (b : BExpS) -> Bool 
+> bevalS _ BTrueS = True
+> bevalS _ BFalseS = False
+> bevalS st (BEqS a1 a2) = (aevalS st a1) == (aevalS st a2)
+> bevalS st (BLeS a1 a2) = lte (aevalS st a1) (aevalS st a2)
+> bevalS st (BNotS b1) = not (bevalS st b1)
+> bevalS st (BAndS b1 b2) = (bevalS st b1) && (bevalS st b2) 
 
-Fixpoint beval (st : state) (b : BExp) : Bool :=
-  match b with
-  | BTrue => True
-  | BFalse => false
-  | BEq a1 a2 => beq_nat (aeval st a1) (aeval st a2)
-  | BLe a1 a2 => lte (aeval st a1) (aeval st a2)
-  | BNot b1 => negb (beval st b1)
-  | BAnd b1 b2 => andb (beval st b1) (beval st b2)
-  end.
+> aexp1 : aevalS (t_update X 5 empty_state) 
+>                (APlusS (ANumS 3) (AMultS (AIdS X) (ANumS 2)))
+>         = 13
+> aexp1 = Refl
 
-Example aexp1 :
-  aeval (t_update empty_state X 5)
-        (APlus (ANum 3) (AMult (AId X) (ANum 2)))
-  = 13.
-
-Example bexp1 :
-  beval (t_update empty_state X 5)
-        (BAnd BTrue (BNot (BLe (AId X) (ANum 4))))
-  = True.
+> bexp1 : bevalS (t_update X 5 empty_state)
+>                (BAndS BTrueS (BNotS (BLeS (AIdS X) (ANumS 4))))
+>         = True
+> bexp1 = Refl
 
 
 == Commands
 
-Now we are ready define the syntax and behavior of Imp commands (sometimes
-called statements).
+Now we are ready define the syntax and behavior of Imp _commands_ (sometimes
+called _statements_).
 
 
 === Syntax
 
-Informally, commands c are described by the following BNF grammar. (We choose
+Informally, commands \idr{c} are described by the following BNF grammar. (We choose
 this slightly awkward concrete syntax for the sake of being able to define Imp
-syntax using Idris's Notation mechanism. In particular, we use IFB to avoid
-conflicting with the if notation from the standard library.)
+syntax using Idris's Notation mechanism. In particular, we use `IFB` to avoid
+conflicting with the \idr{if} notation from the standard library.)
 
+```
      c ::= SKIP | x ::= a | c ;; c | IFB b THEN c ELSE c FI
          | WHILE b DO c END
+```
 
 For example, here's factorial in Imp:
 
+```
      Z ::= X;;
      Y ::= 1;;
      WHILE not (Z = 0) DO
        Y ::= Y * Z;;
        Z ::= Z - 1
      END
+```
 
-When this command terminates, the variable Y will contain the factorial of the
-initial value of X.
+When this command terminates, the variable \idr{Y} will contain the factorial of
+the initial value of \idr{X}.
 
 Here is the formal definition of the abstract syntax of commands:
 
-Inductive com : Type :=
-  | CSkip : com
-  | CAss : id -> AExp -> com
-  | CSeq : com -> com -> com
-  | CIf : BExp -> com -> com -> com
-  | CWhile : BExp -> com -> com.
+> data Com : Type where
+>   CSkip : Com
+>   CAss : Id -> AExpS -> Com
+>   CSeq : Com -> Com -> Com
+>   CIf : BExpS -> Com -> Com -> Com
+>   CWhile : BExpS -> Com -> Com
 
-As usual, we can use a few Notation declarations to make things more readable.
+As usual, we can use a few `Notation` declarations to make things more readable.
 To avoid conflicts with Idris's built-in notations, we keep this light — in
-particular, we don't introduce any notations for aexps and bexps to avoid
-confusion with the numeric and Boolean operators we've already defined.
+particular, we don't introduce any notations for \idr{AExp}s and \idr{BExp}s to
+avoid confusion with the numeric and boolean operators we've already defined.
 
-Notation "'SKIP'" :=
-  CSkip.
-Notation "x '::=' a" :=
-  (CAss x a) (at level 60).
-Notation "c1 ;; c2" :=
-  (CSeq c1 c2) (at level 80, right associativity).
-Notation "'WHILE' b 'DO' c 'END'" :=
-  (CWhile b c) (at level 80, right associativity).
-Notation "'IFB' c1 'THEN' c2 'ELSE' c3 'FI'" :=
-  (CIf c1 c2 c3) (at level 80, right associativity).
+> syntax SKIP = CSkip
+> syntax [x] "::=" [a] = CAss x a
+> syntax [c1] ";;" [c2] = CSeq c1 c2
+> syntax WHILE [b] DO [c] END = CWhile b c
+> syntax IFB [c1] THEN [c2] ELSE [c3] FI = CIf c1 c2 c3
 
 For example, here is the factorial function again, written as a formal
 definition to Idris:
 
-Definition fact_in_Idris : com :=
-  Z ::= AId X;;
-  Y ::= ANum 1;;
-  WHILE BNot (BEq (AId Z) (ANum 0)) DO
-    Y ::= AMult (AId Y) (AId Z);;
-    Z ::= AMinus (AId Z) (ANum 1)
-  END.
+> fact_in_idris : Com 
+> fact_in_idris = 
+>  (Z ::= AIdS X) ;;
+>  (Y ::= ANumS 1) ;;
+>  WHILE BNotS (BEqS (AIdS Z) (ANumS 0)) DO
+>    (Y ::= AMultS (AIdS Y) (AIdS Z)) ;;
+>    (Z ::= AMinusS (AIdS Z) (ANumS 1))
+>  END
 
 
 === More Examples
@@ -953,113 +983,120 @@ Definition fact_in_Idris : com :=
 
 ==== Assignment:
 
-Definition plus2 : com :=
-  X ::= (APlus (AId X) (ANum 2)).
+> plus2 : Com 
+> plus2 = 
+>  X ::= (APlusS (AIdS X) (ANumS 2))
 
-Definition XtimesYinZ : com :=
-  Z ::= (AMult (AId X) (AId Y)).
+> XtimesYinZ : Com 
+> XtimesYinZ =
+>  Z ::= (AMultS (AIdS X) (AIdS Y))
 
-Definition subtract_slowly_body : com :=
-  Z ::= AMinus (AId Z) (ANum 1) ;;
-  X ::= AMinus (AId X) (ANum 1).
+> subtract_slowly_body : Com 
+> subtract_slowly_body =
+>   (Z ::= AMinusS (AIdS Z) (ANumS 1)) ;;
+>   (X ::= AMinusS (AIdS X) (ANumS 1))
 
 
 ==== Loops
 
-Definition subtract_slowly : com :=
-  WHILE BNot (BEq (AId X) (ANum 0)) DO
-    subtract_slowly_body
-  END.
+> subtract_slowly : Com 
+> subtract_slowly =
+>  WHILE BNotS (BEqS (AIdS X) (ANumS 0)) DO
+>    subtract_slowly_body
+>  END
 
-Definition subtract_3_from_5_slowly : com :=
-  X ::= ANum 3 ;;
-  Z ::= ANum 5 ;;
-  subtract_slowly.
+> subtract_3_from_5_slowly : Com 
+> subtract_3_from_5_slowly =
+>   (X ::= ANumS 3) ;;
+>   (Z ::= ANumS 5) ;;
+>   subtract_slowly
 
 
 ==== An infinite loop:
 
-Definition loop : com :=
-  WHILE BTrue DO
-    SKIP
-  END.
+> loop : Com 
+> loop =
+>   WHILE BTrueS DO
+>     SKIP
+>   END
 
 
 == Evaluating Commands
 
 Next we need to define what it means to evaluate an Imp command. The fact that
-WHILE loops don't necessarily terminate makes defining an evaluation function
+\idr{WHILE} loops don't necessarily terminate makes defining an evaluation function
 tricky...
 
 
 === Evaluation as a Function (Failed Attempt)
 
 Here's an attempt at defining an evaluation function for commands, omitting the
-WHILE case.
+\idr{WHILE} case.
 
-Fixpoint ceval_fun_no_while (st : state) (c : com)
-                          : state :=
-  match c with
-    | SKIP =>
-        st
-    | x ::= a1 =>
-        t_update st x (aeval st a1)
-    | c1 ;; c2 =>
-        let st' := ceval_fun_no_while st c1 in
-        ceval_fun_no_while st' c2
-    | IFB b THEN c1 ELSE c2 FI =>
-        if (beval st b)
-          then ceval_fun_no_while st c1
-          else ceval_fun_no_while st c2
-    | WHILE b DO c END =>
-        st (* bogus *)
-  end.
+> ceval_fun_no_while : (st : State) -> (c : Com) -> State 
+> ceval_fun_no_while st CSkip = st
+> ceval_fun_no_while st (CAss x a) = t_update x (aevalS st a) st
+> ceval_fun_no_while st (CSeq c1 c2) = 
+>   let st' = ceval_fun_no_while st c1 
+>   in ceval_fun_no_while st' c2 
+> ceval_fun_no_while st (CIf b c1 c2) = 
+>   if bevalS st b 
+>     then ceval_fun_no_while st c1
+>     else ceval_fun_no_while st c2
+> ceval_fun_no_while st (CWhile x y) = st   -- bogus
 
 In a traditional functional programming language like OCaml or Haskell we could
-add the WHILE case as follows:
+add the \idr{WHILE} case as follows:
 
-  Fixpoint ceval_fun (st : state) (c : com) : state :=
-    match c with
-      ...
-      | WHILE b DO c END =>
-          if (beval st b)
-            then ceval_fun st (c; WHILE b DO c END)
-            else st
-    end.
+```idris
+...
+ceval_fun st (CWhile b c) = 
+  if (bevalS st b)
+    then ceval_fun st (CSeq c $ CWhile b c)
+    else st
+```
 
-Idris doesn't accept such a definition ("Error: Cannot guess decreasing argument
-of fix") because the function we want to define is not guaranteed to terminate.
-Indeed, it doesn't always terminate: for example, the full version of the
-ceval_fun function applied to the loop program above would never terminate.
-Since Idris is not just a functional programming language but also a consistent
-logic, any potentially non-terminating function needs to be rejected. Here is an
+Idris doesn't accept such a definition ("Imp.ceval_fun is possibly not total due
+to recursive path Imp.ceval_fun --> Imp.ceval_fun --> Imp.ceval_fun") because
+the function we want to define is not guaranteed to terminate. Indeed, it
+_doesn't_ always terminate: for example, the full version of the \idr{ceval_fun}
+function applied to the \idr{loop} program above would never terminate. Since
+Idris is not just a functional programming language but also a consistent logic,
+any potentially non-terminating function needs to be rejected. Here is an
 (invalid!) program showing what would go wrong if Idris allowed non-terminating
 recursive functions:
 
-         Fixpoint loop_false (n : Nat) : False := loop_false n.
+```idris
+loop_false : (n : Nat) -> Void
+loop_false n = loop_false n
+```
 
-That is, propositions like Void would become provable (loop_false 0 would be a
-proof of Void), which would be a disaster for Idris's logical consistency.
+That is, propositions like \idr{Void} would become provable (\idr{loop_false 0}
+would be a proof of \idr{Void}), which would be a disaster for Idris's logical
+consistency.
 
-Thus, because it doesn't terminate on all inputs, of ceval_fun cannot be written
-in Idris — at least not without additional tricks and workarounds (see chapter
-ImpCEvalFun if you're curious about what those might be).
+\todo[inline]{Mention \idr{partial}}
+
+Thus, because it doesn't terminate on all inputs, \idr{ceval_fun} cannot be
+written in Idris — at least not without additional tricks and workarounds (see
+chapter `ImpCEvalFun` if you're curious about what those might be).
 
 
 === Evaluation as a Relation
 
-Here's a better way: define ceval as a relation rather than a function — i.e.,
-define it in Type instead of Type, as we did for AevalR above.
+Here's a better way: define \idr{CEval} as a _relation_ rather than a _function_
+— i.e., define it with \idr{data}, as we did for \idr{AevalR} above.
 
 This is an important change. Besides freeing us from awkward workarounds, it
 gives us a lot more flexibility in the definition. For example, if we add
-nondeterministic features like any to the language, we want the definition of
-evaluation to be nondeterministic — i.e., not only will it not be total, it will
-not even be a function!
+nondeterministic features like \idr{any} to the language, we want the definition
+of evaluation to be nondeterministic — i.e., not only will it not be total, it
+will not even be a function!
 
-We'll use the notation c / st \||/ st' for the ceval relation: c / st \||/ st' means
-that executing program c in a starting state st results in an ending state st'.
-This can be pronounced "c takes state st to st'".
+We'll use the notation \idr{c / st \||/ st'} for the \idr{CEval} relation:
+\idr{c / st \||/ st'} means that executing program \idr{c} in a starting state
+\idr{st} results in an ending state \idr{st'}. This can be pronounced "\idr{c}
+takes state \idr{st} to \idr{st'}".
 
 
 ==== Operational Semantics
@@ -1093,84 +1130,71 @@ the inference rules.
 Reserved Notation "c1 '/' st '\||/' st'"
                   (at level 40, st at level 39).
 
-Inductive ceval : com -> state -> state -> Type :=
-  | E_Skip : ∀st,
-      SKIP / st \||/ st
-  | E_Ass : ∀st a1 n x,
-      aeval st a1 = n ->
-      (x ::= a1) / st \||/ (t_update st x n)
-  | E_Seq : ∀c1 c2 st st' st'',
-      c1 / st \||/ st' ->
-      c2 / st' \||/ st'' ->
-      (c1 ;; c2) / st \||/ st''
-  | E_IfTrue : ∀st st' b c1 c2,
-      beval st b = True ->
-      c1 / st \||/ st' ->
-      (IFB b THEN c1 ELSE c2 FI) / st \||/ st'
-  | E_IfFalse : ∀st st' b c1 c2,
-      beval st b = false ->
-      c2 / st \||/ st' ->
-      (IFB b THEN c1 ELSE c2 FI) / st \||/ st'
-  | E_WhileEnd : ∀b st c,
-      beval st b = false ->
-      (WHILE b DO c END) / st \||/ st
-  | E_WhileLoop : ∀st st' st'' b c,
-      beval st b = True ->
-      c / st \||/ st' ->
-      (WHILE b DO c END) / st' \||/ st'' ->
-      (WHILE b DO c END) / st \||/ st''
+> data CEval : Com -> State -> State -> Type where
+>   E_Skip : CEval CSkip st st
+>   E_Ass : aevalS st a1 = n -> CEval (CAss x a1) st (t_update x n st)
+>   E_Seq : CEval c1 st st' -> CEval c2 st' st'' ->
+>     CEval (CSeq c1 c2) st st''
+>   E_IfTrue : bevalS st b = True -> CEval c1 st st' ->
+>     CEval (CIf b c1 c2) st st'
+>   E_IfFalse : bevalS st b = False -> CEval c2 st st' ->
+>     CEval (CIf b c1 c2) st st'
+>   E_WhileEnd : bevalS st b = False -> 
+>     CEval (CWhile b c) st st
+>   E_WhileLoop : bevalS st b = True ->
+>     CEval c st st' -> CEval (CWhile b c) st' st'' ->
+>     CEval (CWhile b c) st st''
 
   where "c1 '/' st '\||/' st'" := (ceval c1 st st').
 
 The cost of defining evaluation as a relation instead of a function is that we
-now need to construct proofs that some program evaluates to some result state,
+now need to construct _proofs_ that some program evaluates to some result state,
 rather than just letting Idris's computation mechanism do it for us.
 
-Example ceval_example1:
-    (X ::= ANum 2;;
-     IFB BLe (AId X) (ANum 1)
-       THEN Y ::= ANum 3
-       ELSE Z ::= ANum 4
-     FI)
-   / empty_state
-   \||/ (t_update (t_update empty_state X 2) Z 4).
-Proof.
-  (* We must supply the intermediate state *)
-  apply E_Seq with (t_update empty_state X 2).
-  - (* assignment command *)
-    apply E_Ass. Refl.
-  - (* if command *)
-    apply E_IfFalse.
-      Refl.
-      apply E_Ass. Refl. Qed.
+> ceval_example1 : 
+>    CEval (
+>     (X ::= ANumS 2) ;;
+>     (IFB BLeS (AIdS X) (ANumS 1)
+>       THEN (Y ::= ANumS 3)
+>       ELSE (Z ::= ANumS 4)
+>      FI)
+>    ) empty_state (t_update Z 4 $ t_update X 2 empty_state)
+> ceval_example1 = 
+>    E_Seq 
+>      (E_Ass Refl) 
+>      (E_IfFalse Refl 
+>                 (E_Ass Refl))
 
 
 ==== Exercise: 2 stars (ceval_example2)
 
-Example ceval_example2:
-    (X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2) / empty_state \||/
-    (t_update (t_update (t_update empty_state X 0) Y 1) Z 2).
-Proof.
-  (* FILL IN HERE *) Admitted.
+> ceval_example2 :
+>    CEval ((X ::= ANumS 0);; (Y ::= ANumS 1);; (Z ::= ANumS 2))
+>          empty_state 
+>          (t_update Z 2 $ t_update Y 1 $ t_update X 0 empty_state)
+> ceval_example2 = ?ceval_example2_rhs
 
 $\square$
 
 
 ==== Exercise: 3 stars, advanced (pup_to_n)
 
-Write an Imp program that sums the numbers from 1 to X (inclusive: 1 + 2 + ... +
-X) in the variable Y. Prove that this program executes as intended for X = 2
-(this is trickier than you might expect).
+Write an Imp program that sums the numbers from \idr{1} to \idr{X} (inclusive:
+\idr{1 + 2 + ... + X}) in the variable \idr{Y}. Prove that this program executes
+as intended for \idr{X = 2} (this is trickier than you might expect).
 
-Definition pup_to_n : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
-
-Theorem pup_to_2_ceval :
-  pup_to_n / (t_update empty_state X 2) \||/
-    t_update (t_update (t_update (t_update (t_update (t_update empty_state
-      X 2) Y 0) Y 2) X 1) Y 3) X 0.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> pup_to_n : Com
+> pup_to_n = ?pup_to_n_rhs
+  
+> pup_to_2_ceval :
+>   CEval pup_to_n (t_update X 2 empty_state) 
+>         (t_update X 0 $ 
+>          t_update Y 3 $ 
+>          t_update X 1 $ 
+>          t_update Y 2 $ 
+>          t_update Y 0 $ 
+>          t_update X 2 empty_state)
+> pup_to_2_ceval = ?pup_to_2_ceval_rhs
 
 $\square$
 
@@ -1181,15 +1205,23 @@ Changing from a computational to a relational definition of evaluation is a good
 move because it frees us from the artificial requirement that evaluation should
 be a total function. But it also raises a question: Is the second definition of
 evaluation really a partial function? Or is it possible that, beginning from the
-same state st, we could evaluate some command c in different ways to reach two
-different output states st' and st''?
+same state \idr{st}, we could evaluate some command \idr{c} in different ways to reach two
+different output states \idr{st'} and \idr{st''}?
 
-In fact, this cannot happen: ceval is a partial function:
+In fact, this cannot happen: \idr{CEval} _is_ a partial function:
 
-Theorem ceval_deterministic: ∀c st st1 st2,
-     c / st \||/ st1 ->
-     c / st \||/ st2 ->
-     st1 = st2.
+> ceval_deterministic : CEval c st st1 -> CEval c st st2 -> st1 = st2
+> ceval_deterministic E_Skip E_Skip = Refl
+> ceval_deterministic (E_Ass aev1) (E_Ass aev2) = 
+>   rewrite sym aev1 in rewrite sym aev2 in Refl
+> ceval_deterministic {st2} (E_Seq cev11 cev12) (E_Seq {c2} cev21 cev22) = 
+>   let ih = ceval_deterministic cev11 cev21
+>       cev22' = replace (sym ih) cev22 {P=\x=>CEval c2 x st2}
+>   in ceval_deterministic cev12 cev22'
+> ceval_deterministic (E_IfTrue prf x) y = ?ceval_deterministic_rhs_3
+> ceval_deterministic (E_IfFalse prf x) y = ?ceval_deterministic_rhs_4
+> ceval_deterministic (E_WhileEnd prf) y = ?ceval_deterministic_rhs_5
+> ceval_deterministic (E_WhileLoop prf x z) y = ?ceval_deterministic_rhs_6
 
 
 == Reasoning About Imp Programs
