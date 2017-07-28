@@ -486,7 +486,7 @@ this fact directly gives rise to a way of reasoning about inductively defined
 sets: a number is either \idr{Z} or else it is \idr{S} applied to some _smaller_
 number; a list is either \idr{Nil} or else it is \idr{Cons} applied to some
 number and some _smaller_ list; etc. So, if we have in mind some proposition
-\idr{p} that mentions a list \idr{l} and we want to argue that \idr{P} holds for
+\idr{p} that mentions a list \idr{l} and we want to argue that \idr{p} holds for
 _all_ lists, we can reason as follows:
 
   - First, show that \idr{p} is true of \idr{l} when \idr{l} is \idr{Nil}.
@@ -527,7 +527,7 @@ _Proof_: By induction on \idr{l1}.
 
   - First, suppose \idr{l1 = []}. We must show
 
-    \idr{([] ++ l2) ++ l3 = [] ++ (l2 ++ l3),}
+    \idr{([] ++ l2) ++ l3 = [] ++ (l2 ++ l3)},
 
     which follows directly from the definition of \idr{++}.
 

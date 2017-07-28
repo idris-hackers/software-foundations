@@ -764,11 +764,11 @@ Google's map/reduce distributed programming framework.
 
 Intuitively, the behavior of the \idr{fold} operation is to insert a given
 binary operator \idr{f} between every pair of elements in a given list. For
-example, \idr{fold plus [1,2,3,4]} intuitively means \idr{1+2+3+4}. To make this
+example, \idr{fold (+) [1,2,3,4]} intuitively means \idr{1+2+3+4}. To make this
 precise, we also need a "starting element" that serves as the initial second
 input to \idr{f}. So, for example,
 
-\idr{fold plus [1,2,3,4] 0}
+\idr{fold (+) [1,2,3,4] 0}
 
 yields
 

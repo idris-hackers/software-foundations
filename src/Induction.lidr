@@ -285,7 +285,7 @@ $\square$
 The `replace` tactic allows you to specify a particular subterm to rewrite and
 what you want it rewritten to: `replace (t) with (u)` replaces (all copies of)
 expression `t` in the goal by expression `u`, and generates `t = u` as an
-additional subgoal. This is often useful when a plain \idr{rewrite` acts on the
+additional subgoal. This is often useful when a plain \idr{rewrite} acts on the
 wrong part of the goal.
 
 Use the `replace` tactic to do a proof of \idr{plus_swap'}, just like
