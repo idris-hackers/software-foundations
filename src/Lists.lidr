@@ -820,7 +820,7 @@ some number to return when the list is too short...
 
 > nth_bad : (l : NatList) -> (n : Nat) -> Nat
 > nth_bad Nil n = 42 -- arbitrary!
-> nth_bad (a :: l') n = case beq_nat n 0 of
+> nth_bad (a :: l') n = case n == 0 of
 >                         True => a
 >                         False => nth_bad l' (pred n)
 
@@ -840,7 +840,7 @@ to indicate that it may result in an error.
 
 > nth_error : (l : NatList) -> (n : Nat) -> NatOption
 > nth_error Nil n = None
-> nth_error (a :: l') n = case beq_nat n 0 of
+> nth_error (a :: l') n = case n == 0 of
 >                           True => Some a
 >                           False => nth_error l' (pred n)
 
@@ -858,7 +858,7 @@ programming language: conditional expressions...
 
 > nth_error' : (l : NatList) -> (n : Nat) -> NatOption
 > nth_error' Nil n = None
-> nth_error' (a :: l') n = if beq_nat n 0
+> nth_error' (a :: l') n = if n == 0
 >                            then Some a
 >                            else nth_error' l' (pred n)
 
@@ -927,7 +927,7 @@ and gives us the flexibility to change representations later if we wish.
 We'll also need an equality test for \idr{Id}s:
 
 > beq_id : (x1, x2 : Id) -> Bool
-> beq_id (MkId n1) (MkId n2) = beq_nat n1 n2
+> beq_id (MkId n1) (MkId n2) = n1 == n2
 
 
 ==== Exercise: 1 star (beq_id_refl)

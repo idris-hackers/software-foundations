@@ -491,7 +491,7 @@ of lists.
 
 > nth_error : (l : List x) -> (n : Nat) -> Option x
 > nth_error [] n = None
-> nth_error (a::l') n = if beq_nat n 0
+> nth_error (a::l') n = if n == 0
 >                         then Some a
 >                         else nth_error l' (pred n)
 
@@ -579,12 +579,9 @@ numbers \idr{l}, it returns a list containing just the even members of \idr{l}.
 > test_filter1 = Refl
 
 > length_is_1 : (l : List x) -> Bool
-> length_is_1 l = beq_nat (length l) 1
+> length_is_1 l = length l == 1
 
-\todo[inline]{Why doesn't this work without \idr{{x=Nat}}? Apparently it even
-works with \idr{{x=_}}!}
-
-> test_filter2 : filter (length_is_1 {x=Nat})
+> test_filter2 : filter Poly.length_is_1
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
 >                     = [        [3], [4],              [8] ]
 > test_filter2 = Refl
@@ -628,7 +625,7 @@ number \idr{n}, yields \idr{n * n}."
 
 Here is the \idr{filter} example, rewritten to use an anonymous function.
 
-> test_filter2' : filter (\l => beq_nat (length l) 1)
+> test_filter2' : filter (\l => length l == 1)
 >                       [ [1,2], [3], [4], [5,6,7], [], [8] ]
 >                     = [        [3], [4],              [8] ]
 > test_filter2' = Refl
@@ -964,7 +961,7 @@ Recall the definition of the \idr{nth_error} function:
 ```idris
   nth_error : (l : List x) -> (n : Nat) -> Option x
   nth_error [] n = None
-  nth_error (a::l') n = if beq_nat n 0
+  nth_error (a::l') n = if n == 0
                           then Some a
                           else nth_error l' (pred n)
 ```

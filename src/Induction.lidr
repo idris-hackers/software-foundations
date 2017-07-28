@@ -233,7 +233,7 @@ your piece of paper; this is just to encourage you to reflect before you hack!)
 > lte_refl : (n : Nat) -> True = lte n n
 > lte_refl n = ?lte_refl_rhs
 
-> zero_nbeq_S : (n : Nat) -> beq_nat 0 (S n) = False
+> zero_nbeq_S : (n : Nat) -> 0 == (S n) = False
 > zero_nbeq_S n = ?zero_nbeq_S_rhs
 
 > andb_false_r : (b : Bool) -> b && False = False
@@ -243,7 +243,7 @@ your piece of paper; this is just to encourage you to reflect before you hack!)
 >                     lte n m = True -> lte (p + n) (p + m) = True
 > plus_ble_compat_l n m p prf = ?plus_ble_compat_l_rhs
 
-> S_nbeq_0 : (n : Nat) -> beq_nat (S n) 0 = False
+> S_nbeq_0 : (n : Nat) -> (S n) == 0 = False
 > S_nbeq_0 n = ?S_nbeq_0_rhs
 
 > mult_1_l : (n : Nat) -> 1 * n = n
@@ -272,7 +272,7 @@ standard library, so we follow suit. Rewriting works equally well in either
 direction, so we will have no problem using the theorem no matter which way we
 state it.)
 
-> beq_nat_refl : (n : Nat) -> True = beq_nat n n
+> beq_nat_refl : (n : Nat) -> True = n == n
 > beq_nat_refl n = ?beq_nat_refl_rhs
 
 $\square$

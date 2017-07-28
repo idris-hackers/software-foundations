@@ -140,8 +140,8 @@ right sides of the equality are swapped.
 >  solve
 >  attack
 
-> silly3_firsttry : (n : Nat) -> True = beq_nat n 5 ->
->                   beq_nat (S (S n)) 7 = True
+> silly3_firsttry : (n : Nat) -> True = n == 5 ->
+>                   (S (S n)) == 7 = True
 > silly3_firsttry = %runElab silly3_firsttry_tac
 > where
 >   silly3_firsttry_tac : Elab ()
@@ -388,16 +388,16 @@ When used on a hypothesis involving an equality between _different_ constructors
 (e.g., \idr{S n = Z}), \idr{injective} solves the goal immediately. Consider the
 following proof:
 
-> beq_nat_0_l : beq_nat 0 n = True -> n = 0
+> beq_nat_0_l : Z == n = True -> n = Z
 
 We can proceed by case analysis on n. The first case is trivial.
 
 > beq_nat_0_l {n=Z} _ = Refl
 
-However, the second one doesn't look so simple: assuming \idr{beq_nat 0 (S n') =
-True}, we must show \idr{S n' = 0}, but the latter clearly contradictory! The
-way forward lies in the assumption. After simplifying the goal state, we see
-that \idr{beq_nat 0 (S n') = True} has become \idr{False = True}:
+However, the second one doesn't look so simple: assuming \idr{0 == S n' = True},
+we must show \idr{S n' = 0}, but the latter clearly contradictory! The way
+forward lies in the assumption. After simplifying the goal state, we see that
+\idr{0 == S n' = True} has become \idr{False = True}:
 
 \todo[inline]{How to show impossible cases from Elab?}
 
@@ -489,7 +489,7 @@ operation on a statement in the context. For example, the tactic \idr{compute}
 in H performs simplification in the hypothesis named \idr{h} in the context.
 
 > S_inj : (n, m : Nat) -> (b : Bool) ->
->         beq_nat (S n) (S m) = b -> beq_nat n m = b
+>         S n == S m = b -> n == m = b
 > S_inj = %runElab S_inj_tac
 > where
 >   S_inj_tac : Elab ()
@@ -527,8 +527,8 @@ prove \idr{l1}.
 Here is a variant of a proof from above, using forward reasoning throughout
 instead of backward reasoning.
 
-> silly3' : (n, m : Nat) -> (beq_nat n 5 = True -> beq_nat m 7 = True) ->
->          True = beq_nat n 5 -> True = beq_nat m 7
+> silly3' : (n, m : Nat) -> (n == 5 = True -> m == 7 = True) ->
+>          True = n == 5 -> True = m == 7
 > silly3' = %runElab silly3_tac
 > where
 >   silly3_tac : Elab ()
@@ -708,15 +708,11 @@ The following exercise requires the same pattern.
 
 ==== Exercise: 2 stars (beq_nat_true)
 
-\todo[inline]{We can't leave this undefined as \idr{beq_id_true} later depends
-on it. Use \idr{really_believe_me}?}
+\ \todo[inline]{We explicitly write out implicits as having type \idr{Nat} since
+\idr{(==)} is polymorphic}
 
-> beq_nat_true : beq_nat n m = True -> n = m
-> beq_nat_true {n=Z} {m=Z} _ = Refl
-> beq_nat_true {n=(S _)} {m=Z} Refl impossible
-> beq_nat_true {n=Z} {m=(S _)} Refl impossible
-> beq_nat_true {n=(S n')} {m=(S m')} eq =
->  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
+> beq_nat_true : {n, m : Nat} -> n == m = True -> n = m
+> beq_nat_true prf = ?beq_nat_true_rhs
 
 $\square$
 
@@ -817,9 +813,7 @@ that we'll need in later chapters:
 >   MkId : Nat -> Id
 
 > beq_id : (x1, x2 : Id) -> Bool
-> beq_id (MkId n1) (MkId n2) = beq_nat n1 n2
-
-\todo[inline]{This won't work unless \idr{beq_nat_true} is proven above...}
+> beq_id (MkId n1) (MkId n2) = n1 == n2
 
 > beq_id_true : beq_id x y = True -> x = y
 > beq_id_true {x=MkId x'} {y=MkId y'} prf =
@@ -836,7 +830,7 @@ Prove this by induction on \idr{l}.
 
 > nth_error : (l : List x) -> (n : Nat) -> Option x
 > nth_error [] n = None
-> nth_error (a::l') n = if beq_nat n 0
+> nth_error (a::l') n = if n == 0
 >                         then Some a
 >                         else nth_error l' (Nat.pred n)
 
@@ -963,24 +957,24 @@ result of some _expression_. We can also do this with destruct.
 Here are some examples:
 
 > sillyfun : Nat -> Bool
-> sillyfun n = if beq_nat n 3
+> sillyfun n = if n == 3
 >                 then False
->                 else if beq_nat n 5
+>                 else if n == 5
 >                         then False
 >                         else False
 
 > sillyfun_false : (n : Nat) -> sillyfun n = False
-> sillyfun_false n with (beq_nat n 3)
+> sillyfun_false n with (n == 3)
 >   sillyfun_false n | True = Refl
->   sillyfun_false n | False with (beq_nat n 5)
+>   sillyfun_false n | False with (n == 5)
 >     sillyfun_false n | False | True = Refl
 >     sillyfun_false n | False | False = Refl
 
 
 After unfolding \idr{sillyfun} in the above proof, we find that we are stuck on
-\idr{if (beq_nat n 3) then ... else ...}. But either \idr{n} is equal to \idr{3}
-or it isn't, so we can use \idr{with (beq_nat n 3)} to let us reason about the
-two cases.
+\idr{if (n == 3) then ... else ...}. But either \idr{n} is equal to \idr{3} or
+it isn't, so we can use \idr{with (n == 3)} to let us reason about the two
+cases.
 
 \todo[inline]{Edit}
 
@@ -1004,9 +998,9 @@ such destructs can sometimes erase information we need to complete a proof. For
 example, suppose we define a function \idr{sillyfun1} like this:
 
 > sillyfun1 : Nat -> Bool
-> sillyfun1 n = if beq_nat n 3
+> sillyfun1 n = if n == 3
 >                  then True
->                  else if beq_nat n 5
+>                  else if n == 5
 >                          then True
 >                          else False
 
@@ -1016,10 +1010,10 @@ the proofs we did with \idr{sillyfun} above, it is natural to start the proof
 like this:
 
 > sillyfun1_odd : (n : Nat) -> sillyfun1 n = True -> oddb n = True
-> sillyfun1_odd n prf with (beq_nat n 3) proof eq3
+> sillyfun1_odd n prf with (n == 3) proof eq3
 >   sillyfun1_odd n Refl | True =
 >     rewrite beq_nat_true (sym eq3) {n} {m=3} in Refl
->   sillyfun1_odd n prf | False with (beq_nat n 5) proof eq5
+>   sillyfun1_odd n prf | False with (n == 5) proof eq5
 >     sillyfun1_odd n Refl | False | True =
 >       rewrite beq_nat_true (sym eq5) {n} {m=5} in Refl
 >     sillyfun1_odd n prf | False | False = absurd prf
@@ -1028,15 +1022,15 @@ like this:
 
 We get stuck at this point because the context does not contain enough
 information to prove the goal! The problem is that the substitution performed by
-destruct is too brutal -- it threw away every occurrence of beq_nat n 3, but we
-need to keep some memory of this expression and how it was destructed, because
-we need to be able to reason that, since beq_nat n 3 = True in this branch of
-the case analysis, it must be that n = 3, from which it follows that n is odd.
+destruct is too brutal -- it threw away every occurrence of n == 3, but we need
+to keep some memory of this expression and how it was destructed, because we
+need to be able to reason that, since n == 3 = True in this branch of the case
+analysis, it must be that n = 3, from which it follows that n is odd.
 
-What we would really like is to substitute away all existing occurences of
-beq_nat n 3, but at the same time add an equation to the context that records
-which case we are in. The eqn: qualifier allows us to introduce such an
-equation, giving it a name that we choose.
+What we would really like is to substitute away all existing occurences of n ==
+3, but at the same time add an equation to the context that records which case
+we are in. The eqn: qualifier allows us to introduce such an equation, giving it
+a name that we choose.
 
 Theorem sillyfun1_odd : ∀(n : Nat),
      sillyfun1 n = True -> oddb n = True.
@@ -1128,7 +1122,7 @@ Here are the ones we've seen:
 
 ==== Exercise: 3 stars (beq_nat_sym)
 
-> beq_nat_sym : (n, m : Nat) -> beq_nat n m = beq_nat m n
+> beq_nat_sym : (n, m : Nat) -> n == m = m == n
 > beq_nat_sym n m = ?beq_nat_sym_rhs
 
 $\square$
@@ -1139,7 +1133,7 @@ $\square$
 Give an informal proof of this lemma that corresponds to your formal proof
 above:
 
-Theorem: For any \idr{Nat}s \idr{n}, idr{m}, \idr{beq_nat n m = beq_nat m n}
+Theorem: For any \idr{Nat}s \idr{n}, idr{m}, \idr{n == m = m == n}
 
 Proof:
 
@@ -1150,7 +1144,8 @@ $\square$
 
 ==== Exercise: 3 stars, optional (beq_nat_trans)
 
-> beq_nat_trans : beq_nat n m = True -> beq_nat m p = True -> beq_nat n p = True
+> beq_nat_trans : {n, m, p : Nat} -> n == m = True -> m == p = True ->
+>                                    n == p = True
 > beq_nat_trans prf prf1 = ?beq_nat_trans_rhs
 
 $\square$
@@ -1197,12 +1192,12 @@ checks whether every element in a list satisfies a given predicate:
 
       \idr{forallb evenb [0,2,4,5] = False}
 
-      \idr{forallb (beq_nat 5) [] = True}
+      \idr{forallb (== 5) [] = True}
 
 The second checks whether there exists an element in the list that satisfies a
 given predicate:
 
-      \idr{existsb (beq_nat 5) [0,2,3,6] = False}
+      \idr{existsb (== 5) [0,2,3,6] = False}
 
       \idr{existsb ((&&) True) [True,True,False] = True}
 

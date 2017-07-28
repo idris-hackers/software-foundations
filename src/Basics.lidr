@@ -627,16 +627,19 @@ simply instructions to the Idris parser to accept \idr{x + y} in place of
 \idr{plus x y} and, conversely, to the Idris pretty-printer to display \idr{plus
 x y} as \idr{x + y}.
 
-The \idr{beq_nat} function tests \idr{Nat}ural numbers for \idr{eq}uality,
-yielding a \idr{b}oolean.
+\todo[inline]{Mention interfaces here? Say this is infix}
 
->   ||| Test natural numbers for equality.
->   beq_nat : (n, m : Nat) -> Bool
->   beq_nat  Z     Z    = True
->   beq_nat  Z    (S j) = False
->   beq_nat (S k)  Z    = False
->   beq_nat (S k) (S j) = beq_nat k j
->
+The \idr{(==)} function tests \idr{Nat}ural numbers for equality, yielding a
+\idr{Bool}ean.
+
+```idris
+  ||| Test natural numbers for equality.
+  (==) : (n, m : Nat) -> Bool
+  (==)  Z     Z    = True
+  (==)  Z    (S j) = False
+  (==) (S k)  Z    = False
+  (==) (S k) (S j) = (==) k j
+```
 
 The \idr{lte} function tests whether its first argument is less than or equal to
 its second argument, yielding a boolean.
@@ -839,28 +842,28 @@ can block simplification. For example, if we try to prove the following fact
 using the \idr{Refl} tactic as above, we get stuck.
 
 ```idris
-plus_1_neq_0_firsttry : (n : Nat) -> beq_nat (n + 1) 0 = False
+plus_1_neq_0_firsttry : (n : Nat) -> (n + 1) == 0 = False
 plus_1_neq_0_firsttry n = Refl -- does nothing!
 ```
 
-The reason for this is that the definitions of both \idr{beq_nat} and \idr{+}
+The reason for this is that the definitions of both \idr{(==)} and \idr{+}
 begin by performing a \idr{match} on their first argument. But here, the first
 argument to \idr{+} is the unknown number \idr{n} and the argument to
-\idr{beq_nat} is the compound expression \idr{n + 1}; neither can be simplified.
+\idr{(==)} is the compound expression \idr{n + 1}; neither can be simplified.
 
 To make progress, we need to consider the possible forms of \idr{n} separately.
-If \idr{n} is \idr{Z}, then we can calculate the final result of \idr{beq_nat (n
-+ 1) 0} and check that it is, indeed, \idr{False}. And if \idr{n = S k} for some
+If \idr{n} is \idr{Z}, then we can calculate the final result of \idr{(n + 1) ==
+0} and check that it is, indeed, \idr{False}. And if \idr{n = S k} for some
 \idr{k}, then, although we don't know exactly what number \idr{n + 1} yields, we
 can calculate that, at least, it will begin with one \idr{S}, and this is enough
-to calculate that, again, \idr{beq_nat (n + 1) 0} will yield \idr{False}.
+to calculate that, again, \idr{(n + 1) == 0} will yield \idr{False}.
 
 To tell Idris to consider, separately, the cases where \idr{n = Z} and where
 \idr{n = S k}, simply case split on \idr{n}.
 
 \todo[inline]{Mention case splitting interactively in Emacs, Atom, etc.}
 
->   plus_1_neq_0 : (n : Nat) -> beq_nat (n + 1) 0 = False
+>   plus_1_neq_0 : (n : Nat) -> (n + 1) == 0 = False
 >   plus_1_neq_0  Z    = Refl
 >   plus_1_neq_0 (S k) = Refl
 >
@@ -870,8 +873,8 @@ separately, in order to get Idris to accept the theorem.
 
 In this example, each of the holes is easily filled by a single use of
 \idr{Refl}, which itself performs some simplification -- e.g., the first one
-simplifies \idr{beq_nat (S k + 1) 0} to \idr{False} by first rewriting \idr{(S k
-+ 1)} to \idr{S (k + 1)}, then unfolding \idr{beq_nat}, simplifying its pattern
+simplifies \idr{(S k + 1) == 0} to \idr{False} by first rewriting \idr{(S k +
+1)} to \idr{S (k + 1)}, then unfolding \idr{(==)}, simplifying its pattern
 matching.
 
 There are no hard and fast rules for how proofs should be formatted in Idris.
@@ -939,7 +942,7 @@ $\square$
 
 ==== Exercise: 1 star (zero_nbeq_plus_1)
 
->   zero_nbeq_plus_1 : (n : Nat) -> beq_nat 0 (n + 1) = False
+>   zero_nbeq_plus_1 : (n : Nat) -> 0 == (n + 1) = False
 >   zero_nbeq_plus_1 n = ?zero_nbeq_plus_1_rhs
 >
 

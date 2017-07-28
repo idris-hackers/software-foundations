@@ -4,7 +4,7 @@
 
 > import Basics
 
-> %hide Basics.Numbers.pred 
+> %hide Basics.Numbers.pred
 > %hide Basics.Playground2.plus
 
 In previous chapters, we have seen many examples of factual claims
@@ -12,7 +12,7 @@ In previous chapters, we have seen many examples of factual claims
 particular, we have worked extensively with equality propositions of the form
 \idr{e1 = e2}, with implications (\idr{p -> q}), and with quantified
 propositions (\idr{x -> P(x)}). In this chapter, we will see how Idris can be
-used to carry out other familiar forms of logical reasoning. 
+used to carry out other familiar forms of logical reasoning.
 
 Before diving into details, let's talk a bit about the status of mathematical
 statements in Idris. Recall that Idris is a _typed_ language, which means that
@@ -57,7 +57,7 @@ type signatures.
 But propositions can be used in many other ways. For example, we can give a name
 to a proposition as a value on its own, just as we have given names to
 expressions of other sorts (you'll soon see why we start the name with a capital
-letter). 
+letter).
 
 > Plus_fact : Type
 > Plus_fact = 2+2=4
@@ -82,7 +82,7 @@ arguments of some type and return a proposition. For instance, the following
 function takes a number and returns a proposition asserting that this number is
 equal to three:
 
-> is_three : Nat -> Type 
+> is_three : Nat -> Type
 > is_three n = n=3
 
 ```idris
@@ -171,8 +171,8 @@ intermediate steps in proofs, especially in bigger developments. Here's a simple
 example:
 
 > and_example3 : (n, m : Nat) -> n + m = 0 -> n * m = 0
-> and_example3 n m prf = 
->  let (nz, _) = and_exercise n m prf in 
+> and_example3 n m prf =
+>  let (nz, _) = and_exercise n m prf in
 >  rewrite nz in Refl
 
 \todo[inline]{Remove lemma and exercise, use \idr{fst} and \idr{snd} directly?}
@@ -344,7 +344,7 @@ Write an informal proof of \idr{double_neg}:
 
 _Theorem_: \idr{p} implies \idr{Not $ Not p}, for any proposition \idr{p}.
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -369,7 +369,7 @@ $\square$
 
 Write an informal proof (in English) of the proposition \idr{Not (p, Not p)}.
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -484,16 +484,16 @@ We can now use these facts with \idr{rewrite} and \idr{Refl} to give smooth
 proofs of statements involving equivalences. Here is a ternary version of the
 previous \idr{mult_0} result:
 
->   mult_0_3 : (n * m * p = Z) <-> 
+>   mult_0_3 : (n * m * p = Z) <->
 >              ((n = Z) `Either` ((m = Z) `Either` (p = Z)))
 >   mult_0_3 = (to, fro)
->   where 
+>   where
 >     to : (n * m * p = Z) -> ((n = Z) `Either` ((m = Z) `Either` (p = Z)))
->     to {n} {m} {p} prf = let 
+>     to {n} {m} {p} prf = let
 >       (nm_p_to, _) = mult_0 {n=(n*m)} {m=p}
 >       (n_m_to, _) = mult_0 {n} {m}
 >       (_, or_a_fro) = or_assoc {p=(n=Z)} {q=(m=Z)} {r=(p=Z)}
->       in or_a_fro $ case nm_p_to prf of 
+>       in or_a_fro $ case nm_p_to prf of
 >            Left prf => Left $ n_m_to prf
 >            Right prf => Right prf
 >     fro : ((n = Z) `Either` ((m = Z) `Either` (p = Z))) -> (n * m * p = Z)
@@ -504,7 +504,7 @@ previous \idr{mult_0} result:
 The apply tactic can also be used with \idr{<->}. When given an equivalence as
 its argument, apply tries to guess which side of the equivalence to use.
 
->    apply_iff_example : (n, m : Nat) -> n * m = Z -> ((n = Z) `Either` (m = Z))  
+>    apply_iff_example : (n, m : Nat) -> n * m = Z -> ((n = Z) `Either` (m = Z))
 >    apply_iff_example n m = fst $ mult_0 {n} {m}
 
 
@@ -549,7 +549,7 @@ $\square$
 
 Prove that existential quantification distributes over disjunction.
 
-> dist_exists_or : {p, q : a -> Type} -> (x ** (p x `Either` q x)) <-> 
+> dist_exists_or : {p, q : a -> Type} -> (x ** (p x `Either` q x)) <->
 >                                       ((x ** p x) `Either` (x ** q x))
 > dist_exists_or = ?dist_exists_or_rhs
 
@@ -593,7 +593,7 @@ We can also prove more generic, higher-level lemmas about \idr{In}.
 Note, in the next, how \idr{In} starts out applied to a variable and only gets
 expanded when we do case analysis on this variable:
 
-> In_map : (f : a -> b) -> (l : List a) -> (x : a) -> In x l -> 
+> In_map : (f : a -> b) -> (l : List a) -> (x : a) -> In x l ->
 >          In (f x) (map f l)
 > In_map _ [] _ ixl = absurd ixl
 > In_map f (x' :: xs) x (Left prf) = rewrite prf in Left Refl
@@ -609,7 +609,7 @@ set of strengths and limitations.
 
 ==== Exercise: 2 stars (In_map_iff)
 
-> In_map_iff : (f : a -> b) -> (l : List a) -> (y : b) -> 
+> In_map_iff : (f : a -> b) -> (l : List a) -> (y : b) ->
 >              (In y (map f l)) <-> (x ** (f x = y, In x l))
 > In_map_iff f l y = ?In_map_iff_rhs
 
@@ -758,7 +758,7 @@ A more elegant alternative is to apply \idr{plusCommutative} directly to the
 arguments we want to instantiate it with, in much the same way as we apply a
 polymorphic function to a type argument.
 
-> plus_comm3 n m p = rewrite plusCommutative n (m+p) in 
+> plus_comm3 n m p = rewrite plusCommutative n (m+p) in
 >                    rewrite plusCommutative m p in Refl
 
 You can "use theorems as functions" in this way with almost all tactics that
@@ -768,12 +768,12 @@ example, to supply wildcards as arguments to be inferred, or to declare some
 hypotheses to a theorem as implicit by default. These features are illustrated
 in the proof below.
 
-> lemma_application_ex : (n : Nat) -> (ns : List Nat) -> 
+> lemma_application_ex : (n : Nat) -> (ns : List Nat) ->
 >                        In n (map (\m => m * 0) ns) -> n = 0
 > lemma_application_ex _ [] prf = absurd prf
-> lemma_application_ex _ (y :: _) (Left prf) = 
+> lemma_application_ex _ (y :: _) (Left prf) =
 >   rewrite sym $ multZeroRightZero y in sym prf
-> lemma_application_ex n (_ :: xs) (Right prf) = 
+> lemma_application_ex n (_ :: xs) (Right prf) =
 >   lemma_application_ex n xs prf
 
 We will see many more examples of the idioms from this section in later chapters.
@@ -850,7 +850,7 @@ that this isn't just something we're going to come back and fill in later!
 We can now invoke functional extensionality in proofs:
 
 > function_equality_ex2 : (\x => plus x 1) = (\x => plus 1 x)
-> function_equality_ex2 = functional_extensionality $ \x => plusCommutative x 1 
+> function_equality_ex2 = functional_extensionality $ \x => plusCommutative x 1
 
 Naturally, we must be careful when adding new axioms into Idris's logic, as they
 may render it _inconsistent_ -- that is, they may make it possible to prove
@@ -883,7 +883,7 @@ Print Assumptions function_equality_ex2.
 One problem with the definition of the list-reversing function \idr{rev} that we
 have is that it performs a call to \idr{++} on each step; running \idr{++} takes
 time asymptotically linear in the size of the list, which means that \idr{rev}
-has quadratic running time. 
+has quadratic running time.
 
 > rev : (l : List x) -> List x
 > rev [] = []
@@ -928,8 +928,8 @@ For instance, to claim that a number \idr{n} is even, we can say either
 We often say that the boolean \idr{evenb n} _reflects_ the proposition \idr{(k
 ** n = double k)}.
 
-> double : (n : Nat) -> Nat      
-> double  Z    = Z               
+> double : (n : Nat) -> Nat
+> double  Z    = Z
 > double (S k) = S (S (double k))
 
 > evenb_double : evenb (double k) = True
@@ -952,8 +952,8 @@ $\square$
 > where
 >   to : evenb n = True -> (k ** n = double k)
 >   to {n} prf = let
->     (k ** p) = evenb_double_conv {n} 
->   in 
+>     (k ** p) = evenb_double_conv {n}
+>   in
 
 \todo[inline]{Is there a shorter way?}
 
@@ -962,36 +962,36 @@ $\square$
 >   fro {n} (k**prf) = rewrite prf in evenb_double {k}
 
 Similarly, to state that two numbers \idr{n} and \idr{m} are equal, we can say
-either (1) that \idr{beq_nat n m} returns \idr{True} or (2) that \idr{n = m}.
-These two notions are equivalent.
+either (1) that \idr{n == m} returns \idr{True} or (2) that \idr{n = m}. These
+two notions are equivalent.
 
 \todo[inline]{Copy these 2 here for now}
 
->  beq_nat_true : beq_nat n m = True -> n = m
+>  beq_nat_true : {n, m : Nat} -> n == m = True -> n = m
 >  beq_nat_true {n=Z} {m=Z} _ = Refl
 >  beq_nat_true {n=(S _)} {m=Z} Refl impossible
 >  beq_nat_true {n=Z} {m=(S _)} Refl impossible
 >  beq_nat_true {n=(S n')} {m=(S m')} eq =
 >   rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
-  
->  beq_nat_refl : (n : Nat) -> True = beq_nat n n
->  beq_nat_refl Z = Refl
->  beq_nat_refl (S k) = beq_nat_refl k 
 
->  beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
+>  beq_nat_refl : (n : Nat) -> True = n == n
+>  beq_nat_refl Z = Refl
+>  beq_nat_refl (S k) = beq_nat_refl k
+
+>  beq_nat_true_iff : (n1, n2 : Nat) -> (n1 == n2 = True) <-> (n1 = n2)
 >  beq_nat_true_iff n1 n2 = (to, fro n1 n2)
 >  where
->    to : (beq_nat n1 n2 = True) -> (n1 = n2)
+>    to : (n1 == n2 = True) -> (n1 = n2)
 >    to = beq_nat_true {n=n1} {m=n2}
->    fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
+>    fro : (n1, n2 : Nat) -> (n1 = n2) -> (n1 == n2 = True)
 >    fro n1 n1 Refl = sym $ beq_nat_refl n1
 
 However, while the boolean and propositional formulations of a claim are
 equivalent from a purely logical perspective, they need not be equivalent
-_operationally_. Equality provides an extreme example: knowing that \idr{beq_nat
-n m = True} is generally of little direct help in the middle of a proof
-involving \idr{n} and \idr{m}; however, if we convert the statement to the
-equivalent form \idr{n = m}, we can rewrite with it.
+_operationally_. Equality provides an extreme example: knowing that \idr{n == m
+= True} is generally of little direct help in the middle of a proof involving
+\idr{n} and \idr{m}; however, if we convert the statement to the equivalent form
+\idr{n = m}, we can rewrite with it.
 
 The case of even numbers is also interesting. Recall that, when proving the
 backwards direction of \idr{even_bool_prop} (i.e., \idr{evenb_double}, going
@@ -1068,24 +1068,24 @@ showing the complementary strengths of booleans and general propositions.
 The following lemmas relate the propositional connectives studied in this
 chapter to the corresponding boolean operations.
 
-> andb_true_iff : (b1, b2 : Bool) -> (b1 && b2 = True) <-> 
+> andb_true_iff : (b1, b2 : Bool) -> (b1 && b2 = True) <->
 >                                    (b1 = True, b2 = True)
 > andb_true_iff b1 b2 = ?andb_true_iff_rhs
 
-> orb_true_iff : (b1, b2 : Bool) -> (b1 || b2 = True) <-> 
+> orb_true_iff : (b1, b2 : Bool) -> (b1 || b2 = True) <->
 >                                   ((b1 = True) `Either` (b2 = True))
 > orb_true_iff b1 b2 = ?orb_true_iff_rhs
 
 $\square$
 
 
-==== Exercise: 1 star (beq_Nat_false_iff)
+==== Exercise: 1 star (beq_nat_false_iff)
 
 The following theorem is an alternate "negative" formulation of
 \idr{beq_nat_true_iff} that is more convenient in certain situations (we'll see
 examples in later chapters).
 
-> beq_nat_false_iff : (x, y : Nat) -> (beq_nat x y = False) <-> (Not (x = y))
+> beq_nat_false_iff : (x, y : Nat) -> (x == y = False) <-> (Not (x = y))
 > beq_nat_false_iff x y = ?beq_nat_false_iff_rhs
 
 $\square$
@@ -1102,7 +1102,7 @@ function below. To make sure that your definition is correct, prove the lemma
 > beq_list : (beq : a -> a -> Bool) -> (l1, l2 : List a) -> Bool
 > beq_list beq l1 l2 = ?beq_list_rhs
 
-> beq_list_true_iff : (beq : a -> a -> Bool) -> 
+> beq_list_true_iff : (beq : a -> a -> Bool) ->
 >                     ((a1, a2 : a) -> (beq a1 a2 = True) <-> (a1 = a2)) ->
 >       ((l1, l2 : List a) -> (beq_list beq l1 l2 = True) <-> (l1 = l2))
 > beq_list_true_iff beq f l1 l2 = ?beq_list_true_iff_rhs
@@ -1118,18 +1118,18 @@ Recall the function \idr{forallb}, from the exercise
 > forallb : (test : x -> Bool) -> (l : List x) -> Bool
 > forallb _ [] = True
 > forallb test (x :: xs) = test x && forallb test xs
-  
+
 Prove the theorem below, which relates \idr{forallb} to the \idr{All} property
 of the above exercise.
 
-> forallb_true_iff : (l : List x) -> (forallb test l = True) <-> 
+> forallb_true_iff : (l : List x) -> (forallb test l = True) <->
 >                                    (All (\x => test x = True) l)
 > forallb_true_iff l = ?forallb_true_iff_rhs
 
 Are there any important properties of the function \idr{forallb} which are not
 captured by this specification?
 
-> -- FILL IN HERE 
+> -- FILL IN HERE
 
 $\square$
 
@@ -1174,9 +1174,9 @@ natural numbers \idr{n} and \idr{m}.
 \todo[inline]{Is there a simpler way to write this? Maybe with setoids?}
 
 > restricted_excluded_middle_eq : (n, m : Nat) -> (n = m) `Either` Not (n = m)
-> restricted_excluded_middle_eq n m = 
+> restricted_excluded_middle_eq n m =
 >   restricted_excluded_middle (to n m, fro n m)
-> where 
+> where
 >   to : (n, m : Nat) -> (n=m) -> (n==m)=True
 >   to Z Z prf = Refl
 >   to Z (S _) Refl impossible
