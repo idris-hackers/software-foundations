@@ -2,6 +2,8 @@
 
 > module Maps
 >
+> import Logic
+> import IndProp
 
 Maps (or dictionaries) are ubiquitous data structures both generally and in the
 theory of programming languages in particular; we're going to need them in many
@@ -77,21 +79,6 @@ present purposes you can think of it as just a fancy \idr{Bool}.)
 The following useful property of  \idr{beq_id} follows from an analogous lemma
 about strings:
 
-\todo[inline]{Copied \idr{<->} for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
->
-
-\todo[inline]{Remove when a release with
-https://github.com/idris-lang/Idris-dev/pull/3925 happens}
-
-> Uninhabited (False = True) where
->   uninhabited Refl impossible
->
-
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
 > beq_id_true_iff = (bto, bfro)
 >   where
@@ -111,25 +98,14 @@ https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
 Similarly:
 
-\todo[inline]{Copied and inlined \idr{not_true_iff_false} from \idr{Logic} here
-for now}
-
-> not_true_and_false : (b = False) -> Not (b = True)
-> not_true_and_false {b=False} _ Refl impossible
-> not_true_and_false {b=True} Refl _ impossible
->
-> not_true_is_false : Not (b = True) -> b = False
-> not_true_is_false {b=False} h = Refl
-> not_true_is_false {b=True} h  = absurd $ h Refl
->
 > beq_id_false_iff : (beq_id x y = False) <-> Not (x = y)
 > beq_id_false_iff = (to, fro)
 >   where
 >     to : (beq_id x y = False) -> Not (x = y)
->     to beqf = not_true_and_false beqf . (snd beq_id_true_iff)
+>     to beqf = (snd not_true_iff_false) beqf . (snd beq_id_true_iff)
 >
 >     fro : (Not (x = y)) -> beq_id x y = False
->     fro noteq = not_true_is_false $ noteq . (fst beq_id_true_iff)
+>     fro noteq = (fst not_true_iff_false) $ noteq . (fst beq_id_true_iff)
 >
 
 
@@ -276,13 +252,7 @@ boolean function \idr{beq_id}.
 Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
 following:
 
-\todo[inline]{Copied \idr{Reflect} for now}
-
-> data Reflect : Type -> Bool -> Type where
->   ReflectT : (p : Type) -> Reflect p True
->   ReflectF : (p : Type) -> (Not p) -> Reflect p False
->
-> beq_idP : Reflect (x = y) (beq_id x y)
+> beq_idP : {x1, x2 : Id} -> Reflect (x = y) (beq_id x y)
 > beq_idP = ?beq_idP_rhs
 >
 

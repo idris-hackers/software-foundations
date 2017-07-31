@@ -8,6 +8,7 @@
 > %hide Prelude.Basics.snd
 > %hide Prelude.Nat.pred
 
+> %access public export
 > %default total
 
 
@@ -137,8 +138,12 @@ operator and square brackets as an "outfix" notation for constructing lists.
 > syntax [x] "::" [l] = Cons x l
 > syntax "[ ]" = Nil
 
-\todo[inline]{Figure out \idr{syntax} command for this and edit the section}
+\todo[inline]{Seems it's impossible to make an Idris \idr{syntax} to overload
+the list notation. Edit the section.}
+
+```coq
 Notation "[ x ; .. ; y ]" := ( cons x .. ( cons y nil ) ..).
+```
 
 It is not necessary to understand the details of these declarations, but in case
 you are interested, here is roughly what's going on. The right associativity
@@ -158,19 +163,21 @@ The at level 60 part tells Coq how to parenthesize expressions that involve both
 :: and some other infix operator. For example, since we defined + as infix
 notation for the plus function at level 50,
 
+```coq
 Notation "x + y" := ( plus x y )
 ( at level 50, left associativity ).
+```
 
-the + operator will bind tighter than :: , so 1 + 2 :: [3] will be parsed, as
-we'd expect, as (1 + 2) :: [3] rather than 1 + (2 :: [3]) .
+the `+` operator will bind tighter than `::` , so `1 + 2 :: [3]` will be parsed,
+as we'd expect, as `(1 + 2) :: [3]` rather than `1 + (2 :: [3])`.
 
-(Expressions like "1 + 2 :: [3]" can be a little confusing when you read them
-in a .v file. The inner brackets, around 3, indicate a list, but the outer
+(Expressions like "`1 + 2 :: [3]`" can be a little confusing when you read them
+in a `.v` file. The inner brackets, around `3`, indicate a list, but the outer
 brackets, which are invisible in the HTML rendering, are there to instruct the
 "coqdoc" tool that the bracketed part should be displayed as Coq code rather
 than running text.)
 
-The second and third Notation declarations above introduce the standard
+The second and third `Notation` declarations above introduce the standard
 square-bracket notation for lists; the right-hand side of the third one
 illustrates Coq's syntax for declaring n-ary notations and translating them to
 nested sequences of binary constructors.
@@ -337,6 +344,7 @@ multisets a little bit differently, which is why we don't use that name for this
 operation.)
 
 \todo[inline]{How to forbid recursion here? Edit}
+
 For \idr{sum} we're giving you a header that does not give explicit names to the
 arguments. Moreover, it uses the keyword Definition instead of Fixpoint, so
 even if you had names for the arguments, you wouldn't be able to process them
@@ -506,6 +514,7 @@ lists \idr{l}. Here's a concrete example:
 >     rewrite inductiveHypothesis in Refl
 
 \todo[inline]{Edit}
+
 Notice that, as when doing induction on natural numbers, the as ... clause
 provided to the induction tactic gives a name to the induction hypothesis
 corresponding to the smaller list l1' in the cons case. Once again, this Coq
@@ -689,22 +698,24 @@ default for our present purposes.
 \ \todo[inline]{Edit, mention \idr{:s} and \idr{:apropos}?}
 
 We've seen that proofs can make use of other theorems we've already proved,
-e.g., using rewrite . But in order to refer to a theorem, we need to know its
-name! Indeed, it is often hard even to remember what theorems have been proven,
-much less what they are called.
+e.g., using \idr{rewrite}. But in order to refer to a theorem, we need to know
+its name! Indeed, it is often hard even to remember what theorems have been
+proven, much less what they are called.
 
-Coq's Search command is quite helpful with this. Typing Search foo will cause
-Coq to display a list of all theorems involving foo . For example, try
+Coq's `Search` command is quite helpful with this. Typing `Search foo` will
+cause Coq to display a list of all theorems involving `foo`. For example, try
 uncommenting the following line to see a list of theorems that we have proved
-about rev :
+about `rev`:
 
+```coq
 (* Search rev. *)
+```
 
-Keep Search in mind as you do the following exercises and throughout the rest of
-the book; it can save you a lot of time!
+Keep `Search` in mind as you do the following exercises and throughout the rest
+of the book; it can save you a lot of time!
 
-If you are using ProofGeneral, you can run Search with C-c C-a C-a. Pasting its
-response into your buffer can be accomplished with C-c C-;.
+If you are using ProofGeneral, you can run `Search` with `C-c C-a C-a`. Pasting
+its response into your buffer can be accomplished with `C-c C-;`.
 
 
 === List Exercises, Part 1
@@ -862,7 +873,8 @@ programming language: conditional expressions...
 >                            then Some a
 >                            else nth_error' l' (pred n)
 
-\todo[inline]{Edit this paragraph}
+\todo[inline]{Edit or remove this paragraph, doesn't seem to hold in Idris}
+
 Coq's conditionals are exactly like those found in any other language, with one
 small generalization. Since the boolean type is not built in, Coq actually
 supports conditional expressions over any inductively defined type with exactly

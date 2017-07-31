@@ -769,7 +769,8 @@ arrow symbol is pronounced "implies."
 As before, we need to be able to reason by assuming the existence of some
 numbers \idr{n} and \idr{m}. We also need to assume the hypothesis \idr{n = m}.
 
-\todo[inline]{Edit.}
+\todo[inline]{Edit, mention the "generate initial pattern match" editor command}
+
 The \idr{intros} tactic will serve to move all three of these from the goal into
 assumptions in the current context.
 

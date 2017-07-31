@@ -81,6 +81,7 @@ Prelude.List.(::) : elem -> List elem -> List elem
 
 \todo[inline]{How to edit these 3 paragraphs? Implicits are defined later in
 this chapter, and Idris doesn't require type parameters to constructors}
+
 (Side note on notation: In .v files, the "forall" quantifier is spelled out in
 letters. In the generated HTML files and in the way various IDEs show .v files
 (with certain settings of their display controls), ∀ is usually typeset as the
@@ -408,6 +409,9 @@ _products_:
 As with lists, we make the type arguments implicit and define the familiar
 concrete notation.
 
+\todo[inline]This sugar cannot be marked as private and messes up things when
+imported, consider changing the notation}
+
 > syntax "(" [x] "," [y] ")" = PPair x y
 
 We can also use the \idr{syntax} mechanism to define the standard notation for
@@ -468,7 +472,7 @@ test.
 > split : (l : List (x*y)) -> (List x) * (List y)
 > split l = ?split_rhs
 
-> test_split: split [(1,False),(2,False)] = ([1,2],[False,False])
+> test_split : split [(1,False),(2,False)] = ([1,2],[False,False])
 > test_split = ?test_split_rhs
 
 $\square$
@@ -1022,7 +1026,7 @@ Successor of a natural number:
 
 \todo[inline]{Even if you add \idr{f x} on both sides of \idr{=}, these "unit
 tests" don't seem to work neither with \idr{Refl} nor with more advanced
-tecnhiques currently}
+techniques currently}
 
 >   succ'_1 : succ' zero = one
 >   succ'_1 = ?succ__1_rhs

@@ -1,13 +1,17 @@
-= IndProp: Inductively Defined Propositions
+= IndProp : Inductively Defined Propositions
 
 > module IndProp
 >
 > import Basics
 > import Induction
+> import Tactics
+> import Logic
 >
 > %hide Basics.Numbers.pred
-> %hide Prelude.Stream.(::)
 >
+> %access public export
+> %default total
+
 
 == Inductively Defined Propositions
 
@@ -106,8 +110,8 @@ When checking argument n to IndType.Wrong_ev:
                 Nat (Expected type)
 ```
 
-\todo[inline]{Edit the explanation, it works fine if you remove the first \idr{n ->}
-in \idr{Wrong_ev_SS}}
+\todo[inline]{Edit the explanation, it works fine if you remove the first \idr{n
+->} in \idr{Wrong_ev_SS}}
 
 ("Parameter" here is Idris jargon for an argument on the left of the colon in an
 Inductive definition; "index" is used to refer to arguments on the right of the
@@ -338,13 +342,6 @@ induction hypothesis talks about n', as opposed to n or some other number.
 The equivalence between the second and third definitions of evenness now
 follows.
 
-\todo[inline]{Copypasted `<->` for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
->
 > ev_even_iff : (Ev n) <-> (k ** n = double k)
 > ev_even_iff = (ev_even, fro)
 >   where
@@ -894,15 +891,12 @@ chapter: If \idr{ss : List (List t)} represents a sequence of strings \idr{s1,
 ..., sn}, then \idr{fold (++) ss []} is the result of concatenating them all
 together.
 
-\todo[inline]{Copied these here for now, add hyperlink}
+\todo[inline]{Copied from \idr{Poly}, cannot import it due to tuple sugar
+issues}
 
 > fold : (f : x -> y -> y) -> (l : List x) -> (b : y) -> y
 > fold f [] b = b
 > fold f (h::t) b = f h (fold f t b)
->
-> In : (x : a) -> (l : List a) -> Type
-> In x [] = Void
-> In x (x' :: xs) = (x' = x) `Either` In x xs
 >
 > MStar' : ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
@@ -943,28 +937,6 @@ regular expression:
 >
 
 We can then phrase our theorem as follows:
-
-\todo[inline]{Copied here for now}
-
-> in_app_iff : (In a (l++l')) <-> (In a l `Either` In a l')
-> in_app_iff {l} {l'} = (to l l', fro l l')
->   where
->     to : (l, l' : List x) -> In a (l ++ l') -> (In a l) `Either` (In a l')
->     to [] [] prf = absurd prf
->     to [] _ prf = Right prf
->     to (_ :: _) _ (Left Refl) = Left $ Left Refl
->     to (_ :: xs) l' (Right prf) =
->       case to xs l' prf of
->         Left ixs => Left $ Right ixs
->         Right il' => Right il'
->     fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
->     fro [] _ (Left prf) = absurd prf
->     fro (_ :: _) _ (Left (Left Refl)) = Left Refl
->     fro (_ :: xs) l' (Left (Right prf)) = Right $ fro xs l' (Left prf)
->     fro _ [] (Right prf) = absurd prf
->     fro [] _ (Right prf) = prf
->     fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
->
 
 \todo[inline]{Some unfortunate implicit plumbing}
 
@@ -1243,15 +1215,6 @@ computations to statements in \idr{Type}. But performing this conversion in the
 way we did it there can result in tedious proof scripts. Consider the proof of
 the following theorem:
 
-\todo[inline]{Copy here for now}
-
-> beq_nat_true : {n, m : Nat} -> n == m = True -> n = m
-> beq_nat_true {n=Z} {m=Z} _ = Refl
-> beq_nat_true {n=(S _)} {m=Z} Refl impossible
-> beq_nat_true {n=Z} {m=(S _)} Refl impossible
-> beq_nat_true {n=(S n')} {m=(S m')} eq =
->  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
->
 > filter_not_empty_In : {n : Nat} -> Not (filter ((==) n) l = []) -> In n l
 > filter_not_empty_In {l=[]} contra = contra Refl
 > filter_not_empty_In {l=(x::_)} {n} contra with (n == x) proof h
@@ -1325,19 +1288,6 @@ perform case analysis on \idr{b} while at the same time generating appropriate
 hypothesis in the two branches (\idr{p} in the first subgoal and \idr{Not p} in
 the second).
 
-\todo[inline]{Copy here for now}
-
-> beq_nat_true_iff : (n1, n2 : Nat) -> (n1 == n2 = True) <-> (n1 = n2)
-> beq_nat_true_iff n1 n2 = (to, fro n1 n2)
->   where
->     to : (n1 == n2 = True) -> (n1 = n2)
->     to = beq_nat_true {n=n1} {m=n2}
->     fro : (n1, n2 : Nat) -> (n1 = n2) -> (n1 == n2 = True)
->     fro n1 n1 Refl = sym $ beq_nat_refl n1
->
-> iff_sym : (p <-> q) -> (q <-> p)
-> iff_sym (pq, qp) = (qp, pq)
->
 > beq_natP : {n, m : Nat} -> Reflect (n = m) (n == m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
 >

@@ -18,6 +18,8 @@ will see:
 > module Tactics
 >
 > import Basics
+> import Induction
+
 > import Pruviloj
 >
 > %access public export
@@ -71,7 +73,8 @@ of tactic applications, using \idr{exact} instead of the
 (This tactic is called `apply` in Coq.)
 
 \todo[inline]{The following doesn't seem to hold in Idris, you have to manually
-apply things with `RApp` for `exact` to work. Maybe there's another tactic? }
+apply things with \idr{RApp} for \idr{exact} to work. Maybe there's another
+tactic?}
 
 The \idr{exact} tactic also works with _conditional_ hypotheses and lemmas: if the
 statement being applied is an implication, then the premises of this implication
@@ -377,7 +380,8 @@ equations that \idr{injective} generates.
 
 $\square$
 
-\todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
+\todo[inline]{Remove when a release with
+https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
 > Uninhabited (False = True) where
 >   uninhabited Refl impossible
@@ -571,10 +575,6 @@ to be careful about which of the assumptions we move (using \idr{intros}) from
 the goal to the context before invoking the \idr{induction} tactic. For example,
 suppose we want to show that the \idr{double} function is injective -- i.e., that
 it maps different arguments to different results:
-
-> double : (n : Nat) -> Nat
-> double  Z    = Z
-> double (S k) = S (S (double k))
 
 > double_injective : double n = double m -> n = m
 > double_injective {n=Z} {m=Z} _ = Refl
