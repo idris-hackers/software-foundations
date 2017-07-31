@@ -12,7 +12,7 @@ Our first case study is a _simple imperative programming language_ called Imp,
 embodying a tiny core fragment of conventional mainstream languages such as C
 and Java. Here is a familiar mathematical function written in Imp.
 
-```     
+```
      Z ::= X;;
      Y ::= 1;;
      WHILE not (Z = 0) DO
@@ -20,7 +20,7 @@ and Java. Here is a familiar mathematical function written in Imp.
        Z ::= Z - 1
      END
 ```
-     
+
 This chapter looks at how to define the _syntax_ and _semantics_ of Imp; the
 chapters that follow develop a theory of _program equivalence_ and introduce
 _Hoare Logic_, a widely used logic for reasoning about imperative programs.
@@ -41,6 +41,7 @@ Require Import Maps.
 (* /IMPORTS *)
 
 > %default total
+> %access public export
 
 
 == Arithmetic and Boolean Expressions
@@ -63,7 +64,7 @@ expressions.
 >     APlus : AExp -> AExp -> AExp
 >     AMinus : AExp -> AExp -> AExp
 >     AMult : AExp -> AExp -> AExp
->   
+>
 >   data BExp : Type where
 >     BTrue : BExp
 >     BFalse : BExp
@@ -78,7 +79,7 @@ that, for example, would translate the string \idr{"1+2*3"} to the AST
 
 ```idris
       APlus (ANum 1) (AMult (ANum 2) (ANum 3))
-```      
+```
 
 The optional chapter `ImpParser` develops a simple implementation of a lexical
 analyzer and parser that can perform this translation. You do _not_ need to
@@ -136,7 +137,7 @@ and proofs.
 
 _Evaluating_ an arithmetic expression produces a number.
 
->   aeval : (a : AExp) -> Nat 
+>   aeval : (a : AExp) -> Nat
 >   aeval (ANum n) = n
 >   aeval (APlus a1 a2) = (aeval a1) + (aeval a2)
 >   aeval (AMinus a1 a2) = (aeval a1) `minus` (aeval a2)
@@ -147,7 +148,7 @@ _Evaluating_ an arithmetic expression produces a number.
 
 Similarly, evaluating a boolean expression yields a boolean.
 
->   beval : (b : BExp) -> Bool 
+>   beval : (b : BExp) -> Bool
 >   beval BTrue = True
 >   beval BFalse = False
 >   beval (BEq a1 a2) = (aeval a1) == (aeval a2)
@@ -162,21 +163,21 @@ definitions. Suppose we define a function that takes an arithmetic expression
 and slightly simplifies it, changing every occurrence of \idr{0+e} (i.e.,
 \idr{(APlus (ANum 0) e}) into just \idr{e}.
 
->   optimize_0plus : (a : AExp) -> AExp 
+>   optimize_0plus : (a : AExp) -> AExp
 >   optimize_0plus (ANum n) = ANum n
->   optimize_0plus (APlus (ANum Z) e2) = 
+>   optimize_0plus (APlus (ANum Z) e2) =
 >     optimize_0plus e2
->   optimize_0plus (APlus e1 e2) = 
+>   optimize_0plus (APlus e1 e2) =
 >     APlus (optimize_0plus e1) (optimize_0plus e2)
->   optimize_0plus (AMinus e1 e2) = 
+>   optimize_0plus (AMinus e1 e2) =
 >     AMinus (optimize_0plus e1) (optimize_0plus e2)
->   optimize_0plus (AMult e1 e2) = 
+>   optimize_0plus (AMult e1 e2) =
 >     AMult (optimize_0plus e1) (optimize_0plus e2)
 
 To make sure our optimization is doing the right thing we can test it on some
 examples and see if the output looks OK.
 
->   test_optimize_0plus : 
+>   test_optimize_0plus :
 >     optimize_0plus (APlus (ANum 2)
 >                           (APlus (ANum 0)
 >                                  (APlus (ANum 0) (ANum 1))))
@@ -187,11 +188,11 @@ optimized expression gives the same result as the original — we should prove i
 
 > optimize_0plus_sound : aeval (optimize_0plus a) = aeval a
 > optimize_0plus_sound {a=ANum _} = Refl
-> optimize_0plus_sound {a=APlus (ANum Z) y} = 
+> optimize_0plus_sound {a=APlus (ANum Z) y} =
 >   optimize_0plus_sound {a=y}
-> optimize_0plus_sound {a=APlus (ANum (S k)) y} = 
+> optimize_0plus_sound {a=APlus (ANum (S k)) y} =
 >   cong {f=\x=>S(k+x)} $ optimize_0plus_sound {a=y}
-> optimize_0plus_sound {a=APlus (APlus x z) y} = 
+> optimize_0plus_sound {a=APlus (APlus x z) y} =
 >   rewrite optimize_0plus_sound {a=APlus x z} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   Refl
@@ -522,7 +523,7 @@ Finally, here are some miscellaneous tactics that you may find convenient.
   - constructor: Try to find a constructor c (from some Inductive definition in
   the current environment) that can be applied to solve the current goal. If one
   is found, behave like apply c.
-  
+
 We'll see examples below.
 
 
@@ -580,11 +581,11 @@ Reserved Notation "e '\||/' n" (at level 50, left associativity).
 
 > data (\||/) : AExp -> (n : Nat) -> Type where
 >   E_ANum : (ANum n) \||/ n
->   E_APlus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 + n2) -> 
+>   E_APlus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 + n2) ->
 >     (APlus e1 e2) \||/ n
->   E_AMinus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 `minus` n2) -> 
+>   E_AMinus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 `minus` n2) ->
 >     (AMinus e1 e2) \||/ n
->   E_AMult : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 * n2) -> 
+>   E_AMult : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 * n2) ->
 >     (AMult e1 e2) \||/ n
 
   where "e '\||/' n" := (AevalR e n) : type_scope.
@@ -605,7 +606,7 @@ For example, the constructor E_APlus...
 ...would be written like this as an inference rule:
 
 e1 \||/ n1	
-e2 \||/ n2	(E_APlus)  
+e2 \||/ n2	(E_APlus)
 APlus e1 e2 \||/ n1+n2	
 
 Formally, there is nothing deep about inference rules: they are just
@@ -622,16 +623,16 @@ the smallest relation closed under the following rules...".
 
 For example, \||/ is the smallest relation closed under these rules:
 
-  	(E_ANum)  
+  	(E_ANum)
 ANum n \||/ n	
 e1 \||/ n1	
-e2 \||/ n2	(E_APlus)  
+e2 \||/ n2	(E_APlus)
 APlus e1 e2 \||/ n1+n2	
 e1 \||/ n1	
-e2 \||/ n2	(E_AMinus)  
+e2 \||/ n2	(E_AMinus)
 AMinus e1 e2 \||/ n1-n2	
 e1 \||/ n1	
-e2 \||/ n2	(E_AMult)  
+e2 \||/ n2	(E_AMult)
 AMult e1 e2 \||/ n1*n2	
 
 
@@ -652,25 +653,25 @@ evaluation agree:
 > where
 >   to : (a \||/ n) -> aeval a = n
 >   to E_ANum = Refl
->   to (E_APlus x y xy) =  
+>   to (E_APlus x y xy) =
 >     rewrite xy in rewrite to x in rewrite to y in Refl
->   to (E_AMinus x y xy) = 
+>   to (E_AMinus x y xy) =
 >     rewrite xy in rewrite to x in rewrite to y in Refl
->   to (E_AMult x y xy) = 
+>   to (E_AMult x y xy) =
 >     rewrite xy in rewrite to x in rewrite to y in Refl
 >   fro : (aeval a = n) -> (a \||/ n)
 >   fro {a=ANum n} Refl = E_ANum
->   fro {a=APlus x y} prf = 
->     E_APlus (fro {a=x} {n=aeval x} Refl) 
->             (fro {a=y} {n=aeval y} Refl) 
+>   fro {a=APlus x y} prf =
+>     E_APlus (fro {a=x} {n=aeval x} Refl)
+>             (fro {a=y} {n=aeval y} Refl)
 >             (sym prf)
->   fro {a=AMinus x y} prf = 
->     E_AMinus (fro {a=x} {n=aeval x} Refl) 
+>   fro {a=AMinus x y} prf =
+>     E_AMinus (fro {a=x} {n=aeval x} Refl)
 >              (fro {a=y} {n=aeval y} Refl)
 >              (sym prf)
->   fro {a=AMult x y} prf = 
->     E_AMult (fro {a=x} {n=aeval x} Refl) 
->             (fro {a=y} {n=aeval y} Refl) 
+>   fro {a=AMult x y} prf =
+>     E_AMult (fro {a=x} {n=aeval x} Refl)
+>             (fro {a=y} {n=aeval y} Refl)
 >             (sym prf)
 
 We can make the proof quite a bit shorter by making more use of tacticals.
@@ -734,13 +735,13 @@ Reserved Notation "e '\||/' n" (at level 50, left associativity).
 
 > data (\||//) : AExpD -> (n : Nat) -> Type where
 >   E_ANumD : (ANumD n) \||// n
->   E_APlusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 + n2) -> 
+>   E_APlusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 + n2) ->
 >     (APlusD e1 e2) \||// n
->   E_AMinusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 `minus` n2) -> 
+>   E_AMinusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 `minus` n2) ->
 >     (AMinusD e1 e2) \||// n
->   E_AMultD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 * n2) -> 
+>   E_AMultD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 * n2) ->
 >     (AMultD e1 e2) \||// n
->   E_ADivD : (e1 \||// n1) -> (e2 \||// n2) -> (n2 `GT` 0) -> (n1 = n2*n3) -> 
+>   E_ADivD : (e1 \||// n1) -> (e2 \||// n2) -> (n2 `GT` 0) -> (n1 = n2*n3) ->
 >     (ADivD e1 e2) \||// n3
 
 where "a '\||/' n" := (AevalR a n) : type_scope.
@@ -771,11 +772,11 @@ is no problem:
 > data (\||/\) : AExpA -> (n : Nat) -> Type where
 >   E_AnyA : AAnyA \||/\ n
 >   E_ANumA : (ANumA n) \||/\ n
->   E_APlusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 + n2) -> 
+>   E_APlusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 + n2) ->
 >     (APlusA e1 e2) \||/\ n
->   E_AMinusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 `minus` n2) -> 
+>   E_AMinusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 `minus` n2) ->
 >     (AMinusA e1 e2) \||/\ n
->   E_AMultA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 * n2) -> 
+>   E_AMultA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 * n2) ->
 >     (AMultA e1 e2) \||/\ n
 
 where "a '\||/' n" := (AevalR a n) : type_scope.
@@ -796,7 +797,7 @@ On the other hand, functional definitions can often be more convenient:
 
   - Functions are by definition deterministic and defined on all arguments; for
   a relation we have to show these properties explicitly if we need them.
-  
+
   - With functions we can also take advantage of Idris's computation mechanism
   to simplify expressions during proofs.
 
@@ -848,7 +849,7 @@ adding one more constructor:
 
 > data AExpS : Type where
 >   ANumS : Nat -> AExpS
->   AIdS : Id -> AExpS -- <----- NEW 
+>   AIdS : Id -> AExpS -- <----- NEW
 >   APlusS : AExpS -> AExpS -> AExpS
 >   AMinusS : AExpS -> AExpS -> AExpS
 >   AMultS : AExpS -> AExpS -> AExpS
@@ -887,27 +888,27 @@ The definition of \idr{BExp}s is unchanged (except for using the new
 The arith and boolean evaluators are extended to handle variables in the obvious
 way, taking a state as an extra argument:
 
-> aevalS : (st : State) -> (a : AExpS) -> Nat 
+> aevalS : (st : State) -> (a : AExpS) -> Nat
 > aevalS _ (ANumS n) = n
 > aevalS st (AIdS i) = st i
 > aevalS st (APlusS a1 a2) = (aevalS st a1) + (aevalS st a2)
 > aevalS st (AMinusS a1 a2) = (aevalS st a1) `minus` (aevalS st a2)
 > aevalS st (AMultS a1 a2) = (aevalS st a1) * (aevalS st a2)
 >
-> bevalS : (st : State) -> (b : BExpS) -> Bool 
+> bevalS : (st : State) -> (b : BExpS) -> Bool
 > bevalS _ BTrueS = True
 > bevalS _ BFalseS = False
 > bevalS st (BEqS a1 a2) = (aevalS st a1) == (aevalS st a2)
 > bevalS st (BLeS a1 a2) = lte (aevalS st a1) (aevalS st a2)
 > bevalS st (BNotS b1) = not (bevalS st b1)
-> bevalS st (BAndS b1 b2) = (bevalS st b1) && (bevalS st b2) 
+> bevalS st (BAndS b1 b2) = (bevalS st b1) && (bevalS st b2)
 
-> aexp1 : aevalS (t_update X 5 empty_state) 
+> aexp1 : aevalS (t_update X 5 Imp.empty_state)
 >                (APlusS (ANumS 3) (AMultS (AIdS X) (ANumS 2)))
 >         = 13
 > aexp1 = Refl
 
-> bexp1 : bevalS (t_update X 5 empty_state)
+> bexp1 : bevalS (t_update X 5 Imp.empty_state)
 >                (BAndS BTrueS (BNotS (BLeS (AIdS X) (ANumS 4))))
 >         = True
 > bexp1 = Refl
@@ -959,6 +960,8 @@ To avoid conflicts with Idris's built-in notations, we keep this light — in
 particular, we don't introduce any notations for \idr{AExp}s and \idr{BExp}s to
 avoid confusion with the numeric and boolean operators we've already defined.
 
+\todo[inline]{Use do-notation instead?}
+
 > syntax SKIP = CSkip
 > syntax [x] "::=" [a] = CAss x a
 > syntax [c1] ";;" [c2] = CSeq c1 c2
@@ -968,8 +971,8 @@ avoid confusion with the numeric and boolean operators we've already defined.
 For example, here is the factorial function again, written as a formal
 definition to Idris:
 
-> fact_in_idris : Com 
-> fact_in_idris = 
+> fact_in_idris : Com
+> fact_in_idris =
 >  (Z ::= AIdS X) ;;
 >  (Y ::= ANumS 1) ;;
 >  WHILE BNotS (BEqS (AIdS Z) (ANumS 0)) DO
@@ -983,15 +986,15 @@ definition to Idris:
 
 ==== Assignment:
 
-> plus2 : Com 
-> plus2 = 
+> plus2 : Com
+> plus2 =
 >  X ::= (APlusS (AIdS X) (ANumS 2))
 
-> XtimesYinZ : Com 
+> XtimesYinZ : Com
 > XtimesYinZ =
 >  Z ::= (AMultS (AIdS X) (AIdS Y))
 
-> subtract_slowly_body : Com 
+> subtract_slowly_body : Com
 > subtract_slowly_body =
 >   (Z ::= AMinusS (AIdS Z) (ANumS 1)) ;;
 >   (X ::= AMinusS (AIdS X) (ANumS 1))
@@ -999,13 +1002,13 @@ definition to Idris:
 
 ==== Loops
 
-> subtract_slowly : Com 
+> subtract_slowly : Com
 > subtract_slowly =
 >  WHILE BNotS (BEqS (AIdS X) (ANumS 0)) DO
 >    subtract_slowly_body
 >  END
 
-> subtract_3_from_5_slowly : Com 
+> subtract_3_from_5_slowly : Com
 > subtract_3_from_5_slowly =
 >   (X ::= ANumS 3) ;;
 >   (Z ::= ANumS 5) ;;
@@ -1014,7 +1017,7 @@ definition to Idris:
 
 ==== An infinite loop:
 
-> loop : Com 
+> loop : Com
 > loop =
 >   WHILE BTrueS DO
 >     SKIP
@@ -1033,14 +1036,14 @@ tricky...
 Here's an attempt at defining an evaluation function for commands, omitting the
 \idr{WHILE} case.
 
-> ceval_fun_no_while : (st : State) -> (c : Com) -> State 
+> ceval_fun_no_while : (st : State) -> (c : Com) -> State
 > ceval_fun_no_while st CSkip = st
 > ceval_fun_no_while st (CAss x a) = t_update x (aevalS st a) st
-> ceval_fun_no_while st (CSeq c1 c2) = 
->   let st' = ceval_fun_no_while st c1 
->   in ceval_fun_no_while st' c2 
-> ceval_fun_no_while st (CIf b c1 c2) = 
->   if bevalS st b 
+> ceval_fun_no_while st (CSeq c1 c2) =
+>   let st' = ceval_fun_no_while st c1
+>   in ceval_fun_no_while st' c2
+> ceval_fun_no_while st (CIf b c1 c2) =
+>   if bevalS st b
 >     then ceval_fun_no_while st c1
 >     else ceval_fun_no_while st c2
 > ceval_fun_no_while st (CWhile x y) = st   -- bogus
@@ -1050,7 +1053,7 @@ add the \idr{WHILE} case as follows:
 
 ```idris
 ...
-ceval_fun st (CWhile b c) = 
+ceval_fun st (CWhile b c) =
   if (bevalS st b)
     then ceval_fun st (CSeq c $ CWhile b c)
     else st
@@ -1104,24 +1107,24 @@ takes state \idr{st} to \idr{st'}".
 Here is an informal definition of evaluation, presented as inference rules for
 readability:
 
-  	(E_Skip)  
+  	(E_Skip)
 SKIP / st \||/ st	
-aeval st a1 = n	(E_Ass)  
+aeval st a1 = n	(E_Ass)
 x := a1 / st \||/ (t_update st x n)	
 c1 / st \||/ st'	
-c2 / st' \||/ st''	(E_Seq)  
+c2 / st' \||/ st''	(E_Seq)
 c1;;c2 / st \||/ st''	
 beval st b1 = True	
-c1 / st \||/ st'	(E_IfTrue)  
+c1 / st \||/ st'	(E_IfTrue)
 IF b1 THEN c1 ELSE c2 FI / st \||/ st'	
 beval st b1 = false	
-c2 / st \||/ st'	(E_IfFalse)  
+c2 / st \||/ st'	(E_IfFalse)
 IF b1 THEN c1 ELSE c2 FI / st \||/ st'	
-beval st b = false	(E_WhileEnd)  
+beval st b = false	(E_WhileEnd)
 WHILE b DO c END / st \||/ st	
 beval st b = True	
 c / st \||/ st'	
-WHILE b DO c END / st' \||/ st''	(E_WhileLoop)  
+WHILE b DO c END / st' \||/ st''	(E_WhileLoop)
 WHILE b DO c END / st \||/ st''	
 
 Here is the formal definition. Make sure you understand how it corresponds to
@@ -1139,7 +1142,7 @@ Reserved Notation "c1 '/' st '\||/' st'"
 >     CEval (CIf b c1 c2) st st'
 >   E_IfFalse : bevalS st b = False -> CEval c2 st st' ->
 >     CEval (CIf b c1 c2) st st'
->   E_WhileEnd : bevalS st b = False -> 
+>   E_WhileEnd : bevalS st b = False ->
 >     CEval (CWhile b c) st st
 >   E_WhileLoop : bevalS st b = True ->
 >     CEval c st st' -> CEval (CWhile b c) st' st'' ->
@@ -1151,7 +1154,7 @@ The cost of defining evaluation as a relation instead of a function is that we
 now need to construct _proofs_ that some program evaluates to some result state,
 rather than just letting Idris's computation mechanism do it for us.
 
-> ceval_example1 : 
+> ceval_example1 :
 >    CEval (
 >     (X ::= ANumS 2) ;;
 >     (IFB BLeS (AIdS X) (ANumS 1)
@@ -1159,10 +1162,10 @@ rather than just letting Idris's computation mechanism do it for us.
 >       ELSE (Z ::= ANumS 4)
 >      FI)
 >    ) empty_state (t_update Z 4 $ t_update X 2 empty_state)
-> ceval_example1 = 
->    E_Seq 
->      (E_Ass Refl) 
->      (E_IfFalse Refl 
+> ceval_example1 =
+>    E_Seq
+>      (E_Ass Refl)
+>      (E_IfFalse Refl
 >                 (E_Ass Refl))
 
 
@@ -1170,7 +1173,7 @@ rather than just letting Idris's computation mechanism do it for us.
 
 > ceval_example2 :
 >    CEval ((X ::= ANumS 0);; (Y ::= ANumS 1);; (Z ::= ANumS 2))
->          empty_state 
+>          empty_state
 >          (t_update Z 2 $ t_update Y 1 $ t_update X 0 empty_state)
 > ceval_example2 = ?ceval_example2_rhs
 
@@ -1185,14 +1188,14 @@ as intended for \idr{X = 2} (this is trickier than you might expect).
 
 > pup_to_n : Com
 > pup_to_n = ?pup_to_n_rhs
-  
+
 > pup_to_2_ceval :
->   CEval pup_to_n (t_update X 2 empty_state) 
->         (t_update X 0 $ 
->          t_update Y 3 $ 
->          t_update X 1 $ 
->          t_update Y 2 $ 
->          t_update Y 0 $ 
+>   CEval pup_to_n (t_update X 2 empty_state)
+>         (t_update X 0 $
+>          t_update Y 3 $
+>          t_update X 1 $
+>          t_update Y 2 $
+>          t_update Y 0 $
 >          t_update X 2 empty_state)
 > pup_to_2_ceval = ?pup_to_2_ceval_rhs
 
@@ -1205,23 +1208,37 @@ Changing from a computational to a relational definition of evaluation is a good
 move because it frees us from the artificial requirement that evaluation should
 be a total function. But it also raises a question: Is the second definition of
 evaluation really a partial function? Or is it possible that, beginning from the
-same state \idr{st}, we could evaluate some command \idr{c} in different ways to reach two
-different output states \idr{st'} and \idr{st''}?
+same state \idr{st}, we could evaluate some command \idr{c} in different ways to
+reach two different output states \idr{st'} and \idr{st''}?
 
 In fact, this cannot happen: \idr{CEval} _is_ a partial function:
 
 > ceval_deterministic : CEval c st st1 -> CEval c st st2 -> st1 = st2
 > ceval_deterministic E_Skip E_Skip = Refl
-> ceval_deterministic (E_Ass aev1) (E_Ass aev2) = 
+> ceval_deterministic (E_Ass aev1) (E_Ass aev2) =
 >   rewrite sym aev1 in rewrite sym aev2 in Refl
-> ceval_deterministic {st2} (E_Seq cev11 cev12) (E_Seq {c2} cev21 cev22) = 
+> ceval_deterministic {st2} (E_Seq cev11 cev12) (E_Seq {c2} cev21 cev22) =
 >   let ih = ceval_deterministic cev11 cev21
 >       cev22' = replace (sym ih) cev22 {P=\x=>CEval c2 x st2}
 >   in ceval_deterministic cev12 cev22'
-> ceval_deterministic (E_IfTrue prf x) y = ?ceval_deterministic_rhs_3
-> ceval_deterministic (E_IfFalse prf x) y = ?ceval_deterministic_rhs_4
-> ceval_deterministic (E_WhileEnd prf) y = ?ceval_deterministic_rhs_5
-> ceval_deterministic (E_WhileLoop prf x z) y = ?ceval_deterministic_rhs_6
+> ceval_deterministic (E_IfTrue _ cev1) (E_IfTrue _ cev2) =
+>   ceval_deterministic cev1 cev2
+> ceval_deterministic (E_IfTrue prf1 _) (E_IfFalse prf2 _) =
+>   absurd $ replace prf1 prf2 {P=\x=>x=False}
+> ceval_deterministic (E_IfFalse prf1 _) (E_IfTrue prf2 _) =
+>   absurd $ replace prf2 prf1 {P=\x=>x=False}
+> ceval_deterministic (E_IfFalse _ cev1) (E_IfFalse _ cev2) =
+>   ceval_deterministic cev1 cev2
+> ceval_deterministic (E_WhileEnd _) (E_WhileEnd _) = Refl
+> ceval_deterministic (E_WhileEnd prf1) (E_WhileLoop prf2 _ _) =
+>   absurd $ replace prf2 prf1 {P=\x=>x=False}
+> ceval_deterministic (E_WhileLoop prf1 _ _) (E_WhileEnd prf2) =
+>   absurd $ replace prf1 prf2 {P=\x=>x=False}
+> ceval_deterministic {st2} (E_WhileLoop _ cev11 cev12)
+>                     (E_WhileLoop {b} {c} _ cev21 cev22) =
+>   let ih = ceval_deterministic cev11 cev21
+>       cev22' = replace (sym ih) cev22 {P=\x=>CEval (CWhile b c) x st2}
+>   in ceval_deterministic cev12 cev22'
 
 
 == Reasoning About Imp Programs
@@ -1230,22 +1247,20 @@ We'll get deeper into systematic techniques for reasoning about Imp programs in
 the following chapters, but we can do quite a bit just working with the bare
 definitions. This section explores some examples.
 
-Theorem plus2_spec : ∀st n st',
-  st X = n ->
-  plus2 / st \||/ st' ->
-  st' X = n + 2.
-Proof.
-  intros st n st' HX Heval.
+> plus2_spec : st X = n -> CEval Imp.plus2 st st' -> st' X = n + 2
 
-Inverting Heval essentially forces Idris to expand one step of the ceval computation — in this case revealing that st' must be st extended with the new value of X, since plus2 is an assignment
+\todo[inline]{Edit}
 
-  inversion Heval. subst. clear Heval. simpl.
-  apply t_update_eq. Qed.
+Inverting Heval essentially forces Idris to expand one step of the ceval
+computation — in this case revealing that st' must be st extended with the new
+value of X, since plus2 is an assignment
+
+> plus2_spec prf (E_Ass aev) = rewrite sym aev in rewrite prf in Refl
 
 
 ==== Exercise: 3 stars, recommendedM (XtimesYinZ_spec)
 
-State and prove a specification of XtimesYinZ.
+State and prove a specification of \idr{XtimesYinZ}.
 
 > -- FILL IN HERE
 
@@ -1254,8 +1269,9 @@ $\square$
 
 ==== Exercise: 3 stars, recommended (loop_never_stops)
 
-Theorem loop_never_stops : ∀st st',
-  ~(loop / st \||/ st').
+> loop_never_stops : Not (CEval Imp.loop st st')
+> loop_never_stops = ?loop_never_stops_rhs
+
 Proof.
   intros st st' contra. unfold loop in contra.
   remember (WHILE BTrue DO SKIP END) as loopdef
@@ -1274,33 +1290,23 @@ $\square$
 
 Consider the following function:
 
-Fixpoint no_whiles (c : com) : Bool :=
-  match c with
-  | SKIP =>
-      True
-  | _ ::= _ =>
-      True
-  | c1 ;; c2 =>
-      andb (no_whiles c1) (no_whiles c2)
-  | IFB _ THEN ct ELSE cf FI =>
-      andb (no_whiles ct) (no_whiles cf)
-  | WHILE _ DO _ END =>
-      false
-  end.
+> no_whiles : (c : Com) -> Bool
+> no_whiles CSkip = True
+> no_whiles (CAss _ _) = True
+> no_whiles (CSeq c1 c2) = (no_whiles c1) && (no_whiles c2)
+> no_whiles (CIf _ ct cf) = (no_whiles ct) && (no_whiles cf)
+> no_whiles (CWhile _ _) = False
 
-This predicate yields True just on programs that have no while loops. Using
-Inductive, write a property no_whilesR such that no_whilesR c is provable
-exactly when c is a program with no while loops. Then prove its equivalence with
-no_whiles.
+This predicate yields \idr{True} just on programs that have no while loops.
+Using \idr{data}, write a property \idr{No_whilesR} such that \idr{No_whilesR c}
+is provable exactly when \idr{c} is a program with no while loops. Then prove
+its equivalence with \idr{no_whiles}.
 
-Inductive no_whilesR: com -> Type :=
- (* FILL IN HERE *)
-.
+> data No_whilesR : Com -> Type where
+>   Remove_Me_No_whilesR : No_whilesR CSkip
 
-Theorem no_whiles_eqv:
-   ∀c, no_whiles c = True ↔ no_whilesR c.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> no_whiles_eqv : (no_whiles c = True) <-> (No_whilesR c)
+> no_whiles_eqv = ?no_whiles_eqv_rhs
 
 $\square$
 
@@ -1308,10 +1314,11 @@ $\square$
 ==== Exercise: 4 starsM (no_whiles_terminating)
 
 Imp programs that don't involve while loops always terminate. State and prove a
-theorem no_whiles_terminating that says this. Use either no_whiles or
-no_whilesR, as you prefer.
+theorem \idr{no_whiles_terminating} that says this. Use either \idr{no_whiles}
 
-(* FILL IN HERE *)
+or \idr{No_whilesR}, as you prefer.
+
+> -- FILL IN HERE
 
 $\square$
 
@@ -1345,29 +1352,30 @@ and the contents of the stack on the left):
       [6, 6]        |    +
       [12]          |
 
-The task of this exercise is to write a small compiler that translates aexps
-into stack machine instructions.
+The task of this exercise is to write a small compiler that translates
+\idr{AExp}s into stack machine instructions.
 
 The instruction set for our stack language will consist of the following
 instructions:
 
-  - SPush n: Push the number n on the stack.
+  - \idr{SPush n}: Push the number \idr{n} on the stack.
 
-  - SLoad x: Load the identifier x from the store and push it on the stack
+  - \idr{SLoad x}: Load the identifier \idr{x} from the store and push it on the
+    stack
 
-  - SPlus: Pop the two top numbers from the stack, add them, and push the result
-  onto the stack.
+  - \idr{SPlus}: Pop the two top numbers from the stack, add them, and push the
+    result onto the stack.
 
-  - SMinus: Similar, but subtract.
-  
-  - SMult: Similar, but multiply.
+  - \idr{SMinus}: Similar, but subtract.
 
-Inductive sinstr : Type :=
-| SPush : Nat -> sinstr
-| SLoad : id -> sinstr
-| SPlus : sinstr
-| SMinus : sinstr
-| SMult : sinstr.
+  - \idr{SMult}: Similar, but multiply.
+
+> data SInstr : Type where
+>   SPush : Nat -> SInstr
+>   SLoad : Id -> SInstr
+>   SPlus : SInstr
+>   SMinus : SInstr
+>   SMult : SInstr
 
 Write a function to evaluate programs in the stack language. It should take as
 input a state, a stack represented as a list of numbers (top stack item is the
@@ -1376,40 +1384,35 @@ should return the stack after executing the program. Test your function on the
 examples below.
 
 Note that the specification leaves unspecified what to do when encountering an
-SPlus, SMinus, or SMult instruction if the stack contains less than two
-elements. In a sense, it is immaterial what we do, since our compiler will never
-emit such a malformed program.
+\idr{SPlus}, \idr{SMinus}, or \idr{SMult} instruction if the stack contains less
+than two elements. In a sense, it is immaterial what we do, since our compiler
+will never emit such a malformed program.
 
-Fixpoint s_execute (st : state) (stack : list Nat)
-                   (prog : list sinstr)
-                 : list Nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> s_execute : (st : state) -> (stack : List Nat) -> (prog : List SInstr) ->
+>             List Nat
+> s_execute st stack prog = ?s_execute_rhs
 
-Example s_execute1 :
-     s_execute empty_state []
-       [SPush 5; SPush 3; SPush 1; SMinus]
-   = [2; 5].
-(* FILL IN HERE *) Admitted.
+> s_execute1 : s_execute empty_state [] [SPush 5, SPush 3, SPush 1, SMinus]
+>              = [2,5]
+> s_execute1 = ?s_execute1_rhs
 
-Example s_execute2 :
-     s_execute (t_update empty_state X 3) [3;4]
-       [SPush 4; SLoad X; SMult; SPlus]
-   = [15; 4].
-(* FILL IN HERE *) Admitted.
+> s_execute2 : s_execute (t_update X 3 empty_state) [3,4]
+>                        [SPush 4, SLoad X, SMult, SPlus]
+>              = [15,4]
+> s_execute2 = ?s_execute2_rhs
 
-Next, write a function that compiles an AExp into a stack machine program. The
-effect of running the program should be the same as pushing the value of the
+Next, write a function that compiles an \idr{AExp} into a stack machine program.
+The effect of running the program should be the same as pushing the value of the
 expression on the stack.
 
-Fixpoint s_compile (e : AExp) : list sinstr
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> s_compile : (e : AExpS) -> List SInstr
+> s_compile e = ?s_compile_rhs
 
-After you've defined s_compile, prove the following to test that it works.
+After you've defined \idr{s_compile}, prove the following to test that it works.
 
-Example s_compile1 :
-    s_compile (AMinus (AId X) (AMult (ANum 2) (AId Y)))
-  = [SLoad X; SPush 2; SLoad Y; SMult; SMinus].
-(* FILL IN HERE *) Admitted.
+> s_compile1 : s_compile (AMinusS (AIdS X) (AMultS (ANumS 2) (AIdS Y)))
+>              = [SLoad X, SPush 2, SLoad Y, SMult, SMinus]
+> s_compile1 = ?s_compile1_rhs
 
 $\square$
 
@@ -1418,18 +1421,16 @@ $\square$
 
 Now we'll prove the correctness of the compiler implemented in the previous
 exercise. Remember that the specification left unspecified what to do when
-encountering an SPlus, SMinus, or SMult instruction if the stack contains less
-than two elements. (In order to make your correctness proof easier you might
-find it helpful to go back and change your implementation!)
+encountering an \idr{SPlus}, \idr{SMinus}, or \idr{SMult} instruction if the
+stack contains less than two elements. (In order to make your correctness proof
+easier you might find it helpful to go back and change your implementation!)
 
 Prove the following theorem. You will need to start by stating a more general
 lemma to get a usable induction hypothesis; the main theorem will then be a
 simple corollary of this lemma.
 
-Theorem s_compile_correct : ∀(st : state) (e : AExp),
-  s_execute st [] (s_compile e) = [ aeval st e ].
-Proof.
-  (* FILL IN HERE *) Admitted.
+> s_compile_correct : s_execute st [] (s_compile e) = [aevalS st e]
+> s_compile_correct = ?s_compile_correct_rhs
 
 $\square$
 
@@ -1437,35 +1438,34 @@ $\square$
 ==== Exercise: 3 stars, optional (short_circuit)
 
 Most modern programming languages use a "short-circuit" evaluation rule for
-Boolean and: to evaluate BAnd b1 b2, first evaluate b1. If it evaluates to
-false, then the entire BAnd expression evaluates to false immediately, without
-evaluating b2. Otherwise, b2 is evaluated to determine the result of the BAnd
-expression.
+boolean \idr{and}: to evaluate \idr{BAnd b1 b2}, first evaluate \idr{b1}. If it
+evaluates to \idr{False}, then the entire \idr{BAnd} expression evaluates to
+\idr{False} immediately, without evaluating \idr{b2}. Otherwise, \idr{b2} is
+evaluated to determine the result of the \idr{BAnd} expression.
 
-Write an alternate version of beval that performs short-circuit evaluation of
-BAnd in this manner, and prove that it is equivalent to beval.
+Write an alternate version of \idr{bevalS} that performs short-circuit
+evaluation of \idr{BAnd} in this manner, and prove that it is equivalent to
+\idr{bevalS}.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
 $\square$
-
-Module BreakImp.
 
 
 ==== Exercise: 4 stars, advanced (break_imp)
 
-Imperative languages like C and Java often include a break or similar statement
-for interrupting the execution of loops. In this exercise we consider how to add
-break to Imp. First, we need to enrich the language of commands with an
-additional case.
+Imperative languages like C and Java often include a \idr{break} or similar
+statement for interrupting the execution of loops. In this exercise we consider
+how to add \idr{break} to Imp. First, we need to enrich the language of commands
+with an additional case.
 
-Inductive com : Type :=
-  | CSkip : com
-  | CBreak : com (* <-- new *)
-  | CAss : id -> AExp -> com
-  | CSeq : com -> com -> com
-  | CIf : BExp -> com -> com -> com
-  | CWhile : BExp -> com -> com.
+> data ComB : Type where
+>   CSkipB : ComB
+>   CBreakB : ComB  -- <-- new
+>   CAssB : Id -> AExpS -> ComB
+>   CSeqB : ComB -> ComB -> ComB
+>   CIfB : BExpS -> ComB -> ComB -> ComB
+>   CWhileB : BExpS -> ComB -> ComB
 
 Notation "'SKIP'" :=
   CSkip.
@@ -1480,16 +1480,18 @@ Notation "'WHILE' b 'DO' c 'END'" :=
 Notation "'IFB' c1 'THEN' c2 'ELSE' c3 'FI'" :=
   (CIf c1 c2 c3) (at level 80, right associativity).
 
-Next, we need to define the behavior of BREAK. Informally, whenever BREAK is
-executed in a sequence of commands, it stops the execution of that sequence and
-signals that the innermost enclosing loop should terminate. (If there aren't any
-enclosing loops, then the whole program simply terminates.) The final state
-should be the same as the one in which the BREAK statement was executed.
+Next, we need to define the behavior of \idr{BREAK}. Informally, whenever
+\idr{BREAK} is executed in a sequence of commands, it stops the execution of
+that sequence and signals that the innermost enclosing loop should terminate.
+(If there aren't any enclosing loops, then the whole program simply terminates.)
+The final state should be the same as the one in which the \idr{BREAK} statement
+was executed.
 
 One important point is what to do when there are multiple loops enclosing a
-given BREAK. In those cases, BREAK should only terminate the innermost loop.
-Thus, after executing the following...
+given \idr{BREAK}. In those cases, \idr{BREAK} should only terminate the
+_innermost_ loop. Thus, after executing the following...
 
+```idris
        X ::= 0;;
        Y ::= 1;;
        WHILE 0 ≠ Y DO
@@ -1499,126 +1501,118 @@ Thus, after executing the following...
          X ::= 1;;
          Y ::= Y - 1
        END
+```
 
-... the value of X should be 1, and not 0.
+... the value of \idr{X} should be \idr{1}, and not \idr{0}.
 
 One way of expressing this behavior is to add another parameter to the
 evaluation relation that specifies whether evaluation of a command executes a
-BREAK statement:
+\idr{BREAK} statement:
 
-Inductive result : Type :=
-  | SContinue : result
-  | SBreak : result.
+> data Result : Type where
+>   SContinue : Result
+>   SBreak : Result
 
 Reserved Notation "c1 '/' st '\||/' s '/' st'"
                   (at level 40, st, s at level 39).
 
-Intuitively, c / st \||/ s / st' means that, if c is started in state st, then it
-terminates in state st' and either signals that the innermost surrounding loop
-(or the whole program) should exit immediately (s = SBreak) or that execution
-should continue normally (s = SContinue).
+Intuitively, `c / st \||/ s / st'` means that, if \idr{c} is started in state
+\idr{st}, then it terminates in state \idr{st'} and either signals that the
+innermost surrounding loop (or the whole program) should exit immediately
+(\idr{s = SBreak}) or that execution should continue normally (\idr{s =
+SContinue}).
 
-The definition of the "c / st \||/ s / st'" relation is very similar to the one we
-gave above for the regular evaluation relation (c / st \||/ st') — we just need to
-handle the termination signals appropriately:
+The definition of the "`c / st \||/ s / st'`" relation is very similar to the
+one we gave above for the regular evaluation relation (`c / st \||/ st'`) — we
+just need to handle the termination signals appropriately:
 
-  - If the command is SKIP, then the state doesn't change and execution of any
-  enclosing loop can continue normally.
+  - If the command is \idr{SKIP}, then the state doesn't change and execution of
+    any enclosing loop can continue normally.
 
-  - If the command is BREAK, the state stays unchanged but we signal a SBreak.
+  - If the command is \idr{BREAK}, the state stays unchanged but we signal a
+    \idr{SBreak}.
 
   - If the command is an assignment, then we update the binding for that
-  variable in the state accordingly and signal that execution can continue
-  normally.
+    variable in the state accordingly and signal that execution can continue
+    normally.
 
-  - If the command is of the form IFB b THEN c1 ELSE c2 FI, then the state is
-  updated as in the original semantics of Imp, except that we also propagate the
-  signal from the execution of whichever branch was taken.
+  - If the command is of the form \idr{IFB b THEN c1 ELSE c2 FI}, then the state
+    is updated as in the original semantics of Imp, except that we also
+    propagate the signal from the execution of whichever branch was taken.
 
-  - If the command is a sequence c1 ;; c2, we first execute c1. If this yields a
-  SBreak, we skip the execution of c2 and propagate the SBreak signal to the
-  surrounding context; the resulting state is the same as the one obtained by
-  executing c1 alone. Otherwise, we execute c2 on the state obtained after
-  executing c1, and propagate the signal generated there.
+  - If the command is a sequence \idr{c1 ;; c2}, we first execute \idr{c1}. If
+    this yields a \idr{SBreak}, we skip the execution of \idr{c2} and propagate
+    the \idr{SBreak} signal to the surrounding context; the resulting state is
+    the same as the one obtained by executing \idr{c1} alone. Otherwise, we
+    execute \idr{c2} on the state obtained after executing \idr{c1}, and
+    propagate the signal generated there.
 
-  - Finally, for a loop of the form WHILE b DO c END, the semantics is almost
-  the same as before. The only difference is that, when b evaluates to True, we
-  execute c and check the signal that it raises. If that signal is SContinue,
-  then the execution proceeds as in the original semantics. Otherwise, we stop
-  the execution of the loop, and the resulting state is the same as the one
-  resulting from the execution of the current iteration. In either case, since
-  BREAK only terminates the innermost loop, WHILE signals SContinue.
+  - Finally, for a loop of the form \idr{WHILE b DO c END}, the semantics is
+    almost the same as before. The only difference is that, when \idr{b}
+    evaluates to \idr{True}, we execute \idr{c} and check the signal that it
+    raises. If that signal is \idr{SContinue}, then the execution proceeds as in
+    the original semantics. Otherwise, we stop the execution of the loop, and
+    the resulting state is the same as the one resulting from the execution of
+    the current iteration. In either case, since \idr{BREAK} only terminates the
+    innermost loop, \idr{WHILE} signals \idr{SContinue}.
 
-Based on the above description, complete the definition of the ceval relation.
+Based on the above description, complete the definition of the \idr{CEvalB}
+relation.
 
-Inductive ceval : com -> state -> result -> state -> Type :=
-  | E_Skip : ∀st,
-      CSkip / st \||/ SContinue / st
-  (* FILL IN HERE *)
+> data CEvalB : ComB -> State -> Result -> State -> Type where
+>   E_SkipB : CEvalB CSkipB st SContinue st
+>   -- FILL IN HERE
 
   where "c1 '/' st '\||/' s '/' st'" := (ceval c1 st s st').
 
-Now prove the following properties of your definition of ceval:
+Now prove the following properties of your definition of \idr{CEvalB}:
 
-Theorem break_ignore : ∀c st st' s,
-     (BREAK;; c) / st \||/ s / st' ->
-     st = st'.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> break_ignore : CEvalB (CSeqB CBreakB c) st s st' -> st = st'
+> break_ignore x = ?break_ignore_rhs
 
-Theorem while_continue : ∀b c st st' s,
-  (WHILE b DO c END) / st \||/ s / st' ->
-  s = SContinue.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> while_continue : CEvalB (CWhileB b c) st s st' -> s = SContinue
+> while_continue x = ?while_continue_rhs
 
-Theorem while_stops_on_break : ∀b c st st',
-  beval st b = True ->
-  c / st \||/ SBreak / st' ->
-  (WHILE b DO c END) / st \||/ SContinue / st'.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> while_stops_on_break : bevalS st b = True -> CEvalB c st SBreak st' ->
+>                        CEvalB (CWhileB b c) st SContinue st'
+> while_stops_on_break prf x = ?while_stops_on_break_rhs
 
 $\square$
 
 
-==== Exercise: 3 stars, advanced, optional (while_break_True)
+==== Exercise: 3 stars, advanced, optional (while_break_true)
 
-Theorem while_break_True : ∀b c st st',
-  (WHILE b DO c END) / st \||/ SContinue / st' ->
-  beval st' b = True ->
-  ∃st'', c / st'' \||/ SBreak / st'.
-Proof.
-(* FILL IN HERE *) Admitted.
+> while_break_true : CEvalB (CWhileB b c) st SContinue st' ->
+>                    bevalS st' b = True ->
+>                    (st'' ** CEvalB c st'' SBreak st')
+> while_break_true x prf = ?while_break_true_rhs
 
 $\square$
 
 
-==== Exercise: 4 stars, advanced, optional (ceval_deterministic)
+==== Exercise: 4 stars, advanced, optional (cevalB_deterministic)
 
-Theorem ceval_deterministic: ∀(c:com) st st1 st2 s1 s2,
-     c / st \||/ s1 / st1 ->
-     c / st \||/ s2 / st2 ->
-     st1 = st2 ∧ s1 = s2.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> cevalB_deterministic : CEvalB c st s1 st1 ->
+>                        CEvalB c st s2 st2 ->
+>                        (st1 = st2, s1 = s2)
+> cevalB_deterministic x y = ?cevalB_deterministic_rhs
 
 $\square$
-End BreakImp.
 
 
 ==== Exercise: 4 stars, optional (add_for_loop)
 
-Add C-style for loops to the language of commands, update the ceval definition
-to define the semantics of for loops, and add cases for for loops as needed so
-that all the proofs in this file are accepted by Idris.
+Add C-style \idr{for} loops to the language of commands, update the \idr{CEval}
+definition to define the semantics of \idr{for} loops, and add cases for
+\idr{for} loops as needed so that all the proofs in this file are accepted by
+Idris.
 
-A for loop should be parameterized by (a) a statement executed initially, (b) a
-test that is run on each iteration of the loop to determine whether the loop
-should continue, (c) a statement executed at the end of each loop iteration, and
-(d) a statement that makes up the body of the loop. (You don't need to worry
-about making up a concrete Notation for for loops, but feel free to play with
-this too if you like.)
+A \idr{for} loop should be parameterized by (a) a statement executed initially,
+(b) a test that is run on each iteration of the loop to determine whether the
+loop should continue, (c) a statement executed at the end of each loop
+iteration, and (d) a statement that makes up the body of the loop. (You don't
+need to worry about making up a concrete Notation for \idr{for} loops, but feel
+free to play with this too if you like.)
 
 > -- FILL IN HERE
 
