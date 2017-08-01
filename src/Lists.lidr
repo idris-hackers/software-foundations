@@ -7,6 +7,7 @@
 > %hide Prelude.Basics.fst
 > %hide Prelude.Basics.snd
 > %hide Prelude.Nat.pred
+> %hide Prelude.List.(++)
 
 > %access public export
 > %default total
@@ -124,26 +125,19 @@ and another list."
 
 > data NatList : Type where
 >   Nil : NatList
->   Cons : Nat -> NatList -> NatList
+>   (::) : Nat -> NatList -> NatList
 
 For example, here is a three-element list:
 
 > mylist : NatList
-> mylist = Cons 1 (Cons 2 (Cons 3 Nil))
+> mylist = (::) 1 ((::) 2 ((::) 3 Nil))
+
+\todo[inline]{Edit the section - Idris's list sugar automatically works for
+anything with constructors \idr{Nil} and \idr{(::)}}
 
 As with pairs, it is more convenient to write lists in familiar programming
 notation. The following declarations allow us to use \idr{::} as an infix Cons
 operator and square brackets as an "outfix" notation for constructing lists.
-
-> syntax [x] "::" [l] = Cons x l
-> syntax "[ ]" = Nil
-
-\todo[inline]{Seems it's impossible to make an Idris \idr{syntax} to overload
-the list notation. Edit the section.}
-
-```coq
-Notation "[ x ; .. ; y ]" := ( cons x .. ( cons y nil ) ..).
-```
 
 It is not necessary to understand the details of these declarations, but in case
 you are interested, here is roughly what's going on. The right associativity
@@ -155,9 +149,10 @@ thing:
 > mylist1 = 1 :: (2 :: (3 :: Nil))
 
 > mylist2 : NatList
-> mylist2 = 1::2::3::Nil
+> mylist2 = 1::2::3::[]
 
-Definition mylist3 := [1;2;3].
+> mylist3 : NatList
+> mylist3 = [1,2,3]
 
 The at level 60 part tells Coq how to parenthesize expressions that involve both
 :: and some other infix operator. For example, since we defined + as infix
@@ -190,7 +185,7 @@ A number of functions are useful for manipulating lists. For example, the
 list of length \idr{count} where every element is \idr{n}.
 
 > repeat : (n, count : Nat) -> NatList
-> repeat n Z = Nil
+> repeat n Z = []
 > repeat n (S k) = n :: repeat n k
 
 
@@ -199,7 +194,7 @@ list of length \idr{count} where every element is \idr{n}.
 The \idr{length} function calculates the length of a list.
 
 > length : (l : NatList) -> Nat
-> length Nil = Z
+> length [] = Z
 > length (h :: t) = S (length t)
 
 
@@ -208,21 +203,24 @@ The \idr{length} function calculates the length of a list.
 The \idr{app} function concatenates (appends) two lists.
 
 > app : (l1, l2 : NatList) -> NatList
-> app Nil l2 = l2
+> app [] l2 = l2
 > app (h :: t) l2 = h :: app t l2
 
 Actually, \idr{app} will be used a lot in some parts of what follows, so it is
 convenient to have an infix operator for it.
 
-> syntax [x] "++" [y] = app x y
+> infixr 7 ++
 
-> test_app1 : ((1::2::3::[]) ++ (4::5::[])) = (1::2::3::4::5::[])
+> (++) : (x, y : NatList) -> NatList
+> (++) = app
+
+> test_app1 : [1,2,3] ++ [4,5,6] = [1,2,3,4,5,6]
 > test_app1 = Refl
 
-> test_app2 : ([] ++ (4::5::[])) = (4::5::[])
+> test_app2 : [] ++ [4,5] = [4,5]
 > test_app2 = Refl
 
-> test_app3 : ((1::2::3::[]) ++ []) = (1::2::3::[])
+> test_app3 : [1,2,3] ++ [] = [1,2,3]
 > test_app3 = Refl
 
 
@@ -234,20 +232,20 @@ everything but the first element (the "tail"). Of course, the empty list has no
 first element, so we must pass a default value to be returned in that case.
 
 > hd : (default : Nat) -> (l : NatList) -> Nat
-> hd default Nil = default
+> hd default [] = default
 > hd default (h :: t) = h
 
 > tl : (l : NatList) -> NatList
-> tl Nil = Nil
+> tl [] = []
 > tl (h :: t) = t
 
-> test_hd1 : hd 0 (1::2::3::[]) = 1
+> test_hd1 : hd 0 [1,2,3] = 1
 > test_hd1 = Refl
 
 > test_hd2 : hd 0 [] = 0
 > test_hd2 = Refl
 
-> test_tl : tl (1::2::3::[]) = (2::3::[])
+> test_tl : tl [1,2,3] = [2,3]
 > test_tl = Refl
 
 
@@ -263,19 +261,19 @@ functions should do.
 > nonzeros : (l : NatList) -> NatList
 > nonzeros l = ?nonzeros_rhs
 
-> test_nonzeros : nonzeros (0::1::0::2::3::0::0::[]) = (1::2::3::[])
+> test_nonzeros : nonzeros [0,1,0,2,3,0,0] = [1,2,3]
 > test_nonzeros = ?test_nonzeros_rhs
 
 > oddmembers : (l : NatList) -> NatList
 > oddmembers l = ?oddmembers_rhs
 
-> test_oddmembers : oddmembers (0::1::0::2::3::0::0::[]) = (1::3::[])
+> test_oddmembers : oddmembers [0,1,0,2,3,0,0] = [1,3]
 > test_oddmembers = ?test_oddmembers_rhs
 
 > countoddmembers : (l : NatList) -> Nat
 > countoddmembers l = ?countoddmembers_rhs
 
-> test_countoddmembers1 : countoddmembers (1::0::3::1::4::5::[]) = 4
+> test_countoddmembers1 : countoddmembers [1,0,3,1,4,5] = 4
 > test_countoddmembers1 = ?test_countoddmembers1_rhs
 
 $\square$
@@ -296,17 +294,17 @@ solution requires defining a new kind of pairs, but this is not the only way.)
 > alternate : (l1, l2 : NatList) -> NatList
 > alternate l1 l2 = ?alternate_rhs
 
-> test_alternate1 : alternate (1::2::3::[]) (4::5::6::[]) =
->                             (1::4::2::5::3::6::[])
+> test_alternate1 : alternate [1,2,3] [4,5,6] =
+>                             [1,4,2,5,3,6]
 > test_alternate1 = ?test_alternate1_rhs
 
-> test_alternate2 : alternate (1::[]) (4::5::6::[]) = (1::4::5::6::[])
+> test_alternate2 : alternate [1] [4,5,6] = [1,4,5,6]
 > test_alternate2 = ?test_alternate2_rhs
 
-> test_alternate3 : alternate (1::2::3::[]) (4::[]) = (1::4::2::3::[])
+> test_alternate3 : alternate [1,2,3] [4] = [1,4,2,3]
 > test_alternate3 = ?test_alternate3_rhs
 
-> test_alternate4 : alternate [] (20::30::[]) = (20::30::[])
+> test_alternate4 : alternate [] [20,30] = [20,30]
 > test_alternate4 = ?test_alternate4_rhs
 
 $\square$
@@ -332,10 +330,10 @@ Complete the following definitions for the functions \idr{count}, \idr{sum},
 
 All these proofs can be done just by \idr{Refl}.
 
-> test_count1 : count 1 (1::2::3::1::4::1::[]) = 3
+> test_count1 : count 1 [1,2,3,1,4,1] = 3
 > test_count1 = ?test_count1_rhs
 
-> test_count2 : count 6 (1::2::3::1::4::1::[]) = 0
+> test_count2 : count 6 [1,2,3,1,4,1] = 0
 > test_count2 = ?test_count2_rhs
 
 Multiset \idr{sum} is similar to set \idr{union}: \idr{sum a b} contains all the
@@ -355,25 +353,25 @@ functions that have already been defined.
 > sum : Bag -> Bag -> Bag
 > sum x y = ?sum_rhs
 
-> test_sum1 : count 1 (sum (1::2::3::[]) (1::4::1::[])) = 3
+> test_sum1 : count 1 (sum [1,2,3] [1,4,1]) = 3
 > test_sum1 = ?test_sum1_rhs
 
 > add : (v : Nat) -> (s : Bag) -> Bag
 > add v s = ?add_rhs
 
-> test_add1 : count 1 (add 1 (1::4::1::[])) = 3
+> test_add1 : count 1 (add 1 [1,4,1]) = 3
 > test_add1 = ?test_add1_rhs
 
-> test_add2 : count 5 (add 1 (1::4::1::[])) = 0
+> test_add2 : count 5 (add 1 [1,4,1]) = 0
 > test_add2 = ?test_add2_rhs
 
 > member : (v : Nat) -> (s : Bag) -> Bool
 > member v s = ?member_rhs
 
-> test_member1 : member 1 (1::4::1::[]) = True
+> test_member1 : member 1 [1,4,1] = True
 > test_member1 = ?test_member1_rhs
 
-> test_member2 : member 2 (1::4::1::[]) = False
+> test_member2 : member 2 [1,4,1] = False
 > test_member2 = ?test_member2_rhs
 
 $\square$
@@ -389,41 +387,41 @@ should return the same bag unchanged.
 > remove_one : (v : Nat) -> (s : Bag) -> Bag
 > remove_one v s = ?remove_one_rhs
 
-> test_remove_one1 : count 5 (remove_one 5 (2::1::5::4::1::[])) = 0
+> test_remove_one1 : count 5 (remove_one 5 [2,1,5,4,1]) = 0
 > test_remove_one1 = ?test_remove_one1_rhs
 
-> test_remove_one2 : count 5 (remove_one 5 (2::1::4::1::[])) = 0
+> test_remove_one2 : count 5 (remove_one 5 [2,1,4,1]) = 0
 > test_remove_one2 = ?test_remove_one2_rhs
 
-> test_remove_one3 : count 4 (remove_one 5 (2::1::5::4::1::4::[])) = 2
+> test_remove_one3 : count 4 (remove_one 5 [2,1,5,4,1,4]) = 2
 > test_remove_one3 = ?test_remove_one3_rhs
 
-> test_remove_one4 : count 5 (remove_one 5 (2::1::5::4::5::1::4::[])) = 1
+> test_remove_one4 : count 5 (remove_one 5 [2,1,5,4,5,1,4]) = 1
 > test_remove_one4 = ?test_remove_one4_rhs
 
 > remove_all : (v : Nat) -> (s : Bag) -> Bag
 > remove_all v s = ?remove_all_rhs
 
-> test_remove_all1 : count 5 (remove_all 5 (2::1::5::4::1::[])) = 0
+> test_remove_all1 : count 5 (remove_all 5 [2,1,5,4,1]) = 0
 > test_remove_all1 = ?test_remove_all1_rhs
 
-> test_remove_all2 : count 5 (remove_all 5 (2::1::4::1::[])) = 0
+> test_remove_all2 : count 5 (remove_all 5 [2,1,4,1]) = 0
 > test_remove_all2 = ?test_remove_all2_rhs
 
-> test_remove_all3 : count 4 (remove_all 5 (2::1::5::4::1::4::[])) = 2
+> test_remove_all3 : count 4 (remove_all 5 [2,1,5,4,1,4]) = 2
 > test_remove_all3 = ?test_remove_all3_rhs
 
 > test_remove_all4 : count 5
->                    (remove_all 5 (2::1::5::4::5::1::4::5::1::4::[])) = 0
+>                    (remove_all 5 [2,1,5,4,5,1,4,5,1,4]) = 0
 > test_remove_all4 = ?test_remove_all4_rhs
 
 > subset : (s1 : Bag) -> (s2 : Bag) -> Bool
 > subset s1 s2 = ?subset_rhs
 
-> test_subset1 : subset (1::2::[]) (2::1::4::1::[]) = True
+> test_subset1 : subset [1,2] [2,1,4,1] = True
 > test_subset1 = ?test_subset1_rhs
 
-> test_subset2 : subset (1::2::2::[]) (2::1::4::1::[]) = False
+> test_subset2 : subset [1,2,2] [2,1,4,1] = False
 > test_subset2 = ?test_subset2_rhs
 
 $\square$
@@ -459,8 +457,8 @@ Also, as with numbers, it is sometimes helpful to perform case analysis on the
 possible shapes (empty or non-empty) of an unknown list.
 
 > tl_length_pred : (l : NatList) -> pred (length l) = length (tl l)
-> tl_length_pred Nil = Refl
-> tl_length_pred (Cons n l') = Refl
+> tl_length_pred [] = Refl
+> tl_length_pred (n::l') = Refl
 
 Here, the \idr{Nil} case works because we've chosen to define \idr{tl Nil =
 Nil}. Notice that the case for \idr{Cons} introduces two names, \idr{n} and
@@ -508,8 +506,8 @@ Since larger lists can only be built up from smaller ones, eventually reaching
 lists \idr{l}. Here's a concrete example:
 
 > app_assoc : (l1, l2, l3 : NatList) -> ((l1 ++ l2) ++ l3) = (l1 ++ (l2 ++ l3))
-> app_assoc Nil l2 l3 = Refl
-> app_assoc (Cons n l1') l2 l3 =
+> app_assoc [] l2 l3 = Refl
+> app_assoc (n::l1') l2 l3 =
 >   let inductiveHypothesis = app_assoc l1' l2 l3 in
 >     rewrite inductiveHypothesis in Refl
 
@@ -562,9 +560,9 @@ use \idr{app} to define a list-reversing function \idr{rev}:
 
 > rev : (l : NatList) -> NatList
 > rev Nil = Nil
-> rev (h :: t) = (rev t) ++ (h::[])
+> rev (h :: t) = (rev t) ++ [h]
 
-> test_rev1 : rev (1::2::3::[]) = (3::2::1::[])
+> test_rev1 : rev [1,2,3] = [3,2,1]
 > test_rev1 = Refl
 
 > test_rev2 : rev Nil = Nil
@@ -614,7 +612,7 @@ Now we can complete the original proof.
 > rev_length : (l : NatList) -> length (rev l) = length l
 > rev_length Nil = Refl
 > rev_length (n :: l') =
->   rewrite app_length (rev l') (n::[]) in
+>   rewrite app_length (rev l') [n] in
 > -- Prelude's version of `Induction.plus_comm`
 >     rewrite plusCommutative (length (rev l')) 1 in
 >       let inductiveHypothesis = rev_length l' in
@@ -762,10 +760,10 @@ equality. Prove that \idr{beq_NatList l l} yields \idr{True} for every list
 > test_beq_NatList1 : beq_NatList Nil Nil = True
 > test_beq_NatList1 = ?test_beq_NatList1_rhs
 
-> test_beq_NatList2 : beq_NatList (1::2::3::[]) (1::2::3::[]) = True
+> test_beq_NatList2 : beq_NatList [1,2,3] [1,2,3] = True
 > test_beq_NatList2 = ?test_beq_NatList2_rhs
 
-> test_beq_NatList3 : beq_NatList (1::2::3::[]) (1::2::4::[]) = False
+> test_beq_NatList3 : beq_NatList [1,2,3] [1,2,4] = False
 > test_beq_NatList3 = ?test_beq_NatList3_rhs
 
 > beq_NatList_refl : (l : NatList) -> True = beq_NatList l l
@@ -855,13 +853,13 @@ to indicate that it may result in an error.
 >                           True => Some a
 >                           False => nth_error l' (pred n)
 
-> test_nth_error1 : nth_error (4::5::6::7::[]) 0 = Some 4
+> test_nth_error1 : nth_error [4,5,6,7] 0 = Some 4
 > test_nth_error1 = Refl
 
-> test_nth_error2 : nth_error (4::5::6::7::[]) 3 = Some 7
+> test_nth_error2 : nth_error [4,5,6,7] 3 = Some 7
 > test_nth_error2 = Refl
 
-> test_nth_error3 : nth_error (4::5::6::7::[]) 9 = None
+> test_nth_error3 : nth_error [4,5,6,7] 9 = None
 > test_nth_error3 = Refl
 
 This example is also an opportunity to introduce one more small feature of Idris
@@ -900,10 +898,10 @@ pass a default element for the \idr{Nil} case.
 > test_hd_error1 : hd_error [] = None
 > test_hd_error1 = ?test_hd_error1_rhs
 
-> test_hd_error2 : hd_error (1::[]) = Some 1
+> test_hd_error2 : hd_error [1] = Some 1
 > test_hd_error2 = ?test_hd_error2_rhs
 
-> test_hd_error3 : hd_error (5::6::[]) = Some 5
+> test_hd_error3 : hd_error [5,6] = Some 5
 > test_hd_error3 = ?test_hd_error3_rhs
 
 $\square$
