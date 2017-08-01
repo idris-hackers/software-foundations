@@ -93,7 +93,6 @@ https://github.com/idris-lang/Idris-dev/pull/3925 happens}
  Uninhabited (False = True) where
    uninhabited Refl impossible
 
-
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
 > beq_id_true_iff = (bto, bfro)
 >   where

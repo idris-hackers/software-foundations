@@ -323,24 +323,24 @@ _Proof_: By induction on `a`. Most cases follow directly from the `IH`. The
 remaining cases are as follows:
 
   - Suppose `a = ANum n` for some `n`. We must show
-```  
+```
        aeval (optimize_0plus (ANum n)) = aeval (ANum n).
-```  
+```
     This is immediate from the definition of `optimize_0plus`.
 
   - Suppose `a = APlus a1 a2` for some `a1` and `a2`. We must show
-```  
+```
        aeval (optimize_0plus (APlus a1 a2)) = aeval (APlus a1 a2).
 ```
-      
+
     Consider the possible forms of `a1`. For most of them, `optimize_0plus`
     simply calls itself recursively for the subexpressions and rebuilds a new
     expression of the same form as `a1`; in these cases, the result follows
     directly from the `IH`. The interesting case is when `a1 = ANum n` for some
     `n`. If `n = ANum 0`, then
-```  
+```
        optimize_0plus (APlus a1 a2) = optimize_0plus a2
-```       
+```
     and the `IH` for `a2` is exactly what we need. On the other hand, if `n = S
     n'` for some `n'`, then again `optimize_0plus` simply calls itself
     recursively, and the result follows from the `IH`. $\square$
@@ -571,13 +571,13 @@ data AEvalR : AExp0 -> Nat -> Type where
     AEvalR e1 n1 ->
     AEvalR e2 n2 ->
     AEvalR (AMult0 e1 e2) (n1 * n2)
-```    
+```
 
 \todo[inline]{Edit}
 
 It will be convenient to have an infix notation for \idr{AEvalR}. We'll write
 \idr{e |/ n} to mean that arithmetic expression \idr{e} evaluates to value
-\idr{n}. 
+\idr{n}.
 
 In fact, Idris provides a way to use this notation in the definition of
 \idr{AevalR} itself. This reduces confusion by avoiding situations where we're
@@ -1304,9 +1304,9 @@ definitions. This section explores some examples.
 
 \todo[inline]{Edit}
 
-Inverting Heval essentially forces Idris to expand one step of the ceval
-computation — in this case revealing that st' must be st extended with the new
-value of X, since plus2 is an assignment
+Inverting `Heval` essentially forces Idris to expand one step of the `CEval`
+computation — in this case revealing that `st'` must be st extended with the new
+value of `X`, since `plus2` is an assignment
 
 > plus2_spec prf (E_Ass aev) = rewrite sym aev in rewrite prf in Refl
 
@@ -1323,12 +1323,16 @@ $\square$
 ==== Exercise: 3 stars, recommended (loop_never_stops)
 
 > loop_never_stops : Not (Imp.loop / st |/ st')
-> loop_never_stops = ?loop_never_stops_rhs
+> loop_never_stops contra = ?loop_never_stops_rhs
 
+\todo[inline]{Edit}
+
+```coq
 Proof.
   intros st st' contra. unfold loop in contra.
   remember (WHILE BTrue DO SKIP END) as loopdef
            eqn:Heqloopdef.
+```
 
 Proceed by induction on the assumed derivation showing that loopdef terminates.
 Most of the cases are immediately contradictory (and so can be solved in one
@@ -1526,18 +1530,12 @@ with an additional case.
 >   CIfB : BExp -> ComB -> ComB -> ComB
 >   CWhileB : BExp -> ComB -> ComB
 
-Notation "'SKIP'" :=
-  CSkip.
-Notation "'BREAK'" :=
-  CBreak.
-Notation "x '::=' a" :=
-  (CAss x a) (at level 60).
-Notation "c1 ;; c2" :=
-  (CSeq c1 c2) (at level 80, right associativity).
-Notation "'WHILE' b 'DO' c 'END'" :=
-  (CWhile b c) (at level 80, right associativity).
-Notation "'IFB' c1 'THEN' c2 'ELSE' c3 'FI'" :=
-  (CIf c1 c2 c3) (at level 80, right associativity).
+> syntax SKIP' = CSkipB
+> syntax BREAK' = CBreakB
+> syntax [x] "::='" [a] = CAssB x a
+> syntax [c1] ";;'" [c2] = CSeqB c1 c2
+> syntax WHILE' [b] DO [c] END = CWhileB b c
+> syntax IFB' [c1] THEN [c2] ELSE [c3] FI = CIfB c1 c2 c3
 
 Next, we need to define the behavior of \idr{BREAK}. Informally, whenever
 \idr{BREAK} is executed in a sequence of commands, it stops the execution of
@@ -1550,7 +1548,7 @@ One important point is what to do when there are multiple loops enclosing a
 given \idr{BREAK}. In those cases, \idr{BREAK} should only terminate the
 _innermost_ loop. Thus, after executing the following...
 
-```idris
+```
        X ::= 0;;
        Y ::= 1;;
        WHILE 0 ≠ Y DO
@@ -1572,18 +1570,15 @@ evaluation relation that specifies whether evaluation of a command executes a
 >   SContinue : Result
 >   SBreak : Result
 
-Reserved Notation "c1 '/' st '||//' s '/' st'"
-                  (at level 40, st, s at level 39).
-
-Intuitively, `c / st ||// s / st'` means that, if \idr{c} is started in state
+Intuitively, \idr{c // st |/ s / st'} means that, if \idr{c} is started in state
 \idr{st}, then it terminates in state \idr{st'} and either signals that the
 innermost surrounding loop (or the whole program) should exit immediately
 (\idr{s = SBreak}) or that execution should continue normally (\idr{s =
 SContinue}).
 
-The definition of the "`c / st ||// s / st'`" relation is very similar to the
-one we gave above for the regular evaluation relation (`c / st ||// st'`) — we
-just need to handle the termination signals appropriately:
+The definition of the "\idr{c // st |/ s / st'}" relation is very similar to the
+one we gave above for the regular evaluation relation (\idr{c / st |/ st'}) —
+we just need to handle the termination signals appropriately:
 
   - If the command is \idr{SKIP}, then the state doesn't change and execution of
     any enclosing loop can continue normally.
@@ -1622,18 +1617,19 @@ relation.
 >   E_SkipB : CEvalB CSkipB st SContinue st
 >   -- FILL IN HERE
 
-  where "c1 '/' st '||//' s '/' st'" := (ceval c1 st s st').
+> syntax [c1] "//" [st] "|/" [s] "/" [st'] = CEvalB c1 st s st'
 
 Now prove the following properties of your definition of \idr{CEvalB}:
 
-> break_ignore : CEvalB (CSeqB CBreakB c) st s st' -> st = st'
+> break_ignore : (((BREAK') ;;' (c)) // st |/ s / st') -> st = st'
 > break_ignore x = ?break_ignore_rhs
 
-> while_continue : CEvalB (CWhileB b c) st s st' -> s = SContinue
+> while_continue : ((WHILE' b DO c END) // st  |/ s / st') -> s = SContinue
 > while_continue x = ?while_continue_rhs
 
-> while_stops_on_break : beval st b = True -> CEvalB c st SBreak st' ->
->                        CEvalB (CWhileB b c) st SContinue st'
+> while_stops_on_break : beval st b = True ->
+>                        (c // st |/ SBreak / st') ->
+>                        ((WHILE' b DO c END) // st |/ SContinue / st')
 > while_stops_on_break prf x = ?while_stops_on_break_rhs
 
 $\square$
@@ -1641,9 +1637,9 @@ $\square$
 
 ==== Exercise: 3 stars, advanced, optional (while_break_true)
 
-> while_break_true : CEvalB (CWhileB b c) st SContinue st' ->
+> while_break_true : ((WHILE' b DO c END) // st |/ SContinue / st') ->
 >                    beval st' b = True ->
->                    (st'' ** CEvalB c st'' SBreak st')
+>                    (st'' ** c // st'' |/ SBreak / st')
 > while_break_true x prf = ?while_break_true_rhs
 
 $\square$
@@ -1651,8 +1647,8 @@ $\square$
 
 ==== Exercise: 4 stars, advanced, optional (cevalB_deterministic)
 
-> cevalB_deterministic : CEvalB c st s1 st1 ->
->                        CEvalB c st s2 st2 ->
+> cevalB_deterministic : (c // st |/ s1 / st1) ->
+>                        (c // st |/ s2 / st2) ->
 >                        (st1 = st2, s1 = s2)
 > cevalB_deterministic x y = ?cevalB_deterministic_rhs
 
