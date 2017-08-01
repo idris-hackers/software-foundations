@@ -25,20 +25,7 @@ This chapter looks at how to define the _syntax_ and _semantics_ of Imp; the
 chapters that follow develop a theory of _program equivalence_ and introduce
 _Hoare Logic_, a widely used logic for reasoning about imperative programs.
 
-\todo[inline]{Edit}
-
-(* IMPORTS *)
-Require Import Idris.Bool.Bool.
-Require Import Idris.Arith.Arith.
-Require Import Idris.Arith.EqNat.
-Require Import Idris.omega.Omega.
-Require Import Idris.Lists.List.
-Import ListNotations.
-
 > import Maps
-
-Require Import Maps.
-(* /IMPORTS *)
 
 > %default total
 > %access public export
@@ -54,31 +41,29 @@ sequencing, and loops.
 
 === Syntax
 
-> namespace AExp
-
 These two definitions specify the _abstract syntax_ of arithmetic and boolean
 expressions.
 
->   data AExp : Type where
->     ANum : Nat -> AExp
->     APlus : AExp -> AExp -> AExp
->     AMinus : AExp -> AExp -> AExp
->     AMult : AExp -> AExp -> AExp
+> data AExp0 : Type where
+>   ANum0 : Nat -> AExp0
+>   APlus0 : AExp0 -> AExp0 -> AExp0
+>   AMinus0 : AExp0 -> AExp0 -> AExp0
+>   AMult0 : AExp0 -> AExp0 -> AExp0
 >
->   data BExp : Type where
->     BTrue : BExp
->     BFalse : BExp
->     BEq : AExp -> AExp -> BExp
->     BLe : AExp -> AExp -> BExp
->     BNot : BExp -> BExp
->     BAnd : BExp -> BExp -> BExp
+> data BExp0 : Type where
+>   BTrue0 : BExp0
+>   BFalse0 : BExp0
+>   BEq0 : AExp0 -> AExp0 -> BExp0
+>   BLe0 : AExp0 -> AExp0 -> BExp0
+>   BNot0 : BExp0 -> BExp0
+>   BAnd0 : BExp0 -> BExp0 -> BExp0
 
 In this chapter, we'll elide the translation from the concrete syntax that a
 programmer would actually write to these abstract syntax trees — the process
 that, for example, would translate the string \idr{"1+2*3"} to the AST
 
 ```idris
-      APlus (ANum 1) (AMult (ANum 2) (ANum 3))
+      APlus0 (ANum0 1) (AMult0 (ANum0 2) (ANum0 3))
 ```
 
 The optional chapter `ImpParser` develops a simple implementation of a lexical
@@ -137,111 +122,114 @@ and proofs.
 
 _Evaluating_ an arithmetic expression produces a number.
 
->   aeval : (a : AExp) -> Nat
->   aeval (ANum n) = n
->   aeval (APlus a1 a2) = (aeval a1) + (aeval a2)
->   aeval (AMinus a1 a2) = (aeval a1) `minus` (aeval a2)
->   aeval (AMult a1 a2) = (aeval a1) * (aeval a2)
+> aeval0 : (a : AExp0) -> Nat
+> aeval0 (ANum0 n) = n
+> aeval0 (APlus0 a1 a2) = (aeval0 a1) + (aeval0 a2)
+> aeval0 (AMinus0 a1 a2) = (aeval0 a1) `minus` (aeval0 a2)
+> aeval0 (AMult0 a1 a2) = (aeval0 a1) * (aeval0 a2)
 
->   test_aeval1 : aeval (APlus (ANum 2) (ANum 2)) = 4
->   test_aeval1 = Refl
+> test_aeval1 : aeval0 (APlus0 (ANum0 2) (ANum0 2)) = 4
+> test_aeval1 = Refl
 
 Similarly, evaluating a boolean expression yields a boolean.
 
->   beval : (b : BExp) -> Bool
->   beval BTrue = True
->   beval BFalse = False
->   beval (BEq a1 a2) = (aeval a1) == (aeval a2)
->   beval (BLe a1 a2) = lte (aeval a1) (aeval a2)
->   beval (BNot b1) = not (beval b1)
->   beval (BAnd b1 b2) = (beval b1) && (beval b2)
+> beval0 : (b : BExp0) -> Bool
+> beval0 BTrue0 = True
+> beval0 BFalse0 = False
+> beval0 (BEq0 a1 a2) = (aeval0 a1) == (aeval0 a2)
+> beval0 (BLe0 a1 a2) = lte (aeval0 a1) (aeval0 a2)
+> beval0 (BNot0 b1) = not (beval0 b1)
+> beval0 (BAnd0 b1 b2) = (beval0 b1) && (beval0 b2)
 
 === Optimization
 
 We haven't defined very much yet, but we can already get some mileage out of the
 definitions. Suppose we define a function that takes an arithmetic expression
 and slightly simplifies it, changing every occurrence of \idr{0+e} (i.e.,
-\idr{(APlus (ANum 0) e}) into just \idr{e}.
+\idr{(APlus0 (ANum0 0) e}) into just \idr{e}.
 
->   optimize_0plus : (a : AExp) -> AExp
->   optimize_0plus (ANum n) = ANum n
->   optimize_0plus (APlus (ANum Z) e2) =
->     optimize_0plus e2
->   optimize_0plus (APlus e1 e2) =
->     APlus (optimize_0plus e1) (optimize_0plus e2)
->   optimize_0plus (AMinus e1 e2) =
->     AMinus (optimize_0plus e1) (optimize_0plus e2)
->   optimize_0plus (AMult e1 e2) =
->     AMult (optimize_0plus e1) (optimize_0plus e2)
+> optimize_0plus : (a : AExp0) -> AExp0
+> optimize_0plus (ANum0 n) = ANum0 n
+> optimize_0plus (APlus0 (ANum0 Z) e2) =
+>   optimize_0plus e2
+> optimize_0plus (APlus0 e1 e2) =
+>   APlus0 (optimize_0plus e1) (optimize_0plus e2)
+> optimize_0plus (AMinus0 e1 e2) =
+>   AMinus0 (optimize_0plus e1) (optimize_0plus e2)
+> optimize_0plus (AMult0 e1 e2) =
+>   AMult0 (optimize_0plus e1) (optimize_0plus e2)
 
 To make sure our optimization is doing the right thing we can test it on some
 examples and see if the output looks OK.
 
->   test_optimize_0plus :
->     optimize_0plus (APlus (ANum 2)
->                           (APlus (ANum 0)
->                                  (APlus (ANum 0) (ANum 1))))
->     = APlus (ANum 2) (ANum 1)
+> test_optimize_0plus :
+>   optimize_0plus (APlus0 (ANum0 2)
+>                         (APlus0 (ANum0 0)
+>                                (APlus0 (ANum0 0) (ANum0 1))))
+>   = APlus0 (ANum0 2) (ANum0 1)
 
 But if we want to be sure the optimization is correct — i.e., that evaluating an
 optimized expression gives the same result as the original — we should prove it.
 
-> optimize_0plus_sound : aeval (optimize_0plus a) = aeval a
-> optimize_0plus_sound {a=ANum _} = Refl
-> optimize_0plus_sound {a=APlus (ANum Z) y} =
+> optimize_0plus_sound : aeval0 (optimize_0plus a) = aeval0 a
+> optimize_0plus_sound {a=ANum0 _} = Refl
+> optimize_0plus_sound {a=APlus0 (ANum0 Z) y} =
 >   optimize_0plus_sound {a=y}
-> optimize_0plus_sound {a=APlus (ANum (S k)) y} =
+> optimize_0plus_sound {a=APlus0 (ANum0 (S k)) y} =
 >   cong {f=\x=>S(k+x)} $ optimize_0plus_sound {a=y}
-> optimize_0plus_sound {a=APlus (APlus x z) y} =
->   rewrite optimize_0plus_sound {a=APlus x z} in
+> optimize_0plus_sound {a=APlus0 (APlus0 x z) y} =
+>   rewrite optimize_0plus_sound {a=APlus0 x z} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   Refl
-> optimize_0plus_sound {a=APlus (AMinus x z) y} =
+> optimize_0plus_sound {a=APlus0 (AMinus0 x z) y} =
 >   rewrite optimize_0plus_sound {a=x} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   rewrite optimize_0plus_sound {a=z} in
 >   Refl
-> optimize_0plus_sound {a=APlus (AMult x z) y} =
+> optimize_0plus_sound {a=APlus0 (AMult0 x z) y} =
 >   rewrite optimize_0plus_sound {a=x} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   rewrite optimize_0plus_sound {a=z} in
 >   Refl
-> optimize_0plus_sound {a=AMinus x y} =
+> optimize_0plus_sound {a=AMinus0 x y} =
 >   rewrite optimize_0plus_sound {a=x} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   Refl
-> optimize_0plus_sound {a=AMult x y} =
+> optimize_0plus_sound {a=AMult0 x y} =
 >   rewrite optimize_0plus_sound {a=x} in
 >   rewrite optimize_0plus_sound {a=y} in
 >   Refl
 
 
-== Idris Automation
+== Coq Automation
 
 The amount of repetition in this last proof is a little annoying. And if either
 the language of arithmetic expressions or the optimization being proved sound
 were significantly more complex, it would start to be a real problem.
 
-So far, we've been doing all our proofs using just a small handful of Idris's
+So far, we've been doing all our proofs using just a small handful of Coq's
 tactics and completely ignoring its powerful facilities for constructing parts
 of proofs automatically. This section introduces some of these facilities, and
 we will see more over the next several chapters. Getting used to them will take
-some energy — Idris's automation is a power tool — but it will allow us to scale
+some energy — Coq's automation is a power tool — but it will allow us to scale
 up our efforts to more complex definitions and more interesting properties
 without becoming overwhelmed by boring, repetitive, low-level details.
 
 
 === Tacticals
 
-Tacticals is Idris's term for tactics that take other tactics as arguments —
+Tacticals is Coq's term for tactics that take other tactics as arguments —
 "higher-order tactics," if you will.
 
 
-==== The try Tactical
+==== The `try` Tactical
 
-If T is a tactic, then try T is a tactic that is just like T except that, if T
-fails, try T successfully does nothing at all (instead of failing).
+\ \todo[inline]{Exists in Pruviloj}
 
+If `T` is a tactic, then `try T` is a tactic that is just like `T` except that,
+if `T` fails, `try T` successfully does nothing at all (instead of failing).
+
+```coq
 Theorem silly1 : ∀ae, aeval ae = aeval ae.
 Proof. try Refl. (* this just does Refl *) Qed.
 
@@ -251,20 +239,24 @@ Proof.
   try Refl. (* just Refl would have failed *)
   apply HP. (* we can still finish the proof in some other way *)
 Qed.
+```
 
-There is no real reason to use try in completely manual proofs like these, but
-it is very useful for doing automated proofs in conjunction with the ; tactical,
-which we show next.
+There is no real reason to use `try` in completely manual proofs like these, but
+it is very useful for doing automated proofs in conjunction with the `;`
+tactical, which we show next.
 
 
-==== The ; Tactical (Simple Form)
+==== The `;` Tactical (Simple Form)
 
-In its most common form, the ; tactical takes two tactics as arguments. The
-compound tactic T;T' first performs T and then performs T' on each subgoal
-generated by T.
+\ \todo[inline]{Approximated by \idr{andThen} in Pruviloj}
+
+In its most common form, the `;` tactical takes two tactics as arguments. The
+compound tactic `T;T'` first performs `T` and then performs `T'` on each subgoal
+generated by `T`.
 
 For example, consider the following trivial lemma:
 
+```coq
 Lemma foo : ∀n, lte 0 n = True.
 Proof.
   intros.
@@ -273,9 +265,11 @@ Proof.
     - (* n=0 *) simpl. Refl.
     - (* n=Sn' *) simpl. Refl.
 Qed.
+```
 
-We can simplify this proof using the ; tactical:
+We can simplify this proof using the `;` tactical:
 
+```coq
 Lemma foo' : ∀n, lte 0 n = True.
 Proof.
   intros.
@@ -286,10 +280,12 @@ Proof.
   (* and do Refl on each resulting subgoal *)
   Refl.
 Qed.
+```
 
-Using try and ; together, we can get rid of the repetition in the proof that was
-bothering us a little while ago.
+Using `try` and `;` together, we can get rid of the repetition in the proof that
+was bothering us a little while ago.
 
+```coq
 Theorem optimize_0plus_sound': ∀a,
   aeval (optimize_0plus a) = aeval a.
 Proof.
@@ -312,39 +308,52 @@ Proof.
        induction hypothesis. *)
     + (* a1 = ANum n *) destruct n;
       simpl; rewrite IHa2; Refl. Qed.
+```
 
-Idris experts often use this "...; try... " idiom after a tactic like induction
+Coq experts often use this "`...; try...`" idiom after a tactic like `induction`
 to take care of many similar cases all at once. Naturally, this practice has an
 analog in informal proofs. For example, here is an informal proof of the
 optimization theorem that matches the structure of the formal one:
 
-_Theorem_: For all arithmetic expressions a,
+_Theorem_: For all arithmetic expressions `a`,
+```
        aeval (optimize_0plus a) = aeval a.
-_Proof_: By induction on a. Most cases follow directly from the IH. The
+```
+_Proof_: By induction on `a`. Most cases follow directly from the `IH`. The
 remaining cases are as follows:
 
-  - Suppose a = ANum n for some n. We must show
-  aeval (optimize_0plus (ANum n)) = aeval (ANum n).
-    This is immediate from the definition of optimize_0plus.
+  - Suppose `a = ANum n` for some `n`. We must show
+```  
+       aeval (optimize_0plus (ANum n)) = aeval (ANum n).
+```  
+    This is immediate from the definition of `optimize_0plus`.
 
-  - Suppose a = APlus a1 a2 for some a1 and a2. We must show
-  aeval (optimize_0plus (APlus a1 a2)) = aeval (APlus a1 a2).
-Consider the possible forms of a1. For most of them, optimize_0plus simply calls
-itself recursively for the subexpressions and rebuilds a new expression of the
-same form as a1; in these cases, the result follows directly from the IH.
-The interesting case is when a1 = ANum n for some n. If n = ANum 0, then
-  optimize_0plus (APlus a1 a2) = optimize_0plus a2
-and the IH for a2 is exactly what we need. On the other hand, if n = S n' for
-some n', then again optimize_0plus simply calls itself recursively, and the
-result follows from the IH. $\square$
+  - Suppose `a = APlus a1 a2` for some `a1` and `a2`. We must show
+```  
+       aeval (optimize_0plus (APlus a1 a2)) = aeval (APlus a1 a2).
+```
+      
+    Consider the possible forms of `a1`. For most of them, `optimize_0plus`
+    simply calls itself recursively for the subexpressions and rebuilds a new
+    expression of the same form as `a1`; in these cases, the result follows
+    directly from the `IH`. The interesting case is when `a1 = ANum n` for some
+    `n`. If `n = ANum 0`, then
+```  
+       optimize_0plus (APlus a1 a2) = optimize_0plus a2
+```       
+    and the `IH` for `a2` is exactly what we need. On the other hand, if `n = S
+    n'` for some `n'`, then again `optimize_0plus` simply calls itself
+    recursively, and the result follows from the `IH`. $\square$
 
-However, this proof can still be improved: the first case (for a = ANum n) is
+However, this proof can still be improved: the first case (for `a = ANum n`) is
 very trivial — even more trivial than the cases that we said simply followed
-from the IH — yet we have chosen to write it out in full. It would be better and
-clearer to drop it and just say, at the top, "Most cases are either immediate or
-direct from the IH. The only interesting case is the one for APlus..." We can
-make the same improvement in our formal proof too. Here's how it looks:
+from the `IH` — yet we have chosen to write it out in full. It would be better
+and clearer to drop it and just say, at the top, "Most cases are either
+immediate or direct from the `IH`. The only interesting case is the one for
+`APlus...`" We can make the same improvement in our formal proof too. Here's how
+it looks:
 
+```coq
 Theorem optimize_0plus_sound'': ∀a,
   aeval (optimize_0plus a) = aeval a.
 Proof.
@@ -360,80 +369,89 @@ Proof.
                       rewrite IHa2; Refl).
     + (* a1 = ANum n *) destruct n;
       simpl; rewrite IHa2; Refl. Qed.
+```
 
+==== The `;` Tactical (General Form)
 
-==== The ; Tactical (General Form)
+The ; tactical also has a more general form than the simple `T;T'` we've seen
+above. If `T, T1, ..., Tn` are tactics, then
 
-The ; tactical also has a more general form than the simple T;T' we've seen
-above. If T, T1, ..., Tn are tactics, then
-
+```coq
       T; [T1 | T2 | ... | Tn]
+```
 
-is a tactic that first performs T and then performs T1 on the first subgoal
-generated by T, performs T2 on the second subgoal, etc.
+is a tactic that first performs `T` and then performs `T1` on the first subgoal
+generated by `T`, performs `T2` on the second subgoal, etc.
 
-So T;T' is just special notation for the case when all of the Ti's are the same
-tactic; i.e., T;T' is shorthand for:
+So `T;T'` is just special notation for the case when all of the `Ti`'s are the
+same tactic; i.e.,` T;T`' is shorthand for:
 
+```coq
       T; [T' | T' | ... | T']
+```
 
+==== The `repeat` Tactical
 
-==== The repeat Tactical
+\ \todo[inline]{Approximated by \idr{repeatUntilFail} in Pruviloj}
 
-The repeat tactical takes another tactic and keeps applying this tactic until it
-fails. Here is an example showing that 10 is in a long list using repeat.
+The `repeat` tactical takes another tactic and keeps applying this tactic until
+it fails. Here is an example showing that `10` is in a long list using `repeat`.
 
+```coq
 Theorem In10 : In 10 [1;2;3;4;5;6;7;8;9;10].
 Proof.
   repeat (try (left; Refl); right).
 Qed.
+```
 
-The tactic repeat T never fails: if the tactic T doesn't apply to the original
-goal, then repeat still succeeds without changing the original goal (i.e., it
-repeats zero times).
+The tactic `repeat T` never fails: if the tactic `T` doesn't apply to the
+original goal, then repeat still succeeds without changing the original goal
+(i.e., it repeats zero times).
 
+```coq
 Theorem In10' : In 10 [1;2;3;4;5;6;7;8;9;10].
 Proof.
   repeat (left; Refl).
   repeat (right; try (left; Refl)).
 Qed.
+```
 
-The tactic repeat T also does not have any upper bound on the number of times it
-applies T. If T is a tactic that always succeeds, then repeat T will loop
-forever (e.g., repeat simpl loops forever, since simpl always succeeds). While
-evaluation in Idris's term language, Gallina, is guaranteed to terminate, tactic
-evaluation is not! This does not affect Idris's logical consistency, however,
-since the job of repeat and other tactics is to guide Idris in constructing
-proofs; if the construction process diverges, this simply means that we have
-failed to construct a proof, not that we have constructed a wrong one.
+The tactic `repeat T` also does not have any upper bound on the number of times
+it applies `T`. If `T` is a tactic that always succeeds, then `repeat T` will
+loop forever (e.g., `repeat simpl` loops forever, since `simpl` always
+succeeds). While evaluation in Coq's term language, Gallina, is guaranteed to
+terminate, tactic evaluation is not! This does not affect Coq's logical
+consistency, however, since the job of `repeat` and other tactics is to guide
+Coq in constructing proofs; if the construction process diverges, this simply
+means that we have failed to construct a proof, not that we have constructed a
+wrong one.
 
 
 ==== Exercise: 3 stars (optimize_0plus_b)
 
-Since the optimize_0plus transformation doesn't change the value of aexps, we
-should be able to apply it to all the aexps that appear in a BExp without
-changing the BExp's value. Write a function which performs that transformation
-on bexps, and prove it is sound. Use the tacticals we've just seen to make the
-proof as elegant as possible.
+Since the \idr{optimize_0plus} transformation doesn't change the value of
+\idr{AExp}s, we should be able to apply it to all the \idr{AExp}s that appear in
+a \idr{BExp} without changing the \idr{BExp}'s value. Write a function which
+performs that transformation on \idr{BExp}s, and prove it is sound. Use the
+tacticals we've just seen to make the proof as elegant as possible.
 
-Fixpoint optimize_0plus_b (b : BExp) : BExp
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> optimize_0plus_b : (b : BExp0) -> BExp0
+> optimize_0plus_b b = ?optimize_0plus_b_rhs
 
-Theorem optimize_0plus_b_sound : ∀b,
-  beval (optimize_0plus_b b) = beval b.
-Proof.
-  (* FILL IN HERE *) Admitted.
+> optimize_0plus_b_sound : beval0 (optimize_0plus_b b) = beval0 b
+> optimize_0plus_b_sound = ?optimize_0plus_b_sound_rhs
 
 $\square$
 
 
 ==== Exercise: 4 stars, optional (optimizer)
 
-Design exercise: The optimization implemented by our optimize_0plus function is
-only one of many possible optimizations on arithmetic and Boolean expressions.
-Write a more sophisticated optimizer and prove it correct. (You will probably
-find it easiest to start small — add just a single, simple optimization and
-prove it correct — and build up to something more interesting incrementially.)
+_Design exercise_: The optimization implemented by our \idr{optimize_0plus}
+function is only one of many possible optimizations on arithmetic and boolean
+expressions. Write a more sophisticated optimizer and prove it correct. (You
+will probably find it easiest to start small — add just a single, simple
+optimization and prove it correct — and build up to something more interesting
+incrementially.)
 
 > --FILL IN HERE
 
@@ -442,87 +460,91 @@ $\square$
 
 === Defining New Tactic Notations
 
-Idris also provides several ways of "programming" tactic scripts.
+Coq also provides several ways of "programming" tactic scripts.
 
-The Tactic Notation idiom illustrated below gives a handy way to define
-"shorthand tactics" that bundle several tactics into a single command.
+  - The `Tactic Notation` idiom illustrated below gives a handy way to define
+    "shorthand tactics" that bundle several tactics into a single command.
 
-For more sophisticated programming, Idris offers a built-in programming language
-called Ltac with primitives that can examine and modify the proof state. The
-details are a bit too complicated to get into here (and it is generally agreed
-that Ltac is not the most beautiful part of Idris's design!), but they can be
-found in the reference manual and other books on Idris, and there are many
-examples of Ltac definitions in the Idris standard library that you can use as
-examples.
+  - For more sophisticated programming, Coq offers a built-in programming
+    language called `Ltac` with primitives that can examine and modify the proof
+    state. The details are a bit too complicated to get into here (and it is
+    generally agreed that `Ltac` is not the most beautiful part of Coq's
+    design!), but they can be found in the reference manual and other books on
+    Coq, and there are many examples of `Ltac` definitions in the Coq standard
+    library that you can use as examples.
 
-There is also an OCaml API, which can be used to build tactics that access
-Idris's internal structures at a lower level, but this is seldom worth the
-trouble for ordinary Idris users.
+  - There is also an OCaml API, which can be used to build tactics that access
+    Coq's internal structures at a lower level, but this is seldom worth the
+    trouble for ordinary Coq users.
 
-The Tactic Notation mechanism is the easiest to come to grips with, and it
+The `Tactic Notation` mechanism is the easiest to come to grips with, and it
 offers plenty of power for many purposes. Here's an example.
 
+```coq
 Tactic Notation "simpl_and_try" tactic(c) :=
   simpl;
   try c.
+```
 
-This defines a new tactical called simpl_and_try that takes one tactic c as an
-argument and is defined to be equivalent to the tactic simpl; try c. Now writing
-"simpl_and_try Refl." in a proof will be the same as writing "simpl; try Refl."
+This defines a new tactical called `simpl_and_try` that takes one tactic `c` as
+an argument and is defined to be equivalent to the tactic `simpl; try c`. Now
+writing "`simpl_and_try Refl.`" in a proof will be the same as writing "`simpl;
+try Refl.`"
 
 
-=== The omega Tactic
+=== The `omega` Tactic
 
-The omega tactic implements a decision procedure for a subset of first-order
-logic called Presburger arithmetic. It is based on the Omega algorithm invented
-in 1991 by William Pugh [Pugh 1991].
+\ \todo[inline]{Probably related to https://github.com/forestbelton/cooper}
+
+The `omega` tactic implements a decision procedure for a subset of first-order
+logic called _Presburger arithmetic_. It is based on the Omega algorithm
+invented in 1991 by William Pugh [Pugh 1991].
 
 If the goal is a universally quantified formula made out of
 
-- numeric constants, addition (+ and S), subtraction (- and pred), and
-multiplication by constants (this is what makes it Presburger arithmetic),
+  - numeric constants, addition (`+` and `S`), subtraction (`-` and `pred`), and
+    multiplication by constants (this is what makes it Presburger arithmetic),
 
-- equality (= and ≠) and inequality (≤), and
+  - equality (`=` and `≠`) and inequality (`≤`), and
 
-- the logical connectives ∧, ∨, ¬, and ->,
+  - the logical connectives `∧`, `∨`, `¬`, and `->`,
 
-then invoking omega will either solve the goal or tell you that it is actually
+then invoking `omega` will either solve the goal or tell you that it is actually
 false.
 
-Require Import Idris.omega.Omega.
-
+```coq
 Example silly_presburger_example : ∀m n o p,
   m + n ≤ n + o ∧ o + 3 = p + 3 ->
   m ≤ p.
 Proof.
   intros. omega.
 Qed.
-
+```
 
 === A Few More Handy Tactics
 
 Finally, here are some miscellaneous tactics that you may find convenient.
 
-  - clear H: Delete hypothesis H from the context.
+  - `clear H`: Delete hypothesis `H` from the context.
 
-  - subst x: Find an assumption x = e or e = x in the context, replace x with e
-  throughout the context and current goal, and clear the assumption.
+  - `subst x`: Find an assumption `x = e` or `e = x` in the context, replace `x`
+     with `e` throughout the context and current goal, and clear the assumption.
 
-  - subst: Substitute away all assumptions of the form x = e or e = x.
+  - `subst`: Substitute away all assumptions of the form `x = e` or `e = x`.
 
-  - rename... into...: Change the name of a hypothesis in the proof context. For
-  example, if the context includes a variable named x, then rename x into y will
-  change all occurrences of x to y.
+  - `rename... into...`: Change the name of a hypothesis in the proof context.
+    For example, if the context includes a variable named `x`, then `rename x
+    into y` will change all occurrences of `x` to `y`.
 
-  - assumption: Try to find a hypothesis H in the context that exactly matches
-  the goal; if one is found, behave like apply H.
+  - `assumption`: Try to find a hypothesis `H` in the context that exactly
+    matches the goal; if one is found, behave like `apply H`.
 
-  - contradiction: Try to find a hypothesis H in the current context that is
-  logically equivalent to False. If one is found, solve the goal.
+  - `contradiction`: Try to find a hypothesis `H` in the current context that is
+    logically equivalent to `Void`. If one is found, solve the goal.
 
-  - constructor: Try to find a constructor c (from some Inductive definition in
-  the current environment) that can be applied to solve the current goal. If one
-  is found, behave like apply c.
+  - `constructor`: Try to find a constructor `c` (from some `Inductive`
+    definition in the current environment) that can be applied to solve the
+    current goal. If one is found, behave like `apply c`.
 
 We'll see examples below.
 
@@ -534,106 +556,120 @@ about evaluation — one that we will see is often more flexible — is as a
 _relation_ between expressions and their values. This leads naturally to
 \idr{data} definitions like the following one for arithmetic expressions...
 
- namespace aevalR_first_try
-
-   data AevalR : AExp -> Nat -> Type where
-     E_ANum : (n: Nat) -> AevalR (ANum n) n
-     E_APlus : (e1, e2 : AExp) -> (n1, n2 : Nat) ->
-       AevalR e1 n1 ->
-       AevalR e2 n2 ->
-       AevalR (APlus e1 e2) (n1 + n2)
-     E_AMinus : (e1, e2 : AExp) -> (n1, n2 : Nat) ->
-       AevalR e1 n1 ->
-       AevalR e2 n2 ->
-       AevalR (AMinus e1 e2) (n1 `minus` n2)
-     E_AMult : (e1, e2: AExp) -> (n1, n2 : Nat) ->
-       AevalR e1 n1 ->
-       AevalR e2 n2 ->
-       AevalR (AMult e1 e2) (n1 * n2)
+```idris
+data AEvalR : AExp0 -> Nat -> Type where
+  E_ANum : (n: Nat) -> AEvalR (ANum n) n
+  E_APlus : (e1, e2 : AExp0) -> (n1, n2 : Nat) ->
+    AEvalR e1 n1 ->
+    AEvalR e2 n2 ->
+    AEvalR (APlus e1 e2) (n1 + n2)
+  E_AMinus : (e1, e2 : AExp0) -> (n1, n2 : Nat) ->
+    AEvalR e1 n1 ->
+    AEvalR e2 n2 ->
+    AEvalR (AMinus0 e1 e2) (n1 `minus` n2)
+  E_AMult : (e1, e2: AExp0) -> (n1, n2 : Nat) ->
+    AEvalR e1 n1 ->
+    AEvalR e2 n2 ->
+    AEvalR (AMult0 e1 e2) (n1 * n2)
+```    
 
 \todo[inline]{Edit}
 
-It will be convenient to have an infix notation for \idr{AevalR}. We'll write
-\idr{e \||/ n} to mean that arithmetic expression \idr{e} evaluates to value
-\idr{n}. (This notation is one place where the limitation to ASCII symbols
-becomes a little bothersome. The standard notation for the evaluation relation
-is a double down-arrow. We'll typeset it like this in the HTML version of the
-notes and use a double slash as the closest approximation in .v files.)
+It will be convenient to have an infix notation for \idr{AEvalR}. We'll write
+\idr{e |/ n} to mean that arithmetic expression \idr{e} evaluates to value
+\idr{n}. 
 
-Notation "e '\||/' n"
-         := (AevalR e n)
-            (at level 50, left associativity)
-         : type_scope.
-
-End aevalR_first_try.
-
-In fact, Idris provides a way to use this notation in the definition of \idr{AevalR}
-itself. This reduces confusion by avoiding situations where we're working on a
-proof involving statements in the form \idr{e \||/ n} but we have to refer back to a
-definition written using the form AevalR e n.
+In fact, Idris provides a way to use this notation in the definition of
+\idr{AevalR} itself. This reduces confusion by avoiding situations where we're
+working on a proof involving statements in the form \idr{e |/ n} but we have to
+refer back to a definition written using the form \idr{AEvalR e n}.
 
 We do this by first "reserving" the notation, then giving the definition
 together with a declaration of what the notation means.
 
-> infix 5 \||/
+> infixl 5 |/
 
-Reserved Notation "e '\||/' n" (at level 50, left associativity).
+> data (|/) : AExp0 -> (n : Nat) -> Type where
+>   E_ANum : (ANum0 n) |/ n
+>   E_APlus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 + n2) ->
+>             (APlus0 e1 e2) |/ n
+>   E_AMinus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 `minus` n2) ->
+>              (AMinus0 e1 e2) |/ n
+>   E_AMult : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 * n2) ->
+>             (AMult0 e1 e2) |/ n
 
-> data (\||/) : AExp -> (n : Nat) -> Type where
->   E_ANum : (ANum n) \||/ n
->   E_APlus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 + n2) ->
->     (APlus e1 e2) \||/ n
->   E_AMinus : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 `minus` n2) ->
->     (AMinus e1 e2) \||/ n
->   E_AMult : (e1 \||/ n1) -> (e2 \||/ n2) -> (n = n1 * n2) ->
->     (AMult e1 e2) \||/ n
-
-  where "e '\||/' n" := (AevalR e n) : type_scope.
+> AEvalR : AExp0 -> Nat -> Type
+> AEvalR = (|/)
 
 
 === Inference Rule Notation
 
-In informal discussions, it is convenient to write the rules for AevalR and
+In informal discussions, it is convenient to write the rules for \idr{AEvalR} and
 similar relations in the more readable graphical form of inference rules, where
 the premises above the line justify the conclusion below the line (we have
 already seen them in the Type chapter).
 
-For example, the constructor E_APlus...
-      | E_APlus : ∀(e1 e2: AExp) (n1 n2: Nat),
-          AevalR e1 n1 ->
-          AevalR e2 n2 ->
-          AevalR (APlus e1 e2) (n1 + n2)
+For example, the constructor \idr{E_APlus}...
+
+```idris
+  E_APlus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 + n2) ->
+            (APlus0 e1 e2) |/ n
+```
+
 ...would be written like this as an inference rule:
 
-e1 \||/ n1	
-e2 \||/ n2	(E_APlus)
-APlus e1 e2 \||/ n1+n2	
+\[
+  \begin{prooftree}
+    \hypo{\idr{e1 |/ n1}}
+    \hypo{\idr{e2 |/ n2}}
+    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 |/ n1+n2}}
+  \end{prooftree}
+\]
 
 Formally, there is nothing deep about inference rules: they are just
 implications. You can read the rule name on the right as the name of the
 constructor and read each of the linebreaks between the premises above the line
-(as well as the line itself) as ->. All the variables mentioned in the rule (e1,
-n1, etc.) are implicitly bound by universal quantifiers at the beginning. (Such
-variables are often called metavariables to distinguish them from the variables
-of the language we are defining. At the moment, our arithmetic expressions don't
-include variables, but we'll soon be adding them.) The whole collection of rules
-is understood as being wrapped in an Inductive declaration. In informal prose,
-this is either elided or else indicated by saying something like "Let AevalR be
-the smallest relation closed under the following rules...".
+(as well as the line itself) as \idr{->}. All the variables mentioned in the
+rule (\idr{e1}, \idr{n1}, etc.) are implicitly bound by universal quantifiers at
+the beginning. (Such variables are often called _metavariables_ to distinguish
+them from the variables of the language we are defining. At the moment, our
+arithmetic expressions don't include variables, but we'll soon be adding them.)
+The whole collection of rules is understood as being wrapped in an function
+declaration. In informal prose, this is either elided or else indicated by
+saying something like "Let \idr{AEvalR} be the smallest relation closed under
+the following rules...".
 
-For example, \||/ is the smallest relation closed under these rules:
+For example, \idr{|/} is the smallest relation closed under these rules:
 
-  	(E_ANum)
-ANum n \||/ n	
-e1 \||/ n1	
-e2 \||/ n2	(E_APlus)
-APlus e1 e2 \||/ n1+n2	
-e1 \||/ n1	
-e2 \||/ n2	(E_AMinus)
-AMinus e1 e2 \||/ n1-n2	
-e1 \||/ n1	
-e2 \||/ n2	(E_AMult)
-AMult e1 e2 \||/ n1*n2	
+\[
+  \begin{prooftree}
+    \infer0[\idr{E_ANum}]{\idr{ANum n |/ n}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{e1 |/ n1}}
+    \hypo{\idr{e2 |/ n2}}
+    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 |/ n1+n2}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{e1 |/ n1}}
+    \hypo{\idr{e2 |/ n2}}
+    \infer2[\idr{E_AMinus}]{\idr{AMinus e1 e2 |/ n1-n2}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{e1 |/ n1}}
+    \hypo{\idr{e2 |/ n2}}
+    \infer2[\idr{E_AMult}]{\idr{AMult e1 e2 |/ n1*n2}}
+  \end{prooftree}
+\]
 
 
 === Equivalence of the Definitions
@@ -641,17 +677,10 @@ AMult e1 e2 \||/ n1*n2
 It is straightforward to prove that the relational and functional definitions of
 evaluation agree:
 
-\todo[inline]{Copypasted `<->` for now}
-
- iff : {p,q : Type} -> Type
- iff {p} {q} = (p -> q, q -> p)
-
- syntax [p] "<->" [q] = iff {p} {q}
-
-> aeval_iff_aevalR : (a \||/ n) <-> aeval a = n
+> aeval_iff_aevalR : (a |/ n) <-> aeval0 a = n
 > aeval_iff_aevalR = (to, fro)
 > where
->   to : (a \||/ n) -> aeval a = n
+>   to : (a |/ n) -> aeval0 a = n
 >   to E_ANum = Refl
 >   to (E_APlus x y xy) =
 >     rewrite xy in rewrite to x in rewrite to y in Refl
@@ -659,26 +688,26 @@ evaluation agree:
 >     rewrite xy in rewrite to x in rewrite to y in Refl
 >   to (E_AMult x y xy) =
 >     rewrite xy in rewrite to x in rewrite to y in Refl
->   fro : (aeval a = n) -> (a \||/ n)
->   fro {a=ANum n} Refl = E_ANum
->   fro {a=APlus x y} prf =
->     E_APlus (fro {a=x} {n=aeval x} Refl)
->             (fro {a=y} {n=aeval y} Refl)
+>   fro : (aeval0 a = n) -> (a |/ n)
+>   fro {a=ANum0 n} Refl = E_ANum
+>   fro {a=APlus0 x y} prf =
+>     E_APlus (fro {a=x} {n=aeval0 x} Refl)
+>             (fro {a=y} {n=aeval0 y} Refl)
 >             (sym prf)
->   fro {a=AMinus x y} prf =
->     E_AMinus (fro {a=x} {n=aeval x} Refl)
->              (fro {a=y} {n=aeval y} Refl)
+>   fro {a=AMinus0 x y} prf =
+>     E_AMinus (fro {a=x} {n=aeval0 x} Refl)
+>              (fro {a=y} {n=aeval0 y} Refl)
 >              (sym prf)
->   fro {a=AMult x y} prf =
->     E_AMult (fro {a=x} {n=aeval x} Refl)
->             (fro {a=y} {n=aeval y} Refl)
+>   fro {a=AMult0 x y} prf =
+>     E_AMult (fro {a=x} {n=aeval0 x} Refl)
+>             (fro {a=y} {n=aeval0 y} Refl)
 >             (sym prf)
 
 We can make the proof quite a bit shorter by making more use of tacticals.
 
 ```coq
 Theorem aeval_iff_aevalR' : ∀a n,
-  (a \||/ n) ↔ aeval a = n.
+  (a ||// n) ↔ aeval a = n.
 Proof.
   (* WORKED IN CLASS *)
   split.
@@ -693,13 +722,13 @@ Qed.
 
 ==== Exercise: 3 stars (bevalR)
 
-Write a relation \idr{BevalR} in the same style as \idr{AevalR}, and prove that
+Write a relation \idr{BEvalR} in the same style as \idr{AEvalR}, and prove that
 it is equivalent to \idr{beval}.
 
- data BevalR : BExp -> (b : Bool) -> Type where
-   -- FILL IN HERE
-
- beval_iff_bevalR : (BevalR b bv) <-> beval b = bv
+> -- data BevalR : BExp0 -> (b : Bool) -> Type where
+>   -- FILL IN HERE
+>
+> -- beval_iff_bevalR : (BEvalR b bv) <-> beval b = bv
 
 $\square$
 
@@ -713,8 +742,6 @@ of taste: either way works.
 However, there are circumstances where relational definitions of evaluation work
 much better than functional ones.
 
-Module aevalR_division.
-
 For example, suppose that we wanted to extend the arithmetic operations by
 considering also a division operation:
 
@@ -727,28 +754,23 @@ considering also a division operation:
 
 Extending the definition of \idr{aeval} to handle this new operation would not
 be straightforward (what should we return as the result of \idr{ADiv (ANum 5)
-(ANum 0)}?). But extending \idr{AevalR} is straightforward.
+(ANum 0)}?). But extending \idr{AEvalR} is straightforward.
 
-> infix 5 \||//
+> infixl 5 ||/
 
-Reserved Notation "e '\||/' n" (at level 50, left associativity).
+> data (||/) : AExpD -> (n : Nat) -> Type where
+>   E_ANumD : (ANumD n) ||/ n
+>   E_APlusD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 + n2) ->
+>     (APlusD e1 e2) ||/ n
+>   E_AMinusD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 `minus` n2) ->
+>     (AMinusD e1 e2) ||/ n
+>   E_AMultD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 * n2) ->
+>     (AMultD e1 e2) ||/ n
+>   E_ADivD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n2 `GT` 0) -> (n1 = n2*n3) ->
+>     (ADivD e1 e2) ||/ n3
 
-> data (\||//) : AExpD -> (n : Nat) -> Type where
->   E_ANumD : (ANumD n) \||// n
->   E_APlusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 + n2) ->
->     (APlusD e1 e2) \||// n
->   E_AMinusD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 `minus` n2) ->
->     (AMinusD e1 e2) \||// n
->   E_AMultD : (e1 \||// n1) -> (e2 \||// n2) -> (n = n1 * n2) ->
->     (AMultD e1 e2) \||// n
->   E_ADivD : (e1 \||// n1) -> (e2 \||// n2) -> (n2 `GT` 0) -> (n1 = n2*n3) ->
->     (ADivD e1 e2) \||// n3
-
-where "a '\||/' n" := (AevalR a n) : type_scope.
-
-End aevalR_division.
-
-Module aevalR_extended.
+> AEvalRD : AExpD -> Nat -> Type
+> AEvalRD = (||/)
 
 Suppose, instead, that we want to extend the arithmetic operations by a
 nondeterministic number generator \idr{any} that, when evaluated, may yield any
@@ -764,30 +786,31 @@ results, but just saying what results are _possible_.)
 >   AMultA : AExpA -> AExpA -> AExpA
 
 Again, extending \idr{aeval} would be tricky, since now evaluation is _not_ a
-deterministic function from expressions to numbers, but extending \idr{AevalR}
+deterministic function from expressions to numbers, but extending \idr{AEvalR}
 is no problem:
 
-> infix 5 \||/\
+> infix 5 |||/
 
-> data (\||/\) : AExpA -> (n : Nat) -> Type where
->   E_AnyA : AAnyA \||/\ n
->   E_ANumA : (ANumA n) \||/\ n
->   E_APlusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 + n2) ->
->     (APlusA e1 e2) \||/\ n
->   E_AMinusA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 `minus` n2) ->
->     (AMinusA e1 e2) \||/\ n
->   E_AMultA : (e1 \||/\ n1) -> (e2 \||/\ n2) -> (n = n1 * n2) ->
->     (AMultA e1 e2) \||/\ n
+> data (|||/) : AExpA -> (n : Nat) -> Type where
+>   E_AnyA : AAnyA |||/ n
+>   E_ANumA : (ANumA n) |||/ n
+>   E_APlusA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 + n2) ->
+>     (APlusA e1 e2) |||/ n
+>   E_AMinusA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 `minus` n2) ->
+>     (AMinusA e1 e2) |||/ n
+>   E_AMultA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 * n2) ->
+>     (AMultA e1 e2) |||/ n
 
-where "a '\||/' n" := (AevalR a n) : type_scope.
-
-End aevalR_extended.
+> AEvalRA : AExpA -> Nat -> Type
+> AEvalRA = (|||/)
 
 At this point you maybe wondering: which style should I use by default? The
 examples above show that relational definitions are fundamentally more powerful
 than functional ones. For situations like these, where the thing being defined
 is not easy to express as a function, or indeed where it is _not_ a function,
 there is no choice. But what about when both styles are workable?
+
+\todo[inline]{Edit}
 
 One point in favor of relational definitions is that some people feel they are
 more elegant and easier to understand. Another is that Idris automatically
@@ -796,10 +819,10 @@ generates nice inversion and induction principles from function definitions.
 On the other hand, functional definitions can often be more convenient:
 
   - Functions are by definition deterministic and defined on all arguments; for
-  a relation we have to show these properties explicitly if we need them.
+    a relation we have to show these properties explicitly if we need them.
 
   - With functions we can also take advantage of Idris's computation mechanism
-  to simplify expressions during proofs.
+    to simplify expressions during proofs.
 
 Furthermore, functions can be directly "extracted" to executable code in OCaml
 or Haskell.
@@ -847,12 +870,12 @@ the state might have more structure.
 We can add variables to the arithmetic expressions we had before by simply
 adding one more constructor:
 
-> data AExpS : Type where
->   ANumS : Nat -> AExpS
->   AIdS : Id -> AExpS -- <----- NEW
->   APlusS : AExpS -> AExpS -> AExpS
->   AMinusS : AExpS -> AExpS -> AExpS
->   AMultS : AExpS -> AExpS -> AExpS
+> data AExp : Type where
+>   ANum : Nat -> AExp
+>   AId : Id -> AExp -- <----- NEW
+>   APlus : AExp -> AExp -> AExp
+>   AMinus : AExp -> AExp -> AExp
+>   AMult : AExp -> AExp -> AExp
 
 Defining a few variable names as notational shorthands will make examples easier
 to read:
@@ -874,13 +897,13 @@ should not cause confusion.)
 The definition of \idr{BExp}s is unchanged (except for using the new
 \idr{AExp}s):
 
-> data BExpS : Type where
->   BTrueS : BExpS
->   BFalseS : BExpS
->   BEqS : AExpS -> AExpS -> BExpS
->   BLeS : AExpS -> AExpS -> BExpS
->   BNotS : BExpS -> BExpS
->   BAndS : BExpS -> BExpS -> BExpS
+> data BExp : Type where
+>   BTrue : BExp
+>   BFalse : BExp
+>   BEq : AExp -> AExp -> BExp
+>   BLe : AExp -> AExp -> BExp
+>   BNot : BExp -> BExp
+>   BAnd : BExp -> BExp -> BExp
 
 
 === Evaluation
@@ -888,28 +911,28 @@ The definition of \idr{BExp}s is unchanged (except for using the new
 The arith and boolean evaluators are extended to handle variables in the obvious
 way, taking a state as an extra argument:
 
-> aevalS : (st : State) -> (a : AExpS) -> Nat
-> aevalS _ (ANumS n) = n
-> aevalS st (AIdS i) = st i
-> aevalS st (APlusS a1 a2) = (aevalS st a1) + (aevalS st a2)
-> aevalS st (AMinusS a1 a2) = (aevalS st a1) `minus` (aevalS st a2)
-> aevalS st (AMultS a1 a2) = (aevalS st a1) * (aevalS st a2)
+> aeval : (st : State) -> (a : AExp) -> Nat
+> aeval _ (ANum n) = n
+> aeval st (AId i) = st i
+> aeval st (APlus a1 a2) = (aeval st a1) + (aeval st a2)
+> aeval st (AMinus a1 a2) = (aeval st a1) `minus` (aeval st a2)
+> aeval st (AMult a1 a2) = (aeval st a1) * (aeval st a2)
 >
-> bevalS : (st : State) -> (b : BExpS) -> Bool
-> bevalS _ BTrueS = True
-> bevalS _ BFalseS = False
-> bevalS st (BEqS a1 a2) = (aevalS st a1) == (aevalS st a2)
-> bevalS st (BLeS a1 a2) = lte (aevalS st a1) (aevalS st a2)
-> bevalS st (BNotS b1) = not (bevalS st b1)
-> bevalS st (BAndS b1 b2) = (bevalS st b1) && (bevalS st b2)
+> beval : (st : State) -> (b : BExp) -> Bool
+> beval _ BTrue = True
+> beval _ BFalse = False
+> beval st (BEq a1 a2) = (aeval st a1) == (aeval st a2)
+> beval st (BLe a1 a2) = lte (aeval st a1) (aeval st a2)
+> beval st (BNot b1) = not (beval st b1)
+> beval st (BAnd b1 b2) = (beval st b1) && (beval st b2)
 
-> aexp1 : aevalS (t_update X 5 Imp.empty_state)
->                (APlusS (ANumS 3) (AMultS (AIdS X) (ANumS 2)))
+> aexp1 : aeval (t_update X 5 Imp.empty_state)
+>               (APlus (ANum 3) (AMult (AId X) (ANum 2)))
 >         = 13
 > aexp1 = Refl
 
-> bexp1 : bevalS (t_update X 5 Imp.empty_state)
->                (BAndS BTrueS (BNotS (BLeS (AIdS X) (ANumS 4))))
+> bexp1 : beval (t_update X 5 Imp.empty_state)
+>               (BAnd BTrue (BNot (BLe (AId X) (ANum 4))))
 >         = True
 > bexp1 = Refl
 
@@ -950,10 +973,10 @@ Here is the formal definition of the abstract syntax of commands:
 
 > data Com : Type where
 >   CSkip : Com
->   CAss : Id -> AExpS -> Com
+>   CAss : Id -> AExp -> Com
 >   CSeq : Com -> Com -> Com
->   CIf : BExpS -> Com -> Com -> Com
->   CWhile : BExpS -> Com -> Com
+>   CIf : BExp -> Com -> Com -> Com
+>   CWhile : BExp -> Com -> Com
 
 As usual, we can use a few `Notation` declarations to make things more readable.
 To avoid conflicts with Idris's built-in notations, we keep this light — in
@@ -973,11 +996,11 @@ definition to Idris:
 
 > fact_in_idris : Com
 > fact_in_idris =
->  (Z ::= AIdS X) ;;
->  (Y ::= ANumS 1) ;;
->  WHILE BNotS (BEqS (AIdS Z) (ANumS 0)) DO
->    (Y ::= AMultS (AIdS Y) (AIdS Z)) ;;
->    (Z ::= AMinusS (AIdS Z) (ANumS 1))
+>  (Z ::= AId X) ;;
+>  (Y ::= ANum 1) ;;
+>  WHILE BNot (BEq (AId Z) (ANum 0)) DO
+>    (Y ::= AMult (AId Y) (AId Z)) ;;
+>    (Z ::= AMinus (AId Z) (ANum 1))
 >  END
 
 
@@ -988,30 +1011,30 @@ definition to Idris:
 
 > plus2 : Com
 > plus2 =
->  X ::= (APlusS (AIdS X) (ANumS 2))
+>  X ::= (APlus (AId X) (ANum 2))
 
 > XtimesYinZ : Com
 > XtimesYinZ =
->  Z ::= (AMultS (AIdS X) (AIdS Y))
+>  Z ::= (AMult (AId X) (AId Y))
 
 > subtract_slowly_body : Com
 > subtract_slowly_body =
->   (Z ::= AMinusS (AIdS Z) (ANumS 1)) ;;
->   (X ::= AMinusS (AIdS X) (ANumS 1))
+>   (Z ::= AMinus (AId Z) (ANum 1)) ;;
+>   (X ::= AMinus (AId X) (ANum 1))
 
 
 ==== Loops
 
 > subtract_slowly : Com
 > subtract_slowly =
->  WHILE BNotS (BEqS (AIdS X) (ANumS 0)) DO
+>  WHILE BNot (BEq (AId X) (ANum 0)) DO
 >    subtract_slowly_body
 >  END
 
 > subtract_3_from_5_slowly : Com
 > subtract_3_from_5_slowly =
->   (X ::= ANumS 3) ;;
->   (Z ::= ANumS 5) ;;
+>   (X ::= ANum 3) ;;
+>   (Z ::= ANum 5) ;;
 >   subtract_slowly
 
 
@@ -1019,7 +1042,7 @@ definition to Idris:
 
 > loop : Com
 > loop =
->   WHILE BTrueS DO
+>   WHILE BTrue DO
 >     SKIP
 >   END
 
@@ -1027,8 +1050,8 @@ definition to Idris:
 == Evaluating Commands
 
 Next we need to define what it means to evaluate an Imp command. The fact that
-\idr{WHILE} loops don't necessarily terminate makes defining an evaluation function
-tricky...
+\idr{WHILE} loops don't necessarily terminate makes defining an evaluation
+function tricky...
 
 
 === Evaluation as a Function (Failed Attempt)
@@ -1038,12 +1061,12 @@ Here's an attempt at defining an evaluation function for commands, omitting the
 
 > ceval_fun_no_while : (st : State) -> (c : Com) -> State
 > ceval_fun_no_while st CSkip = st
-> ceval_fun_no_while st (CAss x a) = t_update x (aevalS st a) st
+> ceval_fun_no_while st (CAss x a) = t_update x (aeval st a) st
 > ceval_fun_no_while st (CSeq c1 c2) =
 >   let st' = ceval_fun_no_while st c1
 >   in ceval_fun_no_while st' c2
 > ceval_fun_no_while st (CIf b c1 c2) =
->   if bevalS st b
+>   if beval st b
 >     then ceval_fun_no_while st c1
 >     else ceval_fun_no_while st c2
 > ceval_fun_no_while st (CWhile x y) = st   -- bogus
@@ -1054,7 +1077,7 @@ add the \idr{WHILE} case as follows:
 ```idris
 ...
 ceval_fun st (CWhile b c) =
-  if (bevalS st b)
+  if (beval st b)
     then ceval_fun st (CSeq c $ CWhile b c)
     else st
 ```
@@ -1096,10 +1119,10 @@ nondeterministic features like \idr{any} to the language, we want the definition
 of evaluation to be nondeterministic — i.e., not only will it not be total, it
 will not even be a function!
 
-We'll use the notation \idr{c / st \||/ st'} for the \idr{CEval} relation:
-\idr{c / st \||/ st'} means that executing program \idr{c} in a starting state
-\idr{st} results in an ending state \idr{st'}. This can be pronounced "\idr{c}
-takes state \idr{st} to \idr{st'}".
+We'll use the notation \idr{c / st |/ st'} for the \idr{CEval} relation: \idr{c
+/ st |/ st'} means that executing program \idr{c} in a starting state \idr{st}
+results in an ending state \idr{st'}. This can be pronounced "\idr{c} takes
+state \idr{st} to \idr{st'}".
 
 
 ==== Operational Semantics
@@ -1107,61 +1130,91 @@ takes state \idr{st} to \idr{st'}".
 Here is an informal definition of evaluation, presented as inference rules for
 readability:
 
-  	(E_Skip)
-SKIP / st \||/ st	
-aeval st a1 = n	(E_Ass)
-x := a1 / st \||/ (t_update st x n)	
-c1 / st \||/ st'	
-c2 / st' \||/ st''	(E_Seq)
-c1;;c2 / st \||/ st''	
-beval st b1 = True	
-c1 / st \||/ st'	(E_IfTrue)
-IF b1 THEN c1 ELSE c2 FI / st \||/ st'	
-beval st b1 = false	
-c2 / st \||/ st'	(E_IfFalse)
-IF b1 THEN c1 ELSE c2 FI / st \||/ st'	
-beval st b = false	(E_WhileEnd)
-WHILE b DO c END / st \||/ st	
-beval st b = True	
-c / st \||/ st'	
-WHILE b DO c END / st' \||/ st''	(E_WhileLoop)
-WHILE b DO c END / st \||/ st''	
+\[
+  \begin{prooftree}
+    \infer0[\idr{E_Skip}]{\idr{SKIP / st |/ st}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{aeval st a1 = n}}
+    \infer2[\idr{E_Ass}]{\idr{x := a1 / st |/ (t_update st x n)	}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{c1 / st |/ st'}}
+    \hypo{\idr{c2 / st' |/ st''}}
+    \infer2[\idr{E_Seq}]{\idr{c1;;c2 / st |/ st''}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{beval st b1 = True}}
+    \hypo{\idr{c1 / st |/ st'}}
+    \infer2[\idr{E_IfTrue}]{\idr{IF b1 THEN c1 ELSE c2 FI / st |/ st'}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{beval st b1 = False}}
+    \hypo{\idr{c2 / st |/ st'}}
+    \infer2[\idr{E_IfFalse}]{\idr{IF b1 THEN c1 ELSE c2 FI / st |/ st'}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{beval st b = False}}
+    \infer2[\idr{E_WhileEnd}]{\idr{WHILE b DO c END / st |/ st}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{beval st b = True}}
+    \hypo{\idr{c / st |/ st'}}
+    \hypo{\idr{WHILE b DO c END / st' |/ st''}}
+    \infer2[\idr{E_WhileLoop}]{\idr{WHILE b DO c END / st |/ st''}}
+  \end{prooftree}
+\]	
 
 Here is the formal definition. Make sure you understand how it corresponds to
 the inference rules.
 
-Reserved Notation "c1 '/' st '\||/' st'"
-                  (at level 40, st at level 39).
-
 > data CEval : Com -> State -> State -> Type where
 >   E_Skip : CEval CSkip st st
->   E_Ass : aevalS st a1 = n -> CEval (CAss x a1) st (t_update x n st)
+>   E_Ass : aeval st a1 = n -> CEval (CAss x a1) st (t_update x n st)
 >   E_Seq : CEval c1 st st' -> CEval c2 st' st'' ->
 >     CEval (CSeq c1 c2) st st''
->   E_IfTrue : bevalS st b = True -> CEval c1 st st' ->
+>   E_IfTrue : beval st b = True -> CEval c1 st st' ->
 >     CEval (CIf b c1 c2) st st'
->   E_IfFalse : bevalS st b = False -> CEval c2 st st' ->
+>   E_IfFalse : beval st b = False -> CEval c2 st st' ->
 >     CEval (CIf b c1 c2) st st'
->   E_WhileEnd : bevalS st b = False ->
+>   E_WhileEnd : beval st b = False ->
 >     CEval (CWhile b c) st st
->   E_WhileLoop : bevalS st b = True ->
+>   E_WhileLoop : beval st b = True ->
 >     CEval c st st' -> CEval (CWhile b c) st' st'' ->
 >     CEval (CWhile b c) st st''
 
-  where "c1 '/' st '\||/' st'" := (ceval c1 st st').
+> syntax [c1] "/" [st] "|/" [st'] = CEval c1 st st'
 
 The cost of defining evaluation as a relation instead of a function is that we
 now need to construct _proofs_ that some program evaluates to some result state,
 rather than just letting Idris's computation mechanism do it for us.
 
 > ceval_example1 :
->    CEval (
->     (X ::= ANumS 2) ;;
->     (IFB BLeS (AIdS X) (ANumS 1)
->       THEN (Y ::= ANumS 3)
->       ELSE (Z ::= ANumS 4)
+>    (
+>     (X ::= ANum 2) ;;
+>     (IFB BLe (AId X) (ANum 1)
+>       THEN (Y ::= ANum 3)
+>       ELSE (Z ::= ANum 4)
 >      FI)
->    ) empty_state (t_update Z 4 $ t_update X 2 empty_state)
+>    ) / empty_state |/ (t_update Z 4 $ t_update X 2 empty_state)
 > ceval_example1 =
 >    E_Seq
 >      (E_Ass Refl)
@@ -1172,9 +1225,9 @@ rather than just letting Idris's computation mechanism do it for us.
 ==== Exercise: 2 stars (ceval_example2)
 
 > ceval_example2 :
->    CEval ((X ::= ANumS 0);; (Y ::= ANumS 1);; (Z ::= ANumS 2))
->          empty_state
->          (t_update Z 2 $ t_update Y 1 $ t_update X 0 empty_state)
+>    ((X ::= ANum 0);; (Y ::= ANum 1);; (Z ::= ANum 2))
+>    / empty_state
+>    |/ (t_update Z 2 $ t_update Y 1 $ t_update X 0 empty_state)
 > ceval_example2 = ?ceval_example2_rhs
 
 $\square$
@@ -1190,13 +1243,13 @@ as intended for \idr{X = 2} (this is trickier than you might expect).
 > pup_to_n = ?pup_to_n_rhs
 
 > pup_to_2_ceval :
->   CEval pup_to_n (t_update X 2 empty_state)
->         (t_update X 0 $
->          t_update Y 3 $
->          t_update X 1 $
->          t_update Y 2 $
->          t_update Y 0 $
->          t_update X 2 empty_state)
+>   pup_to_n / (t_update X 2 empty_state)
+>   |/ (t_update X 0 $
+>       t_update Y 3 $
+>       t_update X 1 $
+>       t_update Y 2 $
+>       t_update Y 0 $
+>       t_update X 2 empty_state)
 > pup_to_2_ceval = ?pup_to_2_ceval_rhs
 
 $\square$
@@ -1213,7 +1266,7 @@ reach two different output states \idr{st'} and \idr{st''}?
 
 In fact, this cannot happen: \idr{CEval} _is_ a partial function:
 
-> ceval_deterministic : CEval c st st1 -> CEval c st st2 -> st1 = st2
+> ceval_deterministic : (c / st |/ st1) -> (c / st |/ st2) -> st1 = st2
 > ceval_deterministic E_Skip E_Skip = Refl
 > ceval_deterministic (E_Ass aev1) (E_Ass aev2) =
 >   rewrite sym aev1 in rewrite sym aev2 in Refl
@@ -1247,7 +1300,7 @@ We'll get deeper into systematic techniques for reasoning about Imp programs in
 the following chapters, but we can do quite a bit just working with the bare
 definitions. This section explores some examples.
 
-> plus2_spec : st X = n -> CEval Imp.plus2 st st' -> st' X = n + 2
+> plus2_spec : st X = n -> (Imp.plus2 / st |/ st') -> st' X = n + 2
 
 \todo[inline]{Edit}
 
@@ -1269,7 +1322,7 @@ $\square$
 
 ==== Exercise: 3 stars, recommended (loop_never_stops)
 
-> loop_never_stops : Not (CEval Imp.loop st st')
+> loop_never_stops : Not (Imp.loop / st |/ st')
 > loop_never_stops = ?loop_never_stops_rhs
 
 Proof.
@@ -1332,15 +1385,20 @@ HP Calculators, programming languages like Forth and Postscript and abstract
 machines like the Java Virtual Machine all evaluate arithmetic expressions using
 a stack. For instance, the expression
 
+```
       (2*3)+(3*(4-2))
+```
 
 would be entered as
 
+```
       2 3 * 3 4 2 - * +
+```
 
 and evaluated like this (where we show the program being evaluated on the right
 and the contents of the stack on the left):
 
+```
       [ ]           |    2 3 * 3 4 2 - * +
       [2]           |    3 * 3 4 2 - * +
       [3, 2]        |    * 3 4 2 - * +
@@ -1351,6 +1409,7 @@ and the contents of the stack on the left):
       [2, 3, 6]     |    * +
       [6, 6]        |    +
       [12]          |
+```
 
 The task of this exercise is to write a small compiler that translates
 \idr{AExp}s into stack machine instructions.
@@ -1405,12 +1464,12 @@ Next, write a function that compiles an \idr{AExp} into a stack machine program.
 The effect of running the program should be the same as pushing the value of the
 expression on the stack.
 
-> s_compile : (e : AExpS) -> List SInstr
+> s_compile : (e : AExp) -> List SInstr
 > s_compile e = ?s_compile_rhs
 
 After you've defined \idr{s_compile}, prove the following to test that it works.
 
-> s_compile1 : s_compile (AMinusS (AIdS X) (AMultS (ANumS 2) (AIdS Y)))
+> s_compile1 : s_compile (AMinus (AId X) (AMult (ANum 2) (AId Y)))
 >              = [SLoad X, SPush 2, SLoad Y, SMult, SMinus]
 > s_compile1 = ?s_compile1_rhs
 
@@ -1429,7 +1488,7 @@ Prove the following theorem. You will need to start by stating a more general
 lemma to get a usable induction hypothesis; the main theorem will then be a
 simple corollary of this lemma.
 
-> s_compile_correct : s_execute st [] (s_compile e) = [aevalS st e]
+> s_compile_correct : s_execute st [] (s_compile e) = [aeval st e]
 > s_compile_correct = ?s_compile_correct_rhs
 
 $\square$
@@ -1443,9 +1502,9 @@ evaluates to \idr{False}, then the entire \idr{BAnd} expression evaluates to
 \idr{False} immediately, without evaluating \idr{b2}. Otherwise, \idr{b2} is
 evaluated to determine the result of the \idr{BAnd} expression.
 
-Write an alternate version of \idr{bevalS} that performs short-circuit
+Write an alternate version of \idr{beval} that performs short-circuit
 evaluation of \idr{BAnd} in this manner, and prove that it is equivalent to
-\idr{bevalS}.
+\idr{beval}.
 
 > -- FILL IN HERE
 
@@ -1462,10 +1521,10 @@ with an additional case.
 > data ComB : Type where
 >   CSkipB : ComB
 >   CBreakB : ComB  -- <-- new
->   CAssB : Id -> AExpS -> ComB
+>   CAssB : Id -> AExp -> ComB
 >   CSeqB : ComB -> ComB -> ComB
->   CIfB : BExpS -> ComB -> ComB -> ComB
->   CWhileB : BExpS -> ComB -> ComB
+>   CIfB : BExp -> ComB -> ComB -> ComB
+>   CWhileB : BExp -> ComB -> ComB
 
 Notation "'SKIP'" :=
   CSkip.
@@ -1513,17 +1572,17 @@ evaluation relation that specifies whether evaluation of a command executes a
 >   SContinue : Result
 >   SBreak : Result
 
-Reserved Notation "c1 '/' st '\||/' s '/' st'"
+Reserved Notation "c1 '/' st '||//' s '/' st'"
                   (at level 40, st, s at level 39).
 
-Intuitively, `c / st \||/ s / st'` means that, if \idr{c} is started in state
+Intuitively, `c / st ||// s / st'` means that, if \idr{c} is started in state
 \idr{st}, then it terminates in state \idr{st'} and either signals that the
 innermost surrounding loop (or the whole program) should exit immediately
 (\idr{s = SBreak}) or that execution should continue normally (\idr{s =
 SContinue}).
 
-The definition of the "`c / st \||/ s / st'`" relation is very similar to the
-one we gave above for the regular evaluation relation (`c / st \||/ st'`) — we
+The definition of the "`c / st ||// s / st'`" relation is very similar to the
+one we gave above for the regular evaluation relation (`c / st ||// st'`) — we
 just need to handle the termination signals appropriately:
 
   - If the command is \idr{SKIP}, then the state doesn't change and execution of
@@ -1563,7 +1622,7 @@ relation.
 >   E_SkipB : CEvalB CSkipB st SContinue st
 >   -- FILL IN HERE
 
-  where "c1 '/' st '\||/' s '/' st'" := (ceval c1 st s st').
+  where "c1 '/' st '||//' s '/' st'" := (ceval c1 st s st').
 
 Now prove the following properties of your definition of \idr{CEvalB}:
 
@@ -1573,7 +1632,7 @@ Now prove the following properties of your definition of \idr{CEvalB}:
 > while_continue : CEvalB (CWhileB b c) st s st' -> s = SContinue
 > while_continue x = ?while_continue_rhs
 
-> while_stops_on_break : bevalS st b = True -> CEvalB c st SBreak st' ->
+> while_stops_on_break : beval st b = True -> CEvalB c st SBreak st' ->
 >                        CEvalB (CWhileB b c) st SContinue st'
 > while_stops_on_break prf x = ?while_stops_on_break_rhs
 
@@ -1583,7 +1642,7 @@ $\square$
 ==== Exercise: 3 stars, advanced, optional (while_break_true)
 
 > while_break_true : CEvalB (CWhileB b c) st SContinue st' ->
->                    bevalS st' b = True ->
+>                    beval st' b = True ->
 >                    (st'' ** CEvalB c st'' SBreak st')
 > while_break_true x prf = ?while_break_true_rhs
 
