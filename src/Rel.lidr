@@ -103,7 +103,7 @@ so our assumption was contradictory.)
 
 \ \todo[inline]{Again, "earlier" = \idr{IndProp}}
 
-Show that the idr{Total_relation} defined in earlier is not a partial function.
+Show that the \idr{Total_relation} defined in earlier is not a partial function.
 
 > -- FILL IN HERE
 
@@ -112,7 +112,8 @@ $\square$
 
 ==== Exercise: 2 stars, optional
 
-Show that the idr{Empty_relation} that we defined earlier is a partial function.
+Show that the \idr{Empty_relation} that we defined earlier is a partial
+function.
 
 > --FILL IN HERE
 
