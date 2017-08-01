@@ -2,10 +2,8 @@
 
 > module ProofObjects
 
-\[
-  \say{"\textit{Algorithms are the computational content of proofs.}" - Robert
+\say{"\textit{Algorithms are the computational content of proofs.}" - Robert
 Harper}
-\]
 
 We have seen that Idris has mechanisms both for _programming_, using inductive
 data types like \idr{Nat} or \idr{List} and functions over these types, and for
@@ -103,9 +101,10 @@ wants to be further applied to evidence that that number is even; its type,
       {n : Nat} -> Ev n -> Ev (S (S n))
 ```
 
-expresses this functionality, in the same way that the polymorphic type \idr{{x
-: Type} -> List x} expresses the fact that the constructor \idr{Nil} can be
-thought of as a function from types to empty lists with elements of that type.
+expresses this functionality, in the same way that the polymorphic type
+\idr{{x : Type} -> List x} expresses the fact that the constructor \idr{Nil} can
+be thought of as a function from types to empty lists with elements of that
+type.
 
 \todo[inline]{Edit or remove}
 
@@ -128,7 +127,8 @@ programs in the language.
 
 == Proof Scripts
 
-\ \todo[inline]{Rewrite, keep explanation about holes? Seems a bit late for that}
+\ \todo[inline]{Rewrite, keep explanation about holes? Seems a bit late for
+that}
 
 The _proof objects_ we've been discussing lie at the core of how Idris operates.
 When Idris is following a proof script, what is happening internally is that it
@@ -219,7 +219,7 @@ n)} — that is, a function that takes two arguments (one number and a piece of
 evidence) and returns a piece of evidence! Here it is:
 
 ```coq
-Definition ev_plus4' : ∀n, ev n -> ev (4 + n) :=
+Definition ev_plus4' : forall n, ev n -> ev (4 + n) :=
   fun (n : Nat) => fun (H : ev n) =>
     ev_SS (S (S n)) (ev_SS n H).
 ```
@@ -359,12 +359,12 @@ we've been doing. We can also use it to build proofs directly, using
 pattern-matching. For instance:
 
 ```coq
-Definition and_comm'_aux P Q (H : P ∧ Q) :=
+Definition and_comm'_aux P Q (H : P /\ Q) :=
   match H with
   | conj HP HQ => conj HQ HP
   end.
 
-Definition and_comm' P Q : P ∧ Q ↔ Q ∧ P :=
+Definition and_comm' P Q : P /\ Q <-> Q /\ P :=
   conj (and_comm'_aux P Q) (and_comm'_aux Q P).
 ```
 
@@ -396,11 +396,11 @@ Once again, we can also directly write proof objects for theorems involving
 \idr{Or}, without resorting to tactics.
 
 
-==== Exercise: 2 stars, optional (or_commut'')
+==== Exercise: 2 stars, optional (or_comm)
 
 \ \todo[inline]{Edit}
 
-Try to write down an explicit proof object for \idr{or_commut} (without using
+Try to write down an explicit proof object for \idr{or_comm} (without using
 `Print` to peek at the ones we already defined!).
 
 > or_comm : Or p q -> Or q p
@@ -450,7 +450,7 @@ Complete the definition of the following proof object:
 $\square$
 
 
-=== \idr{Unit} and \idr{Void}
+\subsection{\idr{Unit} and \idr{Void}}
 
 The inductive definition of the \idr{Unit} proposition is simple:
 
@@ -465,7 +465,7 @@ a proof of\idr{Unit} is not informative.)
 \idr{Void} is equally simple — indeed, so simple it may look syntactically wrong
 at first glance!
 
-\todo[inline]{Edit, this actually is wrong, stdlib uses \idr{%runElab} to define
+\todo[inline]{Edit, this actually is wrong, stdlib uses \idr{runElab} to define
 it}
 
 ```idris
@@ -570,8 +570,8 @@ In general, the `inversion` tactic...
     - adds these equalities to the context (and, for convenience, rewrites them
       in the goal), and
 
-    - if the equalities are not satisfiable (e.g., they involve things like `S n
-      = Z`), immediately solves the subgoal.
+    - if the equalities are not satisfiable (e.g., they involve things like
+      \idr{S n = Z}), immediately solves the subgoal.
 
 _Example_: If we invert a hypothesis built with \idr{Or}, there are two
 constructors, so two subgoals get generated. The conclusion (result type) of the
