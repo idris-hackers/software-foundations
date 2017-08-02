@@ -316,7 +316,8 @@ $\square$
 This is how we use \idr{Not} to state that \idr{0} and \idr{1} are different
 elements of \idr{Nat}:
 
-\todo[inline]{Explain \idr{Refl}-lambda syntax and \idr{Uninhabited}}
+\todo[inline]{Explain \idr{Refl}-lambda syntax and \idr{Uninhabited}, keep in
+mind https://github.com/idris-lang/Idris-dev/issues/3943}
 
 > zero_not_one : Not (Z = S _)
 > zero_not_one = \Refl impossible
