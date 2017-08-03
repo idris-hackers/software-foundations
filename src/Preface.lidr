@@ -314,24 +314,32 @@ paths through the material can be found in the file `deps.html`.
 
 === System Requirements
 
-\todo[inline]{Rewrite this for Idris}
+Idris runs on Windows, Linux, and macOS.  You will need:
 
-Coq runs on Windows, Linux, and OS X.  You will need:
+  - A current installation of Idris, available from
+    \href{https://www.idris-lang.org/}{the Idris home page}. Everything should
+    work with version 1.0. (Version 1.1.0 should work, but hasn't been tested by
+    the Idris translation maintainers.)
 
-  - A current installation of Coq, available from the Coq home page. Everything
-    should work with version 8.4. (Version 8.5 will _not_ work, due to a few
-    incompatible changes in Coq between 8.4 and 8.5.)
+  - A supported editor for interacting with Idris. Currently, there are (at
+    least) five choices:
 
-  - An IDE for interacting with Coq. Currently, there are two choices:
+    - \href{https://github.com/idris-hackers/atom-language-idris}{atom-language-idris}:
+      An Idris Mode for Atom.io
 
-    - Proof General is an Emacs-based IDE. It tends to be preferred by users who
-      are already comfortable with Emacs. It requires a separate installation
-      (google "Proof General").
+    - \href{https://github.com/idris-hackers/idris-mode}{idris-mode}:
+      Idris syntax highlighting, compiler-supported editing, interactive REPL
+      and more things for Emacs
 
-    - CoqIDE is a simpler stand-alone IDE. It is distributed with Coq, so it
-      should "just work" once you have Coq installed. It can also be compiled
-      from scratch, but on some platforms this may involve installing additional
-      packages for GUI libraries and such.
+    - \href{https://github.com/idris-hackers/idris-sublime}{idris-sublime}:
+      A Plugin to use Idris with Sublime
+
+    - \href{https://github.com/idris-hackers/idris-vim}{idris-vim}:
+      Idris mode for vim
+
+    - \href{https://github.com/zjhmale/vscode-idris}{idris-vscode}:
+      Idris for Visual Studio Code
+      \url{https://marketplace.visualstudio.com/items?itemName=zjhmale.Idris}
 
 === Exercises
 
