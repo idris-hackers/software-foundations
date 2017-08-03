@@ -383,7 +383,7 @@ $\square$
 \todo[inline]{Remove when a release with
 https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-> Uninhabited (False = True) where
+> implementation Uninhabited (False = True) where
 >   uninhabited Refl impossible
 
 \todo[inline]{Edit}
