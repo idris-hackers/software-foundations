@@ -366,20 +366,6 @@ derived at once.
 Note that we need to pass the parameter \idr{eqinj} which will be bound to
 equations that \idr{injective} generates.
 
-
-==== Exercise: 1 star (inversion_ex3)
-
-> inversion_ex3 : (x, y, z : a) -> (l, j : List a) ->
->                 x :: y :: l = z :: j ->
->                 y :: l = x :: j ->
->                 x = y
-> inversion_ex3 = ?remove_me3 -- %runElab inversion_ex3_tac
-> where
->   inversion_ex3_tac : Elab ()
->   inversion_ex3_tac = ?inversion_ex3_tac_rhs
-
-$\square$
-
 \todo[inline]{Remove when a release with
 https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
