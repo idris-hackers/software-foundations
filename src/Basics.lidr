@@ -249,10 +249,12 @@ standard library.
 
 Functions over booleans can be defined in the same way as above:
 
->   negb : (b : Bool) -> Bool
->   negb True  = False
->   negb False = True
->
+```idris
+  not : (b : Bool) -> Bool
+  not True  = False
+  not False = True
+```
+
 >   andb : (b1 : Bool) -> (b2 : Bool) -> Bool
 >   andb True  b2 = b2
 >   andb False b2 = False
@@ -286,20 +288,22 @@ We can also introduce some familiar syntax for the boolean operations we have
 just defined. The \idr{syntax} command defines a new symbolic notation for an
 existing definition, and \idr{infixl} specifies left-associative fixity.
 
->   infixl 4 /\, \/
->
->   (/\) : Bool -> Bool -> Bool
->   (/\) = andb
->
->   (\/) : Bool -> Bool -> Bool
->   (\/) = orb
->
->   testOrb5 : False \/ False \/ True = True
+```idris
+  infixl 4 &&, ||
+
+  (&&) : Bool -> Bool -> Bool
+  (&&) = andb
+
+  (||) : Bool -> Bool -> Bool
+  (||) = orb
+```
+
+>   testOrb5 : False || False || True = True
 >   testOrb5 = Refl
 >
 
 
-=== Exercise: 1 star (nandb)
+==== Exercise: 1 star (nandb)
 
 Fill in the hole \idr{?nandb_rhs} and complete the following function; then make
 sure that the assertions below can each be verified by Idris. (Fill in each of
@@ -325,7 +329,7 @@ should return \idr{True} if either or both of its inputs are \idr{False}.
 $\square$
 
 
-=== Exercise: 1 star (andb3)
+==== Exercise: 1 star (andb3)
 
 Do the same for the \idr{andb3} function below. This function should return
 \idr{True} when all of its inputs are \idr{True}, and \idr{False} otherwise.
@@ -355,27 +359,27 @@ Every expression in Idris has a type, describing what sort of thing it computes.
 The \idr{:type} (or \idr{:t}) REPL command asks Idris to print the type of an
 expression.
 
-For example, the type of \idr{negb True} is \idr{Bool}.
+For example, the type of \idr{not True} is \idr{Bool}.
 
 ```idris
 λΠ> :type True
 True : Bool
-λΠ> :t negb True
-negb True : Bool
+λΠ> :t not True
+not True : Bool
 ```
 
 \todo[inline]{Confirm the "function types" wording.}
 
-Functions like \idr{negb} itself are also data values, just like \idr{True} and
+Functions like \idr{not} itself are also data values, just like \idr{True} and
 \idr{False}. Their types are called \glspl{function type}, and they are written
 with arrows.
 
 ```idris
-λΠ> :t negb
-negb : Bool -> Bool
+λΠ> :t not
+not : Bool -> Bool
 ```
 
-The type of \idr{negb}, written \idr{Bool -> Bool} and pronounced "\idr{Bool}
+The type of \idr{not}, written \idr{Bool -> Bool} and pronounced "\idr{Bool}
 arrow \idr{Bool}," can be read, "Given an input of type \idr{Bool}, this
 function produces an output of type \idr{Bool}." Similarly, the type of
 \idr{andb}, written \idr{Bool -> Bool -> Bool}, can be read, "Given two inputs,
@@ -499,7 +503,7 @@ simpler definition that is a bit easier to work with:
 >   ||| Determine whether a number is odd.
 >   ||| @n a number
 >   oddb : (n : Nat) -> Bool
->   oddb n = negb (evenb n)
+>   oddb n = not (evenb n)
 >
 >   testOddb1 : oddb 1 = True
 >   testOddb1 = Refl
@@ -576,7 +580,7 @@ right-hand side. This avoids the need to invent a bogus variable name.
 >
 
 
-=== Exercise: 1 star (factorial)
+==== Exercise: 1 star (factorial)
 
 Recall the standard mathematical factorial function:
 
@@ -623,38 +627,43 @@ simply instructions to the Idris parser to accept \idr{x + y} in place of
 \idr{plus x y} and, conversely, to the Idris pretty-printer to display \idr{plus
 x y} as \idr{x + y}.
 
-The \idr{beq_nat} function tests \idr{Nat}ural numbers for \idr{eq}uality,
-yielding a \idr{b}oolean.
+\todo[inline]{Mention interfaces here? Say this is infix}
 
->   ||| Test natural numbers for equality.
->   beq_nat : (n, m : Nat) -> Bool
->   beq_nat  Z     Z    = True
->   beq_nat  Z    (S j) = False
->   beq_nat (S k)  Z    = False
->   beq_nat (S k) (S j) = beq_nat k j
->
+The \idr{(==)} function tests \idr{Nat}ural numbers for equality, yielding a
+\idr{Bool}ean.
 
-The \idr{leb} function tests whether its first argument is less than or equal to
+```idris
+  ||| Test natural numbers for equality.
+  (==) : (n, m : Nat) -> Bool
+  (==)  Z     Z    = True
+  (==)  Z    (S j) = False
+  (==) (S k)  Z    = False
+  (==) (S k) (S j) = (==) k j
+```
+
+The \idr{lte} function tests whether its first argument is less than or equal to
 its second argument, yielding a boolean.
 
->   ||| Test whether a number is less than or equal to another.
->   leb : (n, m : Nat) -> Bool
->   leb  Z     m    = True
->   leb (S k)  Z    = False
->   leb (S k) (S j) = leb k j
+```idris
+||| Test whether a number is less than or equal to another.
+lte : (n, m : Nat) -> Bool
+lte  Z     m    = True
+lte  n     Z    = False
+lte (S k) (S j) = lte k j
+```
+
+>   testLte1 : lte 2 2 = True
+>   testLte1 = Refl
 >
->   testLeb1 : leb 2 2 = True
->   testLeb1 = Refl
+>   testLte2 : lte 2 4 = True
+>   testLte2 = Refl
 >
->   testLeb2 : leb 2 4 = True
->   testLeb2 = Refl
->
->   testLeb3 : leb 4 2 = False
->   testLeb3 = Refl
+>   testLte3 : lte 4 2 = False
+>   testLte3 = Refl
 >
 
 
-=== Exercise: 1 star (blt_nat)
+==== Exercise: 1 star (blt_nat)
 
 The \idr{blt_nat} function tests \idr{Nat}ural numbers for
 \idr{l}ess-\idr{t}han, yielding a \idr{b}oolean. Instead of making up a new
@@ -760,7 +769,8 @@ arrow symbol is pronounced "implies."
 As before, we need to be able to reason by assuming the existence of some
 numbers \idr{n} and \idr{m}. We also need to assume the hypothesis \idr{n = m}.
 
-\todo[inline]{Edit.}
+\todo[inline]{Edit, mention the "generate initial pattern match" editor command}
+
 The \idr{intros} tactic will serve to move all three of these from the goal into
 assumptions in the current context.
 
@@ -780,7 +790,7 @@ tells Idris to rewrite the current goal (\idr{n + n = m + m}) by replacing the
 left side of the equality hypothesis \idr{prf} with the right side.
 
 
-=== Exercise: 1 star (plus_id_exercise)
+==== Exercise: 1 star (plus_id_exercise)
 
 Fill in the proof.
 
@@ -816,7 +826,7 @@ Unlike in Coq, we don't need to perform such a rewrite for \idr{mult_0_plus} in
 Idris and can just use \idr{Refl} instead.
 
 
-=== Exercise: 2 starts (mult_S_1)
+==== Exercise: 2 starts (mult_S_1)
 
 >   mult_S_1 : (n, m : Nat) -> (m = S n) -> m * (1 + n) = m * m
 >   mult_S_1 n m prf = ?mult_S_1_rhs
@@ -833,28 +843,28 @@ can block simplification. For example, if we try to prove the following fact
 using the \idr{Refl} tactic as above, we get stuck.
 
 ```idris
-plus_1_neq_0_firsttry : (n : Nat) -> beq_nat (n + 1) 0 = False
+plus_1_neq_0_firsttry : (n : Nat) -> (n + 1) == 0 = False
 plus_1_neq_0_firsttry n = Refl -- does nothing!
 ```
 
-The reason for this is that the definitions of both \idr{beq_nat} and \idr{+}
+The reason for this is that the definitions of both \idr{(==)} and \idr{+}
 begin by performing a \idr{match} on their first argument. But here, the first
 argument to \idr{+} is the unknown number \idr{n} and the argument to
-\idr{beq_nat} is the compound expression \idr{n + 1}; neither can be simplified.
+\idr{(==)} is the compound expression \idr{n + 1}; neither can be simplified.
 
 To make progress, we need to consider the possible forms of \idr{n} separately.
-If \idr{n} is \idr{Z}, then we can calculate the final result of \idr{beq_nat (n
-+ 1) 0} and check that it is, indeed, \idr{False}. And if \idr{n = S k} for some
+If \idr{n} is \idr{Z}, then we can calculate the final result of \idr{(n + 1) ==
+0} and check that it is, indeed, \idr{False}. And if \idr{n = S k} for some
 \idr{k}, then, although we don't know exactly what number \idr{n + 1} yields, we
 can calculate that, at least, it will begin with one \idr{S}, and this is enough
-to calculate that, again, \idr{beq_nat (n + 1) 0} will yield \idr{False}.
+to calculate that, again, \idr{(n + 1) == 0} will yield \idr{False}.
 
 To tell Idris to consider, separately, the cases where \idr{n = Z} and where
 \idr{n = S k}, simply case split on \idr{n}.
 
 \todo[inline]{Mention case splitting interactively in Emacs, Atom, etc.}
 
->   plus_1_neq_0 : (n : Nat) -> beq_nat (n + 1) 0 = False
+>   plus_1_neq_0 : (n : Nat) -> (n + 1) == 0 = False
 >   plus_1_neq_0  Z    = Refl
 >   plus_1_neq_0 (S k) = Refl
 >
@@ -864,8 +874,8 @@ separately, in order to get Idris to accept the theorem.
 
 In this example, each of the holes is easily filled by a single use of
 \idr{Refl}, which itself performs some simplification -- e.g., the first one
-simplifies \idr{beq_nat (S k + 1) 0} to \idr{False} by first rewriting \idr{(S k
-+ 1)} to \idr{S (k + 1)}, then unfolding \idr{beq_nat}, simplifying its pattern
+simplifies \idr{(S k + 1) == 0} to \idr{False} by first rewriting \idr{(S k +
+1)} to \idr{S (k + 1)}, then unfolding \idr{(==)}, simplifying its pattern
 matching.
 
 There are no hard and fast rules for how proofs should be formatted in Idris.
@@ -884,9 +894,9 @@ For example, we use it next to prove that boolean negation is involutive --
 i.e., that negation is its own inverse.
 
 >   ||| A proof that boolean negation is involutive.
->   negb_involutive : (b : Bool) -> negb (negb b) = b
->   negb_involutive True  = Refl
->   negb_involutive False = Refl
+>   not_involutive : (b : Bool) -> not (not b) = b
+>   not_involutive True  = Refl
+>   not_involutive False = Refl
 >
 
 Note that the case splitting here doesn't introduce any variables because none
@@ -896,7 +906,7 @@ any names.
 It is sometimes useful to case split on more than one parameter, generating yet
 more proof obligations. For example:
 
->   andb_commutative : (b, c : Bool) -> andb b c = andb c b
+>   andb_commutative : (b, c : Bool) -> b && c = c && b
 >   andb_commutative True  True  = Refl
 >   andb_commutative True  False = Refl
 >   andb_commutative False True  = Refl
@@ -906,34 +916,34 @@ more proof obligations. For example:
 In more complex proofs, it is often better to lift subgoals to lemmas:
 
 
->   andb_commutative'_rhs_1 : (c : Bool) -> c = andb c True
+>   andb_commutative'_rhs_1 : (c : Bool) -> c = c && True
 >   andb_commutative'_rhs_1 True  = Refl
 >   andb_commutative'_rhs_1 False = Refl
 >
->   andb_commutative'_rhs_2 : (c : Bool) -> False = andb c False
+>   andb_commutative'_rhs_2 : (c : Bool) -> False = c && False
 >   andb_commutative'_rhs_2 True  = Refl
 >   andb_commutative'_rhs_2 False = Refl
 >
->   andb_commutative' : (b, c : Bool) -> andb b c = andb c b
+>   andb_commutative' : (b, c : Bool) -> b && c = c && b
 >   andb_commutative' True  = andb_commutative'_rhs_1
 >   andb_commutative' False = andb_commutative'_rhs_2
 >
 
 
-=== Exercise: 2 stars (andb_true_elim2)
+==== Exercise: 2 stars (andb_true_elim2)
 
 Prove the following claim, lift cases (and subcases) to lemmas when case split.
 
->   andb_true_elim_2 : (b, c : Bool) -> (andb b c = True) -> c = True
+>   andb_true_elim_2 : (b, c : Bool) -> (b && c = True) -> c = True
 >   andb_true_elim_2 b c prf = ?andb_true_elim_2_rhs
 >
 
 $\square$
 
 
-=== Exercise: 1 star (zero_nbeq_plus_1)
+==== Exercise: 1 star (zero_nbeq_plus_1)
 
->   zero_nbeq_plus_1 : (n : Nat) -> beq_nat 0 (n + 1) = False
+>   zero_nbeq_plus_1 : (n : Nat) -> 0 == (n + 1) = False
 >   zero_nbeq_plus_1 n = ?zero_nbeq_plus_1_rhs
 >
 
@@ -973,7 +983,8 @@ unnatural ways.
 
 == More Exercises
 
-=== Exercise: 2 stars (boolean_functions)
+
+==== Exercise: 2 stars (boolean_functions)
 
 Use the tactics you have learned so far to prove the following theorem about
 boolean functions.
@@ -985,7 +996,7 @@ boolean functions.
 
 Now state and prove a theorem \idr{negation_fn_applied_twice} similar to the
 previous one but where the second hypothesis says that the function \idr{f} has
-the property that \idr{f x = negb x}.
+the property that \idr{f x = not x}.
 
 >
 >   -- FILL IN HERE
@@ -994,19 +1005,19 @@ the property that \idr{f x = negb x}.
 $\square$
 
 
-=== Exercise: 2 start (andb_eq_orb)
+==== Exercise: 2 start (andb_eq_orb)
 
 Prove the following theorem. (You may want to first prove a subsidiary lemma or
 two. Alternatively, remember that you do not have to introduce all hypotheses at
 the same time.)
 
->   andb_eq_orb : (b, c : Bool) -> (andb b c = orb b c) -> b = c
+>   andb_eq_orb : (b, c : Bool) -> (b && c = b || c) -> b = c
 >   andb_eq_orb b c prf = ?andb_eq_orb_rhs
 
 $\square$
 
 
-=== Exercise: 3 stars (binary)
+==== Exercise: 3 stars (binary)
 
 Consider a different, more efficient representation of natural numbers using a
 binary rather than unary system. That is, instead of saying that each natural

@@ -1,13 +1,17 @@
-= IndProp: Inductively Defined Propositions
+= IndProp : Inductively Defined Propositions
 
 > module IndProp
 >
 > import Basics
 > import Induction
+> import Tactics
+> import Logic
 >
 > %hide Basics.Numbers.pred
-> %hide Prelude.Stream.(::)
 >
+> %access public export
+> %default total
+
 
 == Inductively Defined Propositions
 
@@ -106,8 +110,8 @@ When checking argument n to IndType.Wrong_ev:
                 Nat (Expected type)
 ```
 
-\todo[inline]{Edit the explanation, it works fine if you remove the first \idr{n ->}
-in \idr{Wrong_ev_SS}}
+\todo[inline]{Edit the explanation, it works fine if you remove the first \idr{n
+->} in \idr{Wrong_ev_SS}}
 
 ("Parameter" here is Idris jargon for an argument on the left of the colon in an
 Inductive definition; "index" is used to refer to arguments on the right of the
@@ -338,13 +342,6 @@ induction hypothesis talks about n', as opposed to n or some other number.
 The equivalence between the second and third definitions of evenness now
 follows.
 
-\todo[inline]{Copypasted `<->` for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
->
 > ev_even_iff : (Ev n) <-> (k ** n = double k)
 > ev_even_iff = (ev_even, fro)
 >   where
@@ -385,7 +382,7 @@ Prove that this definition is logically equivalent to the old one. (You may want
 to look at the previous theorem when you get to the induction step.)
 
 > ev'_ev : (Ev' n) <-> Ev n
-> ev'_ev = ?ev'_ev_rhs
+> ev'_ev = ?ev__ev_rhs
 >
 
 $\square$
@@ -530,27 +527,27 @@ are going to need later in the course. The proofs make good practice exercises.
 > lt_S : (n <' m) -> (n <' S m)
 > lt_S x = ?lt_S_rhs
 >
-> leb_complete : leb n m = True -> (n <=' m)
-> leb_complete prf = ?leb_complete_rhs
+> lte_complete : lte n m = True -> (n <=' m)
+> lte_complete prf = ?lte_complete_rhs
 >
 
 Hint: The next one may be easiest to prove by induction on \idr{m}.
 
-> leb_correct : (n <=' m) -> leb n m = True
-> leb_correct x = ?leb_correct_rhs
+> lte_correct : (n <=' m) -> lte n m = True
+> lte_correct x = ?lte_correct_rhs
 >
 
 Hint: This theorem can easily be proved without using induction.
 
-> leb_true_trans : leb n m = True -> leb m o = True -> leb n o = True
-> leb_true_trans prf prf1 = ?leb_true_trans_rhs
+> lte_true_trans : lte n m = True -> lte m o = True -> lte n o = True
+> lte_true_trans prf prf1 = ?lte_true_trans_rhs
 >
 
 
-==== Exercise: 2 stars, optional (leb_iff)
+==== Exercise: 2 stars, optional (lte_iff)
 
-> leb_iff : (leb n m = True) <-> (n <=' m)
-> leb_iff = ?leb_iff_rhs
+> lte_iff : (lte n m = True) <-> (n <=' m)
+> lte_iff = ?lte_iff_rhs
 >
 
 $\square$
@@ -558,7 +555,7 @@ $\square$
 > namespace R
 >
 
-==== Exercise: 3 stars, recommendedM (R_provability)
+==== Exercise: 3 stars, recommended (R_provability)
 
 We can define three-place relations, four-place relations, etc., in just the
 same way as binary relations. For example, consider the following three-place
@@ -654,7 +651,7 @@ but it is not a subsequence of any of the lists
 $\square$
 
 
-==== Exercise: 2 stars, optionalM (R_provability2)
+==== Exercise: 2 stars, optional (R_provability2)
 
 Suppose we give Idris the following definition:
 
@@ -886,7 +883,7 @@ beginning of the chapter can be obtained from the formal inductive definition.
 > empty_is_empty = ?empty_is_empty_rhs
 >
 > MUnion' : (s =~ re1, s =~ re2) -> s =~ Union re1 re2
-> MUnion' m = ?MUnion'_rhs
+> MUnion' m = ?MUnion__rhs
 >
 
 The next lemma is stated in terms of the \idr{fold} function from the \idr{Poly}
@@ -894,19 +891,16 @@ chapter: If \idr{ss : List (List t)} represents a sequence of strings \idr{s1,
 ..., sn}, then \idr{fold (++) ss []} is the result of concatenating them all
 together.
 
-\todo[inline]{Copied these here for now, add hyperlink}
+\todo[inline]{Copied from \idr{Poly}, cannot import it due to tuple sugar
+issues}
 
 > fold : (f : x -> y -> y) -> (l : List x) -> (b : y) -> y
 > fold f [] b = b
 > fold f (h::t) b = f h (fold f t b)
 >
-> In : (x : a) -> (l : List a) -> Type
-> In x [] = Void
-> In x (x' :: xs) = (x' = x) `Either` In x xs
->
 > MStar' : ((s : List t) -> (In s ss) -> (s =~ re)) ->
 >          (fold (++) ss []) =~ Star re
-> MStar' f = ?MStar'_rhs
+> MStar' f = ?MStar__rhs
 >
 
 $\square$
@@ -943,28 +937,6 @@ regular expression:
 >
 
 We can then phrase our theorem as follows:
-
-\todo[inline]{Copied here for now}
-
-> in_app_iff : (In a (l++l')) <-> (In a l `Either` In a l')
-> in_app_iff {l} {l'} = (to l l', fro l l')
->   where
->     to : (l, l' : List x) -> In a (l ++ l') -> (In a l) `Either` (In a l')
->     to [] [] prf = absurd prf
->     to [] _ prf = Right prf
->     to (_ :: _) _ (Left Refl) = Left $ Left Refl
->     to (_ :: xs) l' (Right prf) =
->       case to xs l' prf of
->         Left ixs => Left $ Right ixs
->         Right il' => Right il'
->     fro : (l, l' : List x) -> (In a l) `Either` (In a l') -> In a (l ++ l')
->     fro [] _ (Left prf) = absurd prf
->     fro (_ :: _) _ (Left (Left Refl)) = Left Refl
->     fro (_ :: xs) l' (Left (Right prf)) = Right $ fro xs l' (Left prf)
->     fro _ [] (Right prf) = absurd prf
->     fro [] _ (Right prf) = prf
->     fro (_ :: ys) l' prf@(Right _) = Right $ fro ys l' prf
->
 
 \todo[inline]{Some unfortunate implicit plumbing}
 
@@ -1162,7 +1134,7 @@ equivalent to the informal one given previously.
 >           (ss : List (List t) **
 >                (s = fold (++) ss [], (s': List t) -> In s' ss -> s' =~ re)
 >           )
-> MStar'' m = ?MStar''_rhs
+> MStar'' m = ?MStar___rhs
 >
 
 $\square$
@@ -1243,18 +1215,9 @@ computations to statements in \idr{Type}. But performing this conversion in the
 way we did it there can result in tedious proof scripts. Consider the proof of
 the following theorem:
 
-\todo[inline]{Copy here for now}
-
-> beq_nat_true : beq_nat n m = True -> n = m
-> beq_nat_true {n=Z} {m=Z} _ = Refl
-> beq_nat_true {n=(S _)} {m=Z} Refl impossible
-> beq_nat_true {n=Z} {m=(S _)} Refl impossible
-> beq_nat_true {n=(S n')} {m=(S m')} eq =
->  rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
->
-> filter_not_empty_In : Not (filter (beq_nat n) l = []) -> In n l
+> filter_not_empty_In : {n : Nat} -> Not (filter ((==) n) l = []) -> In n l
 > filter_not_empty_In {l=[]} contra = contra Refl
-> filter_not_empty_In {l=(x::_)} {n} contra with (beq_nat n x) proof h
+> filter_not_empty_In {l=(x::_)} {n} contra with (n == x) proof h
 >   filter_not_empty_In contra | True =
 >     Left $ sym $ beq_nat_true $ sym h
 >   filter_not_empty_In contra | False =
@@ -1262,25 +1225,25 @@ the following theorem:
 >
 
 In the second case we explicitly apply the \idr{beq_nat_true} lemma to the
-equation generated by doing a dependent match on \idr{beq_nat n x}, to convert
-the assumption \idr{beq_nat n x = True} into the assumption \idr{n = m}.
+equation generated by doing a dependent match on \idr{n == x}, to convert the
+assumption \idr{n == x = True} into the assumption \idr{n = m}.
 
 We can streamline this by defining an inductive proposition that yields a better
-case-analysis principle for \idr{beq_nat n m}. Instead of generating an equation
-such as \idr{beq_nat n m = True}, which is generally not directly useful, this
-principle gives us right away the assumption we really need: \idr{n = m}.
+case-analysis principle for \idr{n == m}. Instead of generating an equation such
+as \idr{n == m = True}, which is generally not directly useful, this principle
+gives us right away the assumption we really need: \idr{n = m}.
 
 We'll actually define something a bit more general, which can be used with
 arbitrary properties (and not just equalities):
 
+\todo[inline]{Update the text: seems that additional \idr{(b=...)} constructor
+parameter is needed for this to work in Idris.}
+
 ```idris
 data Reflect : Type -> Bool -> Type where
-  ReflectT : (p : Type) -> Reflect p True
-  ReflectF : (p : Type) -> (Not p) -> Reflect p False
-```
-
-\todo[inline]{Seems that additional `(b=True/False)` constructor parameter is
-needed for this to work in Idris. Update the text.`}
+ ReflectT : (p : Type) -> (b=True) -> Reflect p b
+ ReflectF : (p : Type) -> (Not p) -> (b=False) -> Reflect p b
+ ```
 
 Before explaining this, let's rearrange it a little: Since the types of both
 \idr{ReflectT} and \idr{ReflectF} begin with \idr{(p : Type)}, we can make the
@@ -1305,13 +1268,6 @@ by combining evidence for \idr{Not p} with the \idr{ReflectF} constructor.
 It is easy to formalize this intuition and show that the two statements are
 indeed equivalent:
 
-\todo[inline]{Remove when a release with
-https://github.com/idris-lang/Idris-dev/pull/3925 happens}
-
-> implementation Uninhabited (False = True) where
->   uninhabited Refl impossible
->
-
 > iff_reflect : (p <-> (b = True)) -> Reflect p b
 > iff_reflect {b = False} (pb, _) = ReflectF (uninhabited . pb) Refl
 > iff_reflect {b = True} (_, bp) = ReflectT (bp Refl) Refl
@@ -1332,20 +1288,7 @@ perform case analysis on \idr{b} while at the same time generating appropriate
 hypothesis in the two branches (\idr{p} in the first subgoal and \idr{Not p} in
 the second).
 
-\todo[inline]{Copy here for now}
-
-> beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
-> beq_nat_true_iff n1 n2 = (to, fro n1 n2)
->   where
->     to : (beq_nat n1 n2 = True) -> (n1 = n2)
->     to = beq_nat_true {n=n1} {m=n2}
->     fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
->     fro n1 n1 Refl = sym $ beq_nat_refl n1
->
-> iff_sym : (p <-> q) -> (q <-> p)
-> iff_sym (pq, qp) = (qp, pq)
->
-> beq_natP : Reflect (n = m) (beq_nat n m)
+> beq_natP : {n, m : Nat} -> Reflect (n = m) (n == m)
 > beq_natP {n} {m} = iff_reflect $ iff_sym $ beq_nat_true_iff n m
 >
 
@@ -1359,7 +1302,7 @@ calls to destruct and apply are combined into a single call to destruct.
 Idris and observe the differences in proof state at the beginning of the first
 case of the destruct.)
 
-> filter_not_empty_In' : Not (filter (beq_nat n) l = []) -> In n l
+> filter_not_empty_In' : {n : Nat} -> Not (filter ((==) n) l = []) -> In n l
 > filter_not_empty_In' {l=[]} contra = contra Refl
 > filter_not_empty_In' {n} {l=(x::xs)} contra with (beq_natP {n} {m=x})
 >   filter_not_empty_In' _ | (ReflectT eq _) = Left $ sym eq
@@ -1371,8 +1314,8 @@ case of the destruct.)
 >       contra' = replace notbeq contra
 >                         {P = \a =>
 >                                Not ((if a
->                                         then x :: filter (beq_nat n) xs
->                                         else filter (beq_nat n) xs) = [])}
+>                                         then x :: filter ((==) n) xs
+>                                         else filter ((==) n) xs) = [])}
 >     in
 >       Right $ filter_not_empty_In' contra'
 >
@@ -1384,7 +1327,7 @@ Use \idr{beq_natP} as above to prove the following:
 
 > count : (n : Nat) -> (l : List Nat) -> Nat
 > count _ [] = 0
-> count n (x :: xs) = (if beq_nat n x then 1 else 0) + count n xs
+> count n (x :: xs) = (if n == x then 1 else 0) + count n xs
 >
 > beq_natP_practice : count n l = 0 -> Not (In n l)
 > beq_natP_practice prf = ?beq_natP_practice_rhs
