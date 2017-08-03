@@ -2,8 +2,8 @@
 
 > module ProofObjects
 
-\say{"\textit{Algorithms are the computational content of proofs.}" - Robert
-Harper}
+\say{\textit{Algorithms are the computational content of proofs.}}
+-- Robert Harper
 
 We have seen that Idris has mechanisms both for _programming_, using inductive
 data types like \idr{Nat} or \idr{List} and functions over these types, and for
