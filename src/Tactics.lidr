@@ -379,7 +379,7 @@ $\square$
 
 \todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
 
-> Uninhabited (False = True) where
+> implementation Uninhabited (False = True) where
 >   uninhabited Refl impossible
 
 \todo[inline]{Edit}

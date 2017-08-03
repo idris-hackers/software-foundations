@@ -1161,7 +1161,7 @@ the value of \idr{b}.
 \todo[inline]{Remove when a release with
 https://github.com/idris-lang/Idris-dev/pull/3925 happens}
 
-> Uninhabited (False = True) where
+> implementation Uninhabited (False = True) where
 >   uninhabited Refl impossible
 
 > restricted_excluded_middle : (p <-> b = True) -> p `Either` Not p
