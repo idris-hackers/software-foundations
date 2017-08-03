@@ -555,7 +555,7 @@ $\square$
 > namespace R
 >
 
-==== Exercise: 3 stars, recommendedM (R_provability)
+==== Exercise: 3 stars, recommended (R_provability)
 
 We can define three-place relations, four-place relations, etc., in just the
 same way as binary relations. For example, consider the following three-place
@@ -651,7 +651,7 @@ but it is not a subsequence of any of the lists
 $\square$
 
 
-==== Exercise: 2 stars, optionalM (R_provability2)
+==== Exercise: 2 stars, optional (R_provability2)
 
 Suppose we give Idris the following definition:
 

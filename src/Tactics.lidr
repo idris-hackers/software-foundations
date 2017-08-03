@@ -178,7 +178,7 @@ hypotheses in the context. Remember that `:search` is your friend.)
 $\square$
 
 
-==== Exercise: 1 star, optionalM (apply_rewrite)
+==== Exercise: 1 star, optional (apply_rewrite)
 
 Briefly explain the difference between the tactics \idr{exact} and
 \idr{rewriteWith}. What are the situations where both can usefully be applied?
@@ -717,7 +717,7 @@ The following exercise requires the same pattern.
 $\square$
 
 
-==== Exercise: 2 stars, advancedM (beq_nat_true_informal)
+==== Exercise: 2 stars, advanced (beq_nat_true_informal)
 
 Give a careful informal proof of \idr{beq_nat_true}, being as explicit as possible
 about quantifiers.
@@ -1151,7 +1151,7 @@ $\square$
 $\square$
 
 
-==== Exercise: 3 stars, advancedM (split_combine)
+==== Exercise: 3 stars, advanced (split_combine)
 
 We proved, in an exercise above, that for all lists of pairs, \idr{zip} is the
 inverse of \idr{unzip}. How would you formalize the statement that \idr{unzip}

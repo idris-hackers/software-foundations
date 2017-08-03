@@ -121,7 +121,7 @@ an appropriate type parameter:
 > test_repeat2 = Refl
 
 
-==== Exercise: 2 starsM (mumble_grumble)
+==== Exercise: 2 stars (mumble_grumble)
 
 \ \todo[inline]{Explain implicits and \idr{{x=foo}} syntax first? Move after the
 "Supplying Type Arguments Explicitly" section?}
@@ -448,7 +448,7 @@ standard library calls it \idr{combine}).
 > zip (x::tx) (y::ty) = (x,y) :: zip tx ty
 
 
-==== Exercise: 1 star, optionalM (combine_checks)
+==== Exercise: 1 star, optional (combine_checks)
 
 Try answering the following questions on paper and checking your answers in
 Idris:
@@ -799,7 +799,7 @@ fold andb : List Bool -> Bool -> Bool
 > fold_example3 = Refl
 
 
-==== Exercise: 1 star, advancedM (fold_types_different)
+==== Exercise: 1 star, advanced (fold_types_different)
 
 Observe that the type of \idr{fold} is parameterized by _two_ type variables,
 \idr{x} and \idr{y}, and the parameter \idr{f} is a binary operator that takes
@@ -890,7 +890,7 @@ Prove the correctness of \idr{fold_length}.
 $\square$
 
 
-==== Exercise: 3 starsM (fold_map)
+==== Exercise: 3 stars (fold_map)
 
 We can also define \idr{map} in terms of fold. Finish \idr{fold_map} below.
 
@@ -958,7 +958,7 @@ types of \idr{prod_curry} and \idr{prod_uncurry}?
 $\square$
 
 
-==== Exercise: 2 stars, advancedM (nth_error_informal)
+==== Exercise: 2 stars, advanced (nth_error_informal)
 
 Recall the definition of the \idr{nth_error} function:
 

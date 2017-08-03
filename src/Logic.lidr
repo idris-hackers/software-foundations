@@ -371,7 +371,7 @@ $\square$
 $\square$
 
 
-==== Exercise: 1 star, advancedM (informal_not_PNP)
+==== Exercise: 1 star, advanced (informal_not_PNP)
 
 Write an informal proof (in English) of the proposition \idr{Not (p, Not p)}.
 
