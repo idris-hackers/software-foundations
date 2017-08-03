@@ -376,7 +376,7 @@ search engines.
 
 \todo[inline]{See
 \href{https://github.com/idris-hackers/software-foundations/issues/25}{\#25} and
-\href{ https://github.com/idris-hackers/software-foundations/issues/30}{\#30}}
+\href{https://github.com/idris-hackers/software-foundations/issues/30}{\#30}}
 
 \todo[inline]{Generate a "release" after the Rel chapter and update this
 subsection accordingly.}
