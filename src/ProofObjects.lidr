@@ -1,9 +1,14 @@
 = ProofObjects : The Curry-Howard Correspondence
 
 > module ProofObjects
+>
 
 \say{\textit{Algorithms are the computational content of proofs.}}
 -- Robert Harper
+
+> import Logic
+> import IndProp
+>
 
 We have seen that Idris has mechanisms both for _programming_, using inductive
 data types like \idr{Nat} or \idr{List} and functions over these types, and for
@@ -33,14 +38,16 @@ Answer: They are types!
 
 Look again at the formal definition of the \idr{Ev} property.
 
-> data Ev : Nat -> Type where
->   Ev_0 : Ev Z
->   Ev_SS : {n : Nat} -> Ev n -> Ev (S (S n))
+```idris
+data Ev : Nat -> Type where
+  Ev_0 : Ev Z
+  Ev_SS : {n : Nat} -> Ev n -> Ev (S (S n))
+```
 
 Suppose we introduce an alternative pronunciation of "\idr{:}". Instead of "has
 type," we can say "is a proof of." For example, the second line in the
 definition of \idr{Ev} declares that \idr{Ev_0 : Ev 0}. Instead of "\idr{Ev_0}
-has type \idr{Ev }0," we can say that "\idr{Ev_0} is a proof of \idr{Ev 0}."
+has type \idr{Ev 0}," we can say that "\idr{Ev_0} is a proof of \idr{Ev 0}."
 
 This pun between types and propositions — between \idr{:} as "has type" and
 \idr{:} as "is a proof of" or "is evidence for" — is called the Curry-Howard
@@ -50,7 +57,7 @@ world of computation:
                  propositions  ~  types
                  proofs        ~  data values
 
-\todo[inline]{Add link}
+\todo[inline]{Add http://dl.acm.org/citation.cfm?id=2699407 as a link}
 
 See [Wadler 2015] for a brief history and an up-to-date exposition.
 
@@ -83,11 +90,9 @@ ev_4 = Ev_SS (Ev_SS Ev_0)
 As a matter of fact, we can also write down this proof object directly, without
 the need for a separate proof script:
 
-\todo[inline]{Doesn't work in Idris REPL}
-
-```coq
-Check (ev_SS 2 (ev_SS 0 ev_0)).
-(* ===> ev 4 *)
+```idris
+λΠ> Ev_SS $ Ev_SS Ev_0
+Ev_SS (Ev_SS Ev_0) : Ev 4
 ```
 
 The expression \idr{Ev_SS {n=2} $ Ev_SS {n=0} Ev_0} can be thought of as
@@ -212,11 +217,12 @@ For example, consider this statement:
 > ev_plus4 : Ev n -> Ev (4 + n)
 > ev_plus4 x = Ev_SS $ Ev_SS x
 
-What is the proof object corresponding to ev_plus4?
+What is the proof object corresponding to `ev_plus4`?
 
-We're looking for an expression whose type is \idr{{n: Nat} -> Ev n -> Ev (4 +
-n)} — that is, a function that takes two arguments (one number and a piece of
-evidence) and returns a piece of evidence! Here it is:
+We're looking for an expression whose type is
+\idr{{n: Nat} -> Ev n -> Ev (4 + n)} — that is, a function that takes two
+arguments (one number and a piece of evidence) and returns a piece of evidence!
+Here it is:
 
 ```coq
 Definition ev_plus4' : forall n, ev n -> ev (4 + n) :=
@@ -224,7 +230,7 @@ Definition ev_plus4' : forall n, ev n -> ev (4 + n) :=
     ev_SS (S (S n)) (ev_SS n H).
 ```
 
-Recall that `fun n => blah` means "the function that, given \idr{n}, yields
+Recall that \idr{\n => blah} means "the function that, given \idr{n}, yields
 \idr{blah}," and that Idris treats \idr{4 + n} and \idr{S (S (S (S n)))} as
 synonyms. Another equivalent way to write this definition is:
 
@@ -237,19 +243,19 @@ Check ev_plus4''.
 ```
 
 When we view the proposition being proved by \idr{ev_plus4} as a function type,
-one aspect of it may seem a little unusual. The second argument's type, \idr{Ev
-n}, mentions the _value_ of the first argument, \idr{n}. While such _dependent
-types_ are not found in conventional programming languages, they can be useful
-in programming too, as the recent flurry of activity in the functional
+one aspect of it may seem a little unusual. The second argument's type,
+\idr{Ev n}, mentions the _value_ of the first argument, \idr{n}. While such
+_dependent types_ are not found in conventional programming languages, they can
+be useful in programming too, as the recent flurry of activity in the functional
 programming community demonstrates.
 
 \todo[inline]{Reword?}
 
-Notice that both implication (\idr{->}) and quantification (\idr{(x : t) -> f
-x}) correspond to functions on evidence. In fact, they are really the same
-thing: \idr{->} is just a shorthand for a degenerate use of quantification where
-there is no dependency, i.e., no need to give a name to the type on the
-left-hand side of the arrow.
+Notice that both implication (\idr{->}) and quantification
+(\idr{(x : t) -> f x}) correspond to functions on evidence. In fact, they are
+really the same thing: \idr{->} is just a shorthand for a degenerate use of
+quantification where there is no dependency, i.e., no need to give a name to the
+type on the left-hand side of the arrow.
 
 For example, consider this proposition:
 
@@ -273,8 +279,8 @@ In general, "\idr{p -> q}" is just syntactic sugar for "\idr{(_ : p) -> q}".
 \ \todo[inline]{Edit and move to an appendix about ElabReflection/Pruviloj?}
 
 If we can build proofs by giving explicit terms rather than executing tactic
-scripts, you may be wondering whether we can build _programs_ using _tactics_ rather
-than explicit terms. Naturally, the answer is yes!
+scripts, you may be wondering whether we can build _programs_ using _tactics_
+rather than explicit terms. Naturally, the answer is yes!
 
 ```coq
 Definition add1 : Nat -> Nat.
@@ -316,7 +322,7 @@ see these definitions in this section.
 
 === Conjunction
 
-\ \todo[inline]{Edit/remove most of this}
+\ \todo[inline]{Edit}
 
 To prove that \idr{(p,q)} holds, we must present evidence for both \idr{p} and
 \idr{q}. Thus, it makes sense to define a proof object for \idr{(p,q)} as
@@ -326,9 +332,9 @@ This leads to the following definition.
 > data And : (p, q : Type) -> Type where
 >   Conj : p -> q -> And p q
 
-Notice the similarity with the definition of the \idr{Prod} type, given in chapter
-`Poly`; the only difference is that \idr{Prod} takes Type arguments, whereas and takes
-Prop arguments.
+Notice the similarity with the definition of the \idr{Prod} type, given in
+chapter `Poly`; the only difference is that \idr{Prod} takes Type arguments,
+whereas and takes Prop arguments.
 
 ```idris
 data Prod : (x, y : Type) -> Type where
@@ -341,32 +347,19 @@ hypothesis. Case analysis allows us to consider all possible ways in which
 the `split` tactic actually works for any inductively defined proposition with
 only one constructor. In particular, it works for \idr{And}:
 
-\todo[inline]{Copied `<->` for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
-
-
 > and_comm : (And p q) <-> (And q p)
 > and_comm = (\(Conj x y) => Conj y x,
 >             \(Conj y x) => Conj x y)
 
-
-This shows why the inductive definition of and can be manipulated by tactics as
-we've been doing. We can also use it to build proofs directly, using
+This shows why the inductive definition of `and` can be manipulated by tactics
+as we've been doing. We can also use it to build proofs directly, using
 pattern-matching. For instance:
 
-```coq
-Definition and_comm'_aux P Q (H : P /\ Q) :=
-  match H with
-  | conj HP HQ => conj HQ HP
-  end.
+> and_comm'_aux : And p q -> And q p
+> and_comm'_aux (Conj x y) = Conj y x
 
-Definition and_comm' P Q : P /\ Q <-> Q /\ P :=
-  conj (and_comm'_aux P Q) (and_comm'_aux Q P).
-```
+> and_comm' : (And p q) <-> (And q p)
+> and_comm' {p} {q} = (and_comm'_aux {p} {q}, and_comm'_aux {p=q} {q=p})
 
 
 ==== Exercise: 2 stars, optional (conj_fact)

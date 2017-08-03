@@ -1,6 +1,7 @@
 = Rel : Properties of Relations
 
 > module Rel
+>
 
 \todo[inline]{Add hyperlinks}
 
@@ -11,6 +12,10 @@ comfortable with these ideas can safely skim or skip this chapter. However,
 relations are also a good source of exercises for developing facility with
 Idris's basic reasoning facilities, so it may be useful to look at this material
 just after the `IndProp` chapter.
+
+> import Logic
+> import IndProp
+>
 
 A binary _relation_ on a set \idr{t} is a family of propositions parameterized
 by two elements of \idr{t} — i.e., a proposition about pairs of elements of
@@ -35,14 +40,6 @@ but it's defined by induction from zero}
 
 An example relation on \idr{Nat} is \idr{Le}, the less-than-or-equal-to
 relation, which we usually write \idr{n1 <= n2}.
-
-\todo[inline]{Copied from `IndProp`}
-
-> data Le : (n : Nat) -> Nat -> Type where
->   Le_n : Le n n
->   Le_S : Le n m -> Le n (S m)
->
-> syntax [m] "<='" [n] = Le m n
 
 ```idris
 λΠ> the (Relation Nat) Le
@@ -79,16 +76,13 @@ and \idr{r x y2} together imply \idr{y1 = y2}.
 
 For example, the \idr{Next_nat} relation defined earlier is a partial function.
 
-> data Next_nat : (n : Nat) -> Nat -> Type where
->   NN : Next_nat n (S n)
-
 ```idris
 λΠ> the (Relation Nat) Next_nat
 Next_nat : Nat -> Nat -> Type
 ```
 
 > next_nat_partial_function : Partial_function Next_nat
-> next_nat_partial_function x (S x) (S x) NN NN = Refl
+> next_nat_partial_function x (S x) (S x) Nn Nn = Refl
 
 However, the \idr{<='} relation on numbers is not a partial function. (Assume,
 for a contradiction, that \idr{<='} is a partial function. But then, since
@@ -143,13 +137,6 @@ A relation \idr{r} is _transitive_ if \idr{r a c} holds whenever \idr{r a b} and
 > le_trans : Transitive Le
 > le_trans _ _ _ lab Le_n = lab
 > le_trans a b (S c) lab (Le_S lbc) = Le_S $ le_trans a b c lab lbc
-
-\todo[inline]{Copied here}
-
-> Lt : (n, m : Nat) -> Type
-> Lt n m = Le (S n) m
-
-> syntax [m] "<'" [n] = Lt m n
 
 > lt_trans : Transitive Lt
 > lt_trans a b c lab lbc = le_trans (S a) (S b) c (Le_S lab) lbc
@@ -304,21 +291,14 @@ library:
 For example, the reflexive and transitive closure of the \idr{Next_nat} relation
 coincides with the \idr{Le} relation.
 
-\todo[inline]{Copied `<->` for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
-
 > next_nat_closure_is_le : (n <=' m) <-> (Clos_refl_trans Next_nat n m)
 > next_nat_closure_is_le = (to, fro)
 >   where
 >     to : Le n m -> Clos_refl_trans Next_nat n m
 >     to Le_n = Rt_refl
->     to (Le_S {m} le) = Rt_trans {y=m} (to le) (Rt_step NN)
+>     to (Le_S {m} le) = Rt_trans {y=m} (to le) (Rt_step Nn)
 >     fro : Clos_refl_trans Next_nat n m -> Le n m
->     fro (Rt_step NN) = Le_S Le_n
+>     fro (Rt_step Nn) = Le_S Le_n
 >     fro Rt_refl = Le_n
 >     fro (Rt_trans {x=n} {y} {z=m} ny ym) =
 >       le_trans n y m (fro ny) (fro ym)
