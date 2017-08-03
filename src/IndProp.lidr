@@ -1305,6 +1305,13 @@ by combining evidence for \idr{Not p} with the \idr{ReflectF} constructor.
 It is easy to formalize this intuition and show that the two statements are
 indeed equivalent:
 
+\todo[inline]{Remove when a release with
+https://github.com/idris-lang/Idris-dev/pull/3925 happens}
+
+> implementation Uninhabited (False = True) where
+>   uninhabited Refl impossible
+>
+
 > iff_reflect : (p <-> (b = True)) -> Reflect p b
 > iff_reflect {b = False} (pb, _) = ReflectF (uninhabited . pb) Refl
 > iff_reflect {b = True} (_, bp) = ReflectT (bp Refl) Refl
