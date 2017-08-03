@@ -20,7 +20,8 @@ LIDR_FILES := Preface.lidr \
 	Logic.lidr \
 	IndProp.lidr \
 	Maps.lidr \
-	ProofObjects.lidr
+	ProofObjects.lidr \
+	Rel.lidr
 # TODO: Add more chapters, in order, here.
 
 

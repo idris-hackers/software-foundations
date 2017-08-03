@@ -9,6 +9,7 @@ modules    = Basics
            , IndProp
            , Maps
            , ProofObjects
+           , Rel
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
