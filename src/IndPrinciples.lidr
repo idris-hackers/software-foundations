@@ -32,7 +32,7 @@ proofs. Here, for example, is an alternate proof of a theorem that we saw in the
 `Induction` chapter.
 
 > mult_0_r' : (n : Nat) -> n * Z = Z
-> mult_0_r' = nat_ind {P=\x => x*Z = Z} 
+> mult_0_r' = nat_ind {P=\x => x*Z = Z}
 >   Refl             -- n = Z
 >   (\k => id)       -- n = S k
 
@@ -88,7 +88,7 @@ examples. First, an example where the constructors take no arguments:
 
 > data YesNo = Yes' | No'
 
-> yesno_ind : {P : YesNo -> Type} -> P Yes' -> P No' -> 
+> yesno_ind : {P : YesNo -> Type} -> P Yes' -> P No' ->
 >             ((y : YesNo) -> P y)
 > yesno_ind px _ Yes' = px
 > yesno_ind _ py No'  = py
@@ -113,7 +113,7 @@ arguments.
 >   NNil : NatList
 >   NCons : Nat -> NatList -> NatList
 
-> natlist_ind : {P : NatList -> Type} -> P NNil -> 
+> natlist_ind : {P : NatList -> Type} -> P NNil ->
 >               ((n : Nat) -> (l : NatList) -> P l -> P (NCons n l)) ->
 >               ((l : NatList) -> P l)
 > natlist_ind pn _ NNil = pn
@@ -185,11 +185,11 @@ Next, what about polymorphic datatypes?
 
 The inductive definition of polymorphic lists
 
-```idris                            
+```idris
 data List : (x : Type) -> Type where
-  Nil : List x                      
-  Cons : x -> List x -> List x      
-```                                 
+  Nil : List x
+  Cons : x -> List x -> List x
+```
 
 is very similar to that of \idr{NatList}. The main difference is that, here, the
 whole definition is _parameterized_ on a set \idr{x}: that is, we are defining a
@@ -198,7 +198,7 @@ wherever \idr{List} appears in the body of the declaration, it is always applied
 to the parameter \idr{x}.) The induction principle is likewise parameterized on
 \idr{x}:
 
-> list_ind : {x : Type} -> {P : List x -> Type} -> P [] -> 
+> list_ind : {x : Type} -> {P : List x -> Type} -> P [] ->
 >            ((a : x) -> (l : List x) -> P l -> P (a :: l)) ->
 >            ((l : List x) -> P l)
 > list_ind pn _ [] = pn
@@ -286,7 +286,7 @@ The induction principle for numbers
 ```idris
 nat_ind : {P : Nat -> Type} -> P Z -> ((n : Nat) -> P n -> P (S n)) ->
           ((n : Nat) -> P n)
-``          
+``
 
 is a generic statement that holds for all propositions \idr{P} (or rather,
 strictly speaking, for all families of propositions \idr{P} indexed by a number
@@ -294,11 +294,11 @@ strictly speaking, for all families of propositions \idr{P} indexed by a number
 particular expression of type \idr{Nat -> Type}.
 
 We can make proofs by induction more explicit by giving this expression a name.
-For example, instead of stating the theorem \idr{mult_0_r} as 
+For example, instead of stating the theorem \idr{mult_0_r} as
 "\idr{(n : Nat) -> n * 0 = 0}," we can write it as "\idr{(n : Nat) -> P_m0r n}",
 where \idr{P_m0r} is defined as...
 
-> P_m0r : (n : Nat) -> Type 
+> P_m0r : (n : Nat) -> Type
 > P_m0r n = n * Z = Z
 
 ... or equivalently:
@@ -309,7 +309,7 @@ where \idr{P_m0r} is defined as...
 Now it is easier to see where \idr{P_m0r} appears in the proof.
 
 > mult_0_r'' : (n: Nat) -> P_m0r n
-> mult_0_r'' = nat_ind {P=P_m0r} 
+> mult_0_r'' = nat_ind {P=P_m0r}
 >   Refl             -- n = Z
 >   (\n => id)       -- n = S k
 
@@ -318,11 +318,11 @@ useful to do it explicitly for an example or two, because it allows us to see
 exactly what the induction hypothesis is. If we prove \idr{(n : Nat) -> P_m0r n}
 by induction on \idr{n} (using either `induction` or `apply nat_ind`), we see
 that the first subgoal requires us to prove \idr{P_m0r 0} ("\idr{P} holds for
-zero"), while the second subgoal requires us to prove 
-\idr{(n' : Nat) -> P_m0r n' -> P_m0r (S n')} (that is "\idr{P} holds of 
+zero"), while the second subgoal requires us to prove
+\idr{(n' : Nat) -> P_m0r n' -> P_m0r (S n')} (that is "\idr{P} holds of
 \idr{S n'} if it holds of \idr{n'}" or, more elegantly, "\idr{P} is preserved by
-\idr{S}"). The induction hypothesis is the premise of this latter implication —
-the assumption that \idr{P} holds of \idr{n'}, which we are allowed to use in
+\idr{S}"). The _induction hypothesis_ is the premise of this latter implication
+— the assumption that \idr{P} holds of \idr{n'}, which we are allowed to use in
 proving that \idr{P} holds for \idr{S n'}.
 
 
@@ -333,23 +333,26 @@ we discussed above.
 
 Recall the informal statement of the induction principle for natural numbers:
 
-  - If P n is some proposition involving a natural number n, and we want to show
-    that P holds for all numbers n, we can reason like this:
+  - If \idr{P n} is some proposition involving a natural number \idr{n}, and we
+    want to show that \idr{P} holds for all numbers \idr{n}, we can reason like
+    this:
 
-    - show that P O holds
+    - show that \idr{P Z} holds
 
-    - show that, if P n' holds, then so does P (S n')
+    - show that, if \idr{P n'} holds, then so does \idr{P (S n')}
 
-    - conclude that P n holds for all n.
+    - conclude that \idr{P n} holds for all \idr{n}.
 
-So, when we begin a proof with intros n and then induction n, we are first
-telling Idris to consider a particular n (by introducing it into the context)
-and then telling it to prove something about all numbers (by using induction).
+So, when we begin a proof with `intros n` and then `induction n`, we are first
+telling Idris to consider a _particular_ `n` (by introducing it into the
+context) and then telling it to prove something about _all_ numbers (by using
+induction).
 
 What Idris actually does in this situation, internally, is to "re-generalize"
 the variable we perform induction on. For example, in our original proof that
-plus is associative...
+\idr{plus} is associative...
 
+```coq
 Theorem plus_assoc' : forall n m p : Nat,
   n + (m + p) = (n + m) + p.
 Proof.
@@ -370,182 +373,196 @@ Proof.
        automatically introduces n' and P n' into the context
        for us, leaving just P (S n') as the goal. *)
     simpl. rewrite -> IHn'. Refl. Qed.
+```
 
-It also works to apply induction to a variable that is quantified in the goal.
+It also works to apply `induction` to a variable that is quantified in the goal.
 
+```coq
 Theorem plus_comm' : forall n m : Nat,
   n + m = m + n.
 Proof.
   induction n as [| n'].
-  - (* n = O *) intros m. rewrite ← plus_n_O. Refl.
+  - (* n = O *) intros m. rewrite <- plus_n_O. Refl.
   - (* n = S n' *) intros m. simpl. rewrite -> IHn'.
-    rewrite ← plus_n_Sm. Refl. Qed.
+    rewrite <- plus_n_Sm. Refl. Qed.
+```
 
-Note that induction n leaves m still bound in the goal — i.e., what we are
-proving inductively is a statement beginning with forall  m.
+Note that `induction n` leaves `m` still bound in the goal — i.e., what we are
+proving inductively is a statement beginning with `forall m`.
 
-If we do induction on a variable that is quantified in the goal after some other
-quantifiers, the induction tactic will automatically introduce the variables
-bound by these quantifiers into the context.
+If we do `induction` on a variable that is quantified in the goal _after_ some
+other quantifiers, the `induction` tactic will automatically introduce the
+variables bound by these quantifiers into the context.
 
+```coq
 Theorem plus_comm'' : forall n m : Nat,
   n + m = m + n.
 Proof.
   (* Let's do induction on m this time, instead of n... *)
   induction m as [| m'].
-  - (* m = O *) simpl. rewrite ← plus_n_O. Refl.
-  - (* m = S m' *) simpl. rewrite ← IHm'.
-    rewrite ← plus_n_Sm. Refl. Qed.
+  - (* m = O *) simpl. rewrite <- plus_n_O. Refl.
+  - (* m = S m' *) simpl. rewrite <- IHm'.
+    rewrite <- plus_n_Sm. Refl. Qed.
+```
 
 
 ==== Exercise: 1 star, optional (plus_explicit_prop)
 
-Rewrite both plus_assoc' and plus_comm' and their proofs in the same style as
-mult_0_r'' above — that is, for each theorem, give an explicit Definition of the
-proposition being proved by induction, and state the theorem and proof in terms
-of this defined proposition.
+Rewrite both \idr{plus_assoc'} and \idr{plus_comm'} and their proofs in the same
+style as \idr{mult_0_r''} above — that is, for each theorem, give an explicit
+definition of the proposition being proved by induction, and state the theorem
+and proof in terms of this defined proposition.
 
-(* FILL IN HERE *)
+> -- FILL IN HERE
 
 $\square$
 
 
-== Induction Principles in Type
+== Induction Principles in \idr{Type}
 
 Earlier, we looked in detail at the induction principles that Idris generates
-for inductively defined sets. The induction principles for inductively defined
-propositions like ev are a tiny bit more complicated. As with all induction
-principles, we want to use the induction principle on ev to prove things by
-inductively considering the possible shapes that something in ev can have.
-Intuitively speaking, however, what we want to prove are not statements about
-evidence but statements about numbers: accordingly, we want an induction
-principle that lets us prove properties of numbers by induction on evidence.
+for inductively defined _sets_. The induction principles for inductively defined
+_propositions_ like \idr{Ev} are a tiny bit more complicated. As with all
+induction principles, we want to use the induction principle on \idr{Ev} to
+prove things by inductively considering the possible shapes that something in
+\idr{Ev} can have. Intuitively speaking, however, what we want to prove are not
+statements about evidence but statements about _numbers_: accordingly, we want
+an induction principle that lets us prove properties of numbers by induction on
+evidence.
 
 For example, from what we've said so far, you might expect the inductive
-definition of ev...
+definition of \idr{Ev}...
 
-      data ev : Nat -> Type :=
-      | ev_0 : ev 0
-      | ev_SS : forall n : Nat, ev n -> ev (S (S n)).
+\todo[inline]{Redefine for now}
+
+> data Ev : Nat -> Type where
+>   Ev_0 : Ev Z
+>   Ev_SS : Ev n -> Ev (S (S n))
 
 ...to give rise to an induction principle that looks like this...
 
-    ev_ind_max : forall P : (forall n : Nat, ev n -> Type),
-         P O ev_0 ->
-         (forall (m : Nat) (E : ev m),
-            P m E ->
-            P (S (S m)) (ev_SS m E)) ->
-         forall (n : Nat) (E : ev n),
-         P n E
+> ev_ind_max : {P : {n : Nat} -> Ev n -> Type} ->
+>        P {n=Z} Ev_0 ->
+>        ((m : Nat) -> (e : Ev m) -> P {n=m} e -> P {n=S (S m)} (Ev_SS e)) ->
+>        ((n : Nat) -> (e : Ev n) -> P {n} e)
 
 ... because:
 
-  - Since ev is indexed by a number n (every ev object E is a piece of evidence
-    that some particular number n is even), the proposition P is parameterized
-    by both n and E — that is, the induction principle can be used to prove
-    assertions involving both an even number and the evidence that it is even.
+  - Since \idr{Ev} is indexed by a number \idr{n} (every \idr{Ev} object \idr{e}
+    is a piece of evidence that some particular number \idr{n} is even), the
+    proposition \idr{P} is parameterized by both \idr{n} and \idr{e} — that is,
+    the induction principle can be used to prove assertions involving both an
+    even number and the evidence that it is even.
 
-  - Since there are two ways of giving evidence of evenness (ev has two
+  - Since there are two ways of giving evidence of evenness (\idr{Ev} has two
     constructors), applying the induction principle generates two subgoals:
 
-    - We must prove that P holds for O and ev_0.
+    - We must prove that \idr{P} holds for \idr{Z} and \idr{Ev_0}.
 
-    - We must prove that, whenever n is an even number and E is an evidence of
-      its evenness, if P holds of n and E, then it also holds of S (S n) and
-      ev_SS n E.
+    - We must prove that, whenever \idr{n} is an even number and \idr{e} is an
+      evidence of its evenness, if \idr{P} holds of \idr{n} and \idr{e}, then it
+      also holds of \idr{S (S n)} and \idr{Ev_SS {n=S (S n)} e}.
 
   - If these subgoals can be proved, then the induction principle tells us that
-    P is true for all even numbers n and evidence E of their evenness.
+    \idr{P} is true for all even numbers \idr{n} and evidence \idr{e} of their
+    evenness.
 
 This is more flexibility than we normally need or want: it is giving us a way to
 prove logical assertions where the assertion involves properties of some piece
-of evidence of evenness, while all we really care about is proving properties of
-numbers that are even — we are interested in assertions about numbers, not about
-evidence. It would therefore be more convenient to have an induction principle
-for proving propositions P that are parameterized just by n and whose conclusion
-establishes P for all even numbers n:
+of _evidence_ of evenness, while all we really care about is proving properties
+of _numbers_ that are even — we are interested in assertions about numbers, not
+about evidence. It would therefore be more convenient to have an induction
+principle for proving propositions \idr{P} that are parameterized just by
+\idr{n} and whose conclusion establishes \idr{P} for all even numbers \idr{n}:
 
-       forall P : Nat -> Type,
+```idris
+       {P : Nat -> Type} ->
        ... ->
-       forall n : Nat,
-       even n -> P n
+       (n : Nat) ->
+       Ev n -> P n
+```
 
 For this reason, Idris actually generates the following simplified induction
-principle for ev:
+principle for \idr{Ev}:
 
-Check ev_ind.
-(* ===> ev_ind
-        : forall P : Nat -> Type,
-          P 0 ->
-          (forall n : Nat, ev n -> P n -> P (S (S n))) ->
-          forall n : Nat,
-          ev n -> P n *)
+> ev_ind : {P : Nat -> Type} -> P Z ->
+>         ((n : Nat) -> Ev n -> P n -> P (S (S n))) ->
+>         ((n : Nat) -> Ev n -> P n)
+> ev_ind pz _ Z Ev_0 = pz
+> ev_ind pz f (S (S k)) (Ev_SS ev) = f k ev (ev_ind pz f k ev)
 
-In particular, Idris has dropped the evidence term E as a parameter of the the
-proposition P.
+In particular, Idris has dropped the evidence term \idr{e} as a parameter of the
+the proposition \idr{P}.
 
-In English, ev_ind says:
+In English, \idr{ev_ind} says:
 
-  - Suppose, P is a property of natural numbers (that is, P n is a Type for
-    every n). To show that P n holds whenever n is even, it suffices to show:
+  - Suppose, \idr{P} is a property of natural numbers (that is, \idr{P n} is a
+    \idr{Type} for every \idr{n}). To show that \idr{P n} holds whenever \idr{n}
+    is even, it suffices to show:
 
-    - P holds for 0,
+    - \idr{P} holds for \idr{Z},
 
-    - for any n, if n is even and P holds for n, then P holds for S (S n).
+    - for any \idr{n}, if \idr{n} is even and \idr{P} holds for \idr{n}, then
+      \idr{P} holds for \idr{S (S n)}.
 
-As expected, we can apply ev_ind directly instead of using induction. For
-example, we can use it to show that ev' (the slightly awkward alternate
-definition of evenness that we saw in an exercise in the λchap{IndProp} chapter)
-is equivalent to the cleaner inductive definition ev:
+As expected, we can apply \idr{ev_ind} directly instead of using `induction`. For
+example, we can use it to show that \idr{Ev'} (the slightly awkward alternate
+definition of evenness that we saw in an exercise in the `IndProp` chapter)
+is equivalent to the cleaner inductive definition \idr{Ev}:
 
-Theorem ev_ev' : forall n, ev n -> ev' n.
-Proof.
-  apply ev_ind.
-  - (* ev_0 *)
-    apply ev'_0.
-  - (* ev_SS *)
-    intros m Hm IH.
-    apply (ev'_sum 2 m).
-    + apply ev'_2.
-    + apply IH.
-Qed.
+\todo[inline]{Copy here for now}
 
-The precise form of an data definition can affect the induction principle Idris
-generates.
+> data Ev' : Nat -> Type where
+>   Ev'_0 : Ev' Z
+>   Ev'_2 : Ev' 2
+>   Ev'_sum : Ev' n -> Ev' m -> Ev' (n + m)
 
-For example, in chapter IndProp, we defined ≤ as:
+> ev_ev' : Ev n -> Ev' n
+> ev_ev' {n} = ev_ind {P=Ev'}
+>  Ev'_0
+>  (\_, _, ev' => Ev'_sum Ev'_2 ev')
+>  n
 
-(* data le : Nat -> Nat -> Type :=
-     | le_n : forall n, le n n
-     | le_S : forall n m, (le n m) -> (le n (S m)). *)
+The precise form of a \idr{data} definition can affect the induction principle
+Idris generates.
+
+For example, in chapter `IndProp`, we defined ≤ as:
+
+```idris
+data Le : Nat -> Nat -> Type where
+  Le_n : Le n n
+  Le_S : Le n m -> Le n (S m)
+```
 
 This definition can be streamlined a little by observing that the left-hand
-argument n is the same everywhere in the definition, so we can actually make it
-a "general parameter" to the whole definition, rather than an argument to each
-constructor.
+argument \idr{n} is the same everywhere in the definition, so we can actually
+make it a "general parameter" to the whole definition, rather than an argument
+to each constructor.
 
-data le (n:Nat) : Nat -> Type :=
-  | le_n : le n n
-  | le_S : forall m, (le n m) -> (le n (S m)).
+\todo[inline]{This doesn't seem to change anything}
 
-Notation "m ≤ n" := (le m n).
+> data Le : (n:Nat) -> Nat -> Type where
+>   Le_n : Le n n
+>   Le_S : Le n m -> Le n (S m)
+
+> syntax [m] "<='" [n] = Le m n
 
 The second one is better, even though it looks less symmetric. Why? Because it
 gives us a simpler induction principle.
 
-Check le_ind.
-(* ===>  forall (n : Nat) (P : Nat -> Type),
-           P n ->
-           (forall m : Nat, n <= m -> P m -> P (S m)) ->
-           forall n0 : Nat, n <= n0 -> P n0 *)
+> le_ind : {n : Nat} -> {P : Nat -> Type} -> P n ->
+>          ((m : Nat) -> (n <=' m) -> P m -> P (S m)) ->
+>          ((n0 : Nat) -> (n <=' n0) -> P n0)
+> le_ind {n=n0} pn _ n0 Le_n = pn
+> le_ind pn f (S m) (Le_S le) = f m le (le_ind pn f m le)
 
 
 == Formal vs. Informal Proofs by Induction
 
-Question: What is the relation between a formal proof of a proposition P and an
-informal proof of the same proposition P?
+Question: What is the relation between a formal proof of a proposition \idr{P}
+and an informal proof of the same proposition \idr{P}?
 
-Answer: The latter should teach the reader how to produce the former.
+Answer: The latter should _teach_ the reader how to produce the former.
 
 Question: How much detail is needed??
 
@@ -555,7 +572,7 @@ choices.
 At one end of the spectrum, we can essentially give the reader the whole formal
 proof (i.e., the "informal" proof will amount to just transcribing the formal
 one into words). This may give the reader the ability to reproduce the formal
-one for themselves, but it probably doesn't teach them anything much.
+one for themselves, but it probably doesn't _teach_ them anything much.
 
 At the other end of the spectrum, we can say "The theorem is true and you can
 figure out why for yourself if you think about it hard enough." This is also not
@@ -567,108 +584,111 @@ In the middle is the golden mean — a proof that includes all of the essential
 insights (saving the reader the hard work that we went through to find the proof
 in the first place) plus high-level suggestions for the more routine parts to
 save the reader from spending too much time reconstructing these (e.g., what the
-IH says and what must be shown in each case of an inductive proof), but not so
-much detail that the main ideas are obscured.
+\idr{ih} says and what must be shown in each case of an inductive proof), but
+not so much detail that the main ideas are obscured.
 
 Since we've spent much of this chapter looking "under the hood" at formal proofs
-by induction, now is a good moment to talk a little about informal proofs by
+by induction, now is a good moment to talk a little about _informal_ proofs by
 induction.
+
+\todo[inline]{Do we need 2 templates here?}
 
 In the real world of mathematical communication, written proofs range from
 extremely longwinded and pedantic to extremely brief and telegraphic. Although
 the ideal is somewhere in between, while one is getting used to the style it is
 better to start out at the pedantic end. Also, during the learning phase, it is
 probably helpful to have a clear standard to compare against. With this in mind,
-we offer two templates — one for proofs by induction over data (i.e., where the
-thing we're doing induction on lives in Type) and one for proofs by induction
-over evidence (i.e., where the inductively defined thing lives in Type).
+we offer two templates — one for proofs by induction over _data_ (i.e., where
+the thing we're doing induction on lives in \idr{Type}) and one for proofs by
+induction over _evidence_ (i.e., where the inductively defined thing lives in
+\idr{Type}).
 
 
 === Induction Over an Inductively Defined Set
 
-Template:
+_Template_:
 
-  - Theorem: <Universally quantified proposition of the form "For all n:S,
-    P(n)," where S is some inductively defined set.>
+  - _Theorem_: <Universally quantified proposition of the form "For all
+    \idr{n:s, P(n)}," where \idr{s} is some inductively defined set.>
 
-    Proof: By induction on n.
+    _Proof_: By induction on \idr{n}.
 
-    <one case for each constructor c of S...>
+    <one case for each constructor \idr{c} of \idr{s}...>
 
-    - Suppose n = c a1 ... ak, where <...and here we state the IH for each of
-      the a's that has type S, if any>. We must show <...and here we restate P(c
-      a1 ... ak)>.
+    - Suppose \idr{n = c a1 ... ak}, where <...and here we state the \idr{IH}
+      for each of the \idr{a}'s that has type \idr{s}, if any>. We must show
+      <...and here we restate \idr{P(c a1 ... ak)}>.
 
-      <go on and prove P(n) to finish the case...>
+      <go on and prove \idr{P(n)} to finish the case...>
 
     - <other cases similarly...> $\square$
 
-Example:
+_Example_:
 
-  - Theorem: For all sets X, lists l : list X, and numbers n, if length l = n
-    then index (S n) l = None.
+  - _Theorem_: For all sets \idr{x}, lists \idr{l : List x}, and numbers
+    \idr{n}, if \idr{length l = n} then \idr{index (S n) l = None}.
 
-    Proof: By induction on l.
+    _Proof_: By induction on \idr{l}.
 
-    - Suppose l = []. We must show, for all numbers n, that, if length [] = n,
-      then index (S n) [] = None.
+    - Suppose \idr{l = []}. We must show, for all numbers \idr{n}, that, if
+      \idr{length [] = n}, then \idr{index (S n) [] = None}.
 
-      This follows immediately from the definition of index.
+      This follows immediately from the definition of \idr{index}.
 
-    - Suppose l = x :: l' for some x and l', where length l' = n' implies index
-      (S n') l' = None, for any number n'. We must show, for all n, that, if
-      length (x::l') = n then index (S n) (x::l') = None.
+    - Suppose \idr{l = x :: l'} for some \idr{x} and \idr{l'}, where
+      \idr{length l' = n'} implies \idr{index (S n') l' = None}, for any number
+      \idr{n'}. We must show, for all \idr{n}, that, if \idr{length (x::l') = n}
+      then \idr{index (S n) (x::l') = None}.
 
-      Let n be a number with length l = n. Since
-
-      length l = length (x::l') = S (length l'),
-
+      Let \idr{n} be a number with \idr{length l = n}. Since
+      \idr{length l = length (x::l') = S (length l')},
       it suffices to show that
-
-      index (S (length l')) l' = None.
-
-      But this follows directly from the induction hypothesis, picking n' to be
-      length l'. $\square$
+      \idr{index (S (length l')) l' = None}.
+      But this follows directly from the induction hypothesis, picking \idr{n'}
+      to be \idr{length l'}. $\square$
 
 
 === Induction Over an Inductively Defined Proposition
 
 Since inductively defined proof objects are often called "derivation trees,"
-this form of proof is also known as induction on derivations.
+this form of proof is also known as _induction on derivations_.
 
-Template:
+_Template_:
 
-  - Theorem: <Proposition of the form "Q -> P," where Q is some inductively
-    defined proposition (more generally, "For all x y z, Q x y z -> P x y z")>
+  - _Theorem_: <Proposition of the form "\idr{Q -> P}," where \idr{Q} is some inductively
+    defined proposition (more generally, "For all \idr{x} \idr{y} \idr{z}, \idr{Q x y z -> P x y z}")>
 
-    Proof: By induction on a derivation of Q. <Or, more generally, "Suppose we
-    are given x, y, and z. We show that Q x y z implies P x y z, by induction on
-    a derivation of Q x y z"...>
+    _Proof_: By induction on a derivation of \idr{Q}. <Or, more generally,
+    "Suppose we are given \idr{x}, \idr{y}, and \idr{z}. We show that
+    \idr{Q x y z} implies \idr{P x y z}, by induction on a derivation of
+    \idr{Q x y z}"...>
 
-    <one case for each constructor c of Q...>
+    <one case for each constructor \idr{c} of \idr{Q}...>
 
-      - Suppose the final rule used to show Q is c. Then <...and here we state
-        the types of all of the a's together with any equalities that follow
-        from the definition of the constructor and the IH for each of the a's
-        that has type Q, if there are any>. We must show <...and here we restate
-        P>.
+      - Suppose the final rule used to show \idr{Q} is \idr{c}. Then <...and
+        here we state the types of all of the \idr{a}'s together with any
+        equalities that follow from the definition of the constructor and the IH
+        for each of the \idr{a}'s that has type \idr{Q}, if there are any>. We
+        must show <...and here we restate \idr{P}>.
 
-        <go on and prove P to finish the case...>
+        <go on and prove \idr{P} to finish the case...>
 
         <other cases similarly...> $\square$
 
-Example
+_Example_
 
-  - Theorem: The ≤ relation is transitive — i.e., for all numbers n, m, and o,
-    if n ≤ m and m ≤ o, then n ≤ o.
+  - _Theorem_: The \idr{<=} relation is transitive — i.e., for all numbers
+    \idr{n}, \idr{m}, and \idr{o}, if \idr{n <= m} and \idr{m <= o}, then
+    \idr{n <= o}.
 
-    Proof: By induction on a derivation of m ≤ o.
+    _Proof_: By induction on a derivation of \idr{m <= o}.
 
-      - Suppose the final rule used to show m ≤ o is le_n. Then m = o and we
-        must show that n ≤ m, which is immediate by hypothesis.
+      - Suppose the final rule used to show \idr{m <= o} is \idr{Le_n}. Then
+        \idr{m = o} and we must show that \idr{n <= m}, which is immediate by
+        hypothesis.
 
-      - Suppose the final rule used to show m ≤ o is le_S. Then o = S o' for
-        some o' with m ≤ o'. We must show that n ≤ S o'. By induction
-        hypothesis, n ≤ o'.
+      - Suppose the final rule used to show \idr{m <= o} is \idr{Le_S}. Then
+        \idr{o = S o'} for some \idr{o'} with \idr{m <= o'}. We must show that
+        \idr{n <= S o'}. By induction hypothesis, \idr{n <= o'}.
 
-        But then, by le_S, n ≤ S o'. $\square$
+        But then, by \idr{Le_S}, \idr{n <= S o'}. $\square$
