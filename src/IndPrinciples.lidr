@@ -1,17 +1,21 @@
 = IndPrinciples : Induction Principles
 
 > module IndPrinciples
-
+>
+> import IndProp
+>
 > %access public export
 > %default total
+>
 
 With the Curry-Howard correspondence and its realization in Idris in mind, we
 can now take a deeper look at induction principles.
 
+\ \todo[inline]{We've written all induction principles by hand throughout the
+chapter, Idris doesn't generate them. Edit the text to reflect this}
+
 
 == Basics
-
-\ \todo[inline]{Edit, this is probably also made redundant by pattern matching}
 
 Every time we declare a new \idr{data} type, Idris automatically generates an
 _induction principle_ for this type. This induction principle is a theorem like
@@ -433,11 +437,11 @@ evidence.
 For example, from what we've said so far, you might expect the inductive
 definition of \idr{Ev}...
 
-\todo[inline]{Redefine for now}
-
-> data Ev : Nat -> Type where
->   Ev_0 : Ev Z
->   Ev_SS : Ev n -> Ev (S (S n))
+```idris
+data Ev : Nat -> Type where
+  Ev_0 : Ev Z
+  Ev_SS : Ev n -> Ev (S (S n))
+```
 
 ...to give rise to an induction principle that looks like this...
 
@@ -510,13 +514,6 @@ example, we can use it to show that \idr{Ev'} (the slightly awkward alternate
 definition of evenness that we saw in an exercise in the `IndProp` chapter)
 is equivalent to the cleaner inductive definition \idr{Ev}:
 
-\todo[inline]{Copy here for now}
-
-> data Ev' : Nat -> Type where
->   Ev'_0 : Ev' Z
->   Ev'_2 : Ev' 2
->   Ev'_sum : Ev' n -> Ev' m -> Ev' (n + m)
-
 > ev_ev' : Ev n -> Ev' n
 > ev_ev' {n} = ev_ind {P=Ev'}
 >  Ev'_0
@@ -539,13 +536,13 @@ argument \idr{n} is the same everywhere in the definition, so we can actually
 make it a "general parameter" to the whole definition, rather than an argument
 to each constructor.
 
-\todo[inline]{This doesn't seem to change anything}
+\todo[inline]{This doesn't actually seem to change anything in our case}
 
-> data Le : (n:Nat) -> Nat -> Type where
->   Le_n : Le n n
->   Le_S : Le n m -> Le n (S m)
-
-> syntax [m] "<='" [n] = Le m n
+```idris
+data Le : (n:Nat) -> Nat -> Type where
+  Le_n : Le n n
+  Le_S : Le n m -> Le n (S m)
+```
 
 The second one is better, even though it looks less symmetric. Why? Because it
 gives us a simpler induction principle.
@@ -655,8 +652,9 @@ this form of proof is also known as _induction on derivations_.
 
 _Template_:
 
-  - _Theorem_: <Proposition of the form "\idr{Q -> P}," where \idr{Q} is some inductively
-    defined proposition (more generally, "For all \idr{x} \idr{y} \idr{z}, \idr{Q x y z -> P x y z}")>
+  - _Theorem_: <Proposition of the form "\idr{Q -> P}," where \idr{Q} is some
+    inductively defined proposition (more generally, "For all \idr{x} \idr{y}
+    \idr{z}, \idr{Q x y z -> P x y z}")>
 
     _Proof_: By induction on a derivation of \idr{Q}. <Or, more generally,
     "Suppose we are given \idr{x}, \idr{y}, and \idr{z}. We show that
