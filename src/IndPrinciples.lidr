@@ -523,7 +523,7 @@ is equivalent to the cleaner inductive definition \idr{Ev}:
 The precise form of a \idr{data} definition can affect the induction principle
 Idris generates.
 
-For example, in chapter `IndProp`, we defined ≤ as:
+For example, in chapter `IndProp`, we defined \idr{Le} as:
 
 ```idris
 data Le : Nat -> Nat -> Type where
