@@ -670,7 +670,7 @@ list.
 > test_partition1 : partition Numbers.oddb [1,2,3,4,5] = ([1,3,5], [2,4])
 > test_partition1 = ?test_partition1_rhs
 
-> test_partition2 : partition (\x => false) [5,9,0] = (([], [5,9,0]))
+> test_partition2 : partition (\x => False) [5,9,0] = (([], [5,9,0]))
 > test_partition2 = ?test_partition2_rhs
 
 $\square$
