@@ -149,8 +149,6 @@ tactic, which switches the left and right sides of an equality in the goal.
 >    symmetry
 >    exact $ Var h
 
-    solve
-
 
 ==== Exercise: 3 stars (apply_exercise1)
 
