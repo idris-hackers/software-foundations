@@ -2,6 +2,9 @@
 
 > module Maps
 >
+> import Logic
+> import IndProp
+>
 > %access public export
 >
 
@@ -78,20 +81,6 @@ present purposes you can think of it as just a fancy \idr{Bool}.)
 
 The following useful property of  \idr{beq_id} follows from an analogous lemma
 about strings:
-
-\todo[inline]{Copied \idr{<->} for now}
-
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
->
-> syntax [p] "<->" [q] = iff {p} {q}
->
-
-\todo[inline]{Remove when a release with
-https://github.com/idris-lang/Idris-dev/pull/3925 happens}
-
- Uninhabited (False = True) where
-   uninhabited Refl impossible
 
 > beq_id_true_iff : (beq_id x y = True) <-> x = y
 > beq_id_true_iff = (bto, bfro)
@@ -277,12 +266,6 @@ boolean function \idr{beq_id}.
 Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
 following:
 
-\todo[inline]{Copied \idr{Reflect} for now}
-
-> data Reflect : Type -> Bool -> Type where
->   ReflectT : (p : Type) -> Reflect p True
->   ReflectF : (p : Type) -> (Not p) -> Reflect p False
->
 > beq_idP : Reflect (x = y) (beq_id x y)
 > beq_idP = ?beq_idP_rhs
 >

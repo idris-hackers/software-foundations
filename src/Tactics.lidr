@@ -131,15 +131,6 @@ To use the \idr{exact} tactic, the (conclusion of the) fact being applied must
 match the goal exactly -- for example, \idr{exact} will not work if the left and
 right sides of the equality are swapped.
 
-\todo[inline]{Contribute to Pruviloj}
-
-> symmetry : Elab ()
-> symmetry = do
->  [_,_,_,_,_] <- apply (Var `{{sym}}) [True, True, True, True, False]
->    | _ => fail [TextPart "Failed while applying", NamePart `{symmetry} ]
->  solve
->  attack
-
 > silly3_firsttry : (n : Nat) -> True = beq_nat n 5 ->
 >                   beq_nat (S (S n)) 7 = True
 > silly3_firsttry = %runElab silly3_firsttry_tac
@@ -154,7 +145,8 @@ tactic, which switches the left and right sides of an equality in the goal.
 
 >    symmetry
 >    exact $ Var h
->    solve
+
+    solve
 
 
 ==== Exercise: 3 stars (apply_exercise1)
@@ -311,28 +303,6 @@ the goal.
 Here's a more interesting example that shows how multiple equations can be
 derived at once.
 
-\todo[inline]{Make prettier and contribute to Pruviloj?}
-
-> getTTType : Raw -> Elab TT
-> getTTType r = do
->   env <- getEnv
->   rty <- check env r
->   pure $ snd rty
-
-> symmetryIn : Raw -> TTName -> Elab ()
-> symmetryIn t n = do
->   tt <- getTTType t
->   case tt of
->     `((=) {A=~A} {B=~B} ~l ~r) => do
->       af <- forget A
->       bf <- forget B
->       lf <- forget l
->       rf <- forget r
->       let tsym = the Raw $ `(sym {a=~af} {b=~bf} {left=~lf} {right=~rf} ~t)
->       tsymty <- forget !(getTTType tsym)
->       letbind n tsymty tsym
->     _ => fail [TermPart tt, TextPart "is not an equality"]
-
 \todo[inline]{Works quite fast in Elab shell but hangs the compiler}
 
 > -- inversion_ex1 : (n, m, o : Nat) -> [n, m] = [o, o] -> [n] = [m]
@@ -354,7 +324,7 @@ derived at once.
 > --     both (Var eqinj3) mos !(gensym "uu")
 > --
 > --     oeqn <- gensym "oeqn"
-> --     symmetryIn (Var neqo) oeqn
+> --     symmetryAs (Var neqo) oeqn
 > --     symmetry
 > --     rewriteWith $ Var oeqn
 > --     exact $ Var meqos
@@ -376,11 +346,6 @@ equations that \idr{injective} generates.
 >   inversion_ex3_tac = ?inversion_ex3_tac_rhs
 
 $\square$
-
-\todo[inline]{Remove if https://github.com/idris-lang/Idris-dev/pull/3925 is merged}
-
-> Uninhabited (False = True) where
->   uninhabited Refl impossible
 
 \todo[inline]{Edit}
 
@@ -498,18 +463,6 @@ in H performs simplification in the hypothesis named \idr{h} in the context.
 >       | _ => fail []
 >     exact $ Var eq
 
-\todo[inline]{Contribute to Pruviloj}
-
-> applyIn : Raw -> Raw -> TTName -> Elab ()
-> applyIn f x n = do
->   ftt <- getTTType f
->   case ftt of
->     `(~xty -> ~yty) => do
->       let fx = RApp f x
->       fxty <- forget !(getTTType fx)
->       letbind n fxty fx
->     _ => fail [TermPart ftt, TextPart "is not a function"]
-
 \todo[inline]{Edit}
 
 Similarly, \idr{applyIn l h} matches some conditional statement \idr{l} (of the
@@ -535,12 +488,9 @@ instead of backward reasoning.
 >   silly3_tac = do
 >     [n,m,eq,h] <- intros
 >       | _ => fail []
->     hsym <- gensym "hsym"
->     symmetryIn (Var h) hsym
->     happ <- gensym "happ"
->     applyIn (Var eq) (Var hsym) happ
->     happsym <- gensym "happsym"
->     symmetryIn (Var happ) happsym
+>     hsym <- symmetryAs (Var h) "hsym"
+>     happ <- applyAs (Var eq) (Var hsym) "happ"
+>     happsym <- symmetryAs (Var happ) "happsym"
 >     exact $ Var happsym
 
 Forward reasoning starts from what is _given_ (premises, previously proven
@@ -1097,7 +1047,7 @@ Here are the ones we've seen:
 
   - \idr{symmetry}: changes a goal of the form \idr{t=u} into \idr{u=t}
 
-  - \idr{symmetryIn h}: changes a hypothesis of the form \idr{t=u} into
+  - \idr{symmetryAs h}: changes a hypothesis of the form \idr{t=u} into
     \idr{u=t}
 
   - \idr{unfold}: replace a defined constant by its right-hand side in the goal

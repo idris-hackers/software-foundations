@@ -5,6 +5,8 @@
 > import Basics
 > import Induction
 >
+> %access public export
+>
 > %hide Basics.Numbers.pred
 > %hide Prelude.Stream.(::)
 >

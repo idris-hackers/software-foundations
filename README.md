@@ -19,7 +19,7 @@ Others may work, but here are the versions I'm using.
 | Dependency       |                                Version |
 |------------------|----------------------------------------|
 | [(run)ghc][GHC]  |                                  8.0.2 |
-| [Idris][]        |                                    1.0 |
+| [Idris][]        |                                  1.1.1 |
 | [latexmk][]      |                                  4.52c |
 | [Make][]         |                                  4.2.1 |
 | [minted][]       |                                  2.4.1 |

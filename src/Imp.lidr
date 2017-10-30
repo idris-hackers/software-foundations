@@ -2,6 +2,8 @@
 
 > module Imp
 
+> import Logic
+
 In this chapter, we begin a new direction that will continue for the rest of the
 course. Up to now most of our attention has been focused on various aspects of
 Idris itself, while from now on we'll mostly be using Idris to formalize other
@@ -1085,9 +1087,9 @@ Here's an attempt at defining an evaluation function for commands, omitting the
 >   let st' = ceval_fun_no_while st c1
 >   in ceval_fun_no_while st' c2
 > ceval_fun_no_while st (CIf b c1 c2) =
->   ceval_fun_no_while st $ if beval st b
->                             then c1
->                             else c2
+>   if beval st b
+>     then ceval_fun_no_while st c1
+>     else ceval_fun_no_while st c2
 > ceval_fun_no_while st (CWhile b c) = st   -- bogus
 
 In a traditional functional programming language like OCaml or Haskell we could
@@ -1232,8 +1234,8 @@ rather than just letting Idris's computation mechanism do it for us.
 >     THEN (Y ::= ANum 3)
 >     ELSE (Z ::= ANum 4)
 >    FI)
->   ) / empty_state
->    |/ (t_update Z 4 $ t_update X 2 empty_state)
+>   ) / Imp.empty_state
+>    |/ (t_update Z 4 $ t_update X 2 Imp.empty_state)
 > ceval_example1 =
 >   E_Seq
 >     (E_Ass Refl)
@@ -1245,8 +1247,8 @@ rather than just letting Idris's computation mechanism do it for us.
 
 > ceval_example2 :
 >    ((X ::= ANum 0);; (Y ::= ANum 1);; (Z ::= ANum 2))
->    / empty_state
->   |/ (t_update Z 2 $ t_update Y 1 $ t_update X 0 empty_state)
+>    / Imp.empty_state
+>   |/ (t_update Z 2 $ t_update Y 1 $ t_update X 0 Imp.empty_state)
 > ceval_example2 = ?ceval_example2_rhs
 
 $\square$
@@ -1262,13 +1264,13 @@ as intended for \idr{X = 2} (this is trickier than you might expect).
 > pup_to_n = ?pup_to_n_rhs
 
 > pup_to_2_ceval :
->   pup_to_n / (t_update X 2 empty_state) |/
+>   Imp.pup_to_n / (t_update X 2 Imp.empty_state) |/
 >    (t_update X 0 $
 >     t_update Y 3 $
 >     t_update X 1 $
 >     t_update Y 2 $
 >     t_update Y 0 $
->     t_update X 2 empty_state)
+>     t_update X 2 Imp.empty_state)
 > pup_to_2_ceval = ?pup_to_2_ceval_rhs
 
 $\square$
@@ -1476,11 +1478,11 @@ will never emit such a malformed program.
 >             List Nat
 > s_execute st stack prog = ?s_execute_rhs
 
-> s_execute1 : s_execute empty_state [] [SPush 5, SPush 3, SPush 1, SMinus]
+> s_execute1 : s_execute Imp.empty_state [] [SPush 5, SPush 3, SPush 1, SMinus]
 >              = [2,5]
 > s_execute1 = ?s_execute1_rhs
 
-> s_execute2 : s_execute (t_update X 3 empty_state) [3,4]
+> s_execute2 : s_execute (t_update X 3 Imp.empty_state) [3,4]
 >                        [SPush 4, SLoad X, SMult, SPlus]
 >              = [15,4]
 > s_execute2 = ?s_execute2_rhs
