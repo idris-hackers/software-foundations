@@ -290,7 +290,7 @@ Using `try` and `;` together, we can get rid of the repetition in the proof that
 was bothering us a little while ago.
 
 \todo[inline]{Mention
-http://docs.idris-lang.org/en/latest/reference/misc.html#alternatives ?}
+\href{http://docs.idris-lang.org/en/latest/reference/misc.html\#alternatives}{Alternatives} ?}
 
 ```coq
 Theorem optimize_0plus_sound': forall a,
