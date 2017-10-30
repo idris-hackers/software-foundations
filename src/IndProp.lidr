@@ -7,8 +7,6 @@
 > import Tactics
 > import Logic
 >
-> %access public export
->
 > %hide Basics.Numbers.pred
 >
 > %access public export
