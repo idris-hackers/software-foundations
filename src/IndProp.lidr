@@ -110,8 +110,8 @@ When checking argument n to IndType.Wrong_ev:
                 Nat (Expected type)
 ```
 
-\todo[inline]{Edit the explanation, it works fine if you remove the first \idr{n
-->} in \idr{Wrong_ev_SS}}
+\todo[inline]{Edit the explanation, it works fine if you remove the first 
+\idr{n ->} in \idr{Wrong_ev_SS}}
 
 ("Parameter" here is Idris jargon for an argument on the left of the colon in an
 Inductive definition; "index" is used to refer to arguments on the right of the
@@ -223,8 +223,8 @@ generates two subgoals. Even worse, in doing so, it keeps the final goal
 unchanged, failing to provide any useful information for completing the proof.
 
 The inversion tactic, on the other hand, can detect (1) that the first case does
-not apply, and (2) that the \idr{n'} that appears on the \idr{Ev_SS} case must be the
-same as \idr{n}. This allows us to complete the proof
+not apply, and (2) that the \idr{n'} that appears on the \idr{Ev_SS} case must
+be the same as \idr{n}. This allows us to complete the proof
 
 > evSS_ev (Ev_SS e') = e'
 >
@@ -283,10 +283,11 @@ trivially.
 
 > ev_even Ev_0 = (Z ** Refl)
 
-Unfortunately, the second case is harder. We need to show \idr{(k ** S (S n') =
-double k}, but the only available assumption is \idr{e'}, which states that
-\idr{Ev n'} holds. Since this isn't directly useful, it seems that we are stuck
-and that performing case analysis on \idr{Ev n} was a waste of time.
+Unfortunately, the second case is harder. We need to show 
+\idr{(k ** S (S n') = double k}, but the only available assumption is \idr{e'},
+which states that \idr{Ev n'} holds. Since this isn't directly useful, it seems
+that we are stuck and that performing case analysis on \idr{Ev n} was a waste of
+time.
 
 If we look more closely at our second goal, however, we can see that something
 interesting happened: By performing case analysis on \idr{Ev n}, we were able to
@@ -335,9 +336,9 @@ Let's try our current lemma again:
 >     rewrite cprf in (S k ** Refl)
 >
 
-Here, we can see that Idris produced an `IH` that corresponds to `E'`, the single
-recursive occurrence of ev in its own definition. Since E' mentions n', the
-induction hypothesis talks about n', as opposed to n or some other number.
+Here, we can see that Idris produced an `IH` that corresponds to `E'`, the
+single recursive occurrence of ev in its own definition. Since E' mentions n',
+the induction hypothesis talks about n', as opposed to n or some other number.
 
 The equivalence between the second and third definitions of evenness now
 follows.
@@ -694,9 +695,9 @@ follows:
 >   Star : Reg_exp t -> Reg_exp t
 >
 
-Note that this definition is _polymorphic_: Regular expressions in \idr{Reg_exp
-t} describe strings with characters drawn from\idr{t} -- that is, lists of
-elements of \idr{t}.
+Note that this definition is _polymorphic_: Regular expressions in 
+\idr{Reg_exp t} describe strings with characters drawn from\idr{t} -- that is,
+lists of elements of \idr{t}.
 
 (We depart slightly from standard practice in that we do not require the type
 \idr{t} to be finite. This results in a somewhat different theory of regular
@@ -711,11 +712,11 @@ when a regular expression _matches_ some string:
 
   - The expression \idr{Chr x} matches the one-character string \idr{[x]}.
 
-  - If \idr{re1} matches \idr{s1}, and \idr{re2} matches \idr{s2}, then \idr{App
-    re1 re2} matches \idr{s1 ++ s2}.
+  - If \idr{re1} matches \idr{s1}, and \idr{re2} matches \idr{s2}, then 
+    \idr{App re1 re2} matches \idr{s1 ++ s2}.
 
-  - If at least one of \idr{re1} and \idr{re2} matches \idr{s}, then \idr{Union
-    re1 re2} matches \idr{s}.
+  - If at least one of \idr{re1} and \idr{re2} matches \idr{s}, then 
+    \idr{Union re1 re2} matches \idr{s}.
 
   - Finally, if we can write some string \idr{s} as the concatenation of a
     sequence of strings \idr{s = s_1 ++ ... ++ s_k}, and the expression \idr{re}
@@ -827,9 +828,9 @@ reg_exp_ex2 = MApp {s1=[1]} {s2=[2]} MChar MChar
 ```
 
 Notice how the last example applies \idr{MApp} to the strings \idr{[1]} and
-\idr{[2]} directly. While the goal mentions \idr{[1,2]} instead of \idr{[1] ++
-[2]}, Idris is able to figure out how to split the string on its own, so we can
-drop the implicits:
+\idr{[2]} directly. While the goal mentions \idr{[1,2]} instead of 
+\idr{[1] ++ [2]}, Idris is able to figure out how to split the string on its
+own, so we can drop the implicits:
 
 > reg_exp_ex2 : [1,2] =~ (App (Chr 1) (Chr 2))
 > reg_exp_ex2 = MApp MChar MChar
@@ -1257,11 +1258,11 @@ parameter of the whole \idr{data} declaration.
 
 The reflect property takes two arguments: a proposition \idr{p} and a boolean
 \idr{b}. Intuitively, it states that the property \idr{p} is _reflected_ in
-(i.e., equivalent to) the boolean \idr{b}: \idr{p} holds if and only if \idr{b =
-True}. To see this, notice that, by definition, the only way we can produce
-evidence that \idr{Reflect p True} holds is by showing that \idr{p} is true and
-using the \idr{ReflectT} constructor. If we invert this statement, this means
-that it should be possible to extract evidence for \idr{p} from a proof of
+(i.e., equivalent to) the boolean \idr{b}: \idr{p} holds if and only if 
+\idr{b = True}. To see this, notice that, by definition, the only way we can
+produce evidence that \idr{Reflect p True} holds is by showing that \idr{p} is
+true and using the \idr{ReflectT} constructor. If we invert this statement, this
+means that it should be possible to extract evidence for \idr{p} from a proof of
 \idr{Reflect p True}. Conversely, the only way to show \idr{Reflect p False} is
 by combining evidence for \idr{Not p} with the \idr{ReflectF} constructor.
 
@@ -1336,9 +1337,9 @@ Use \idr{beq_natP} as above to prove the following:
 $\square$
 
 This technique gives us only a small gain in convenience for the proofs we've
-seen here, but using \idr{Reflect} consistently often leads to noticeably shorter and
-clearer scripts as proofs get larger. We'll see many more examples in later
-chapters.
+seen here, but using \idr{Reflect} consistently often leads to noticeably
+shorter and clearer scripts as proofs get larger. We'll see many more examples
+in later chapters.
 
 \todo[inline]{Add http://math-comp.github.io/math-comp/ as a link}
 
@@ -1454,8 +1455,8 @@ and
 Now, suppose we have a set \idr{t}, a function \idr{test : t->Bool}, and a list
 \idr{l} of type \idr{List t}. Suppose further that \idr{l} is an in-order merge
 of two lists, \idr{l1} and \idr{l2}, such that every item in \idr{l1} satisfies
-\idr{test} and no item in \idr{l2} satisfies \idr{test}. Then \idr{filter test l
-= l1}.
+\idr{test} and no item in \idr{l2} satisfies \idr{test}. Then 
+\idr{filter test l = l1}.
 
 Translate this specification into a Idris theorem and prove it. (You'll need to
 begin by defining what it means for one list to be a merge of two others. Do
@@ -1531,8 +1532,8 @@ $\square$
 
 === Exercise: 4 stars, advanced, optional (NoDup)
 
-Recall the definition of the \idr{In} property from the \idr{Logic} chapter, which asserts
-that a value \idr{x} appears at least once in a list \idr{l}:
+Recall the definition of the \idr{In} property from the \idr{Logic} chapter,
+which asserts that a value \idr{x} appears at least once in a list \idr{l}:
 
 ```idris
 In : (x : t) -> (l : List t) -> Type
@@ -1540,9 +1541,10 @@ In x [] = Void
 In x (x' :: xs) = (x' = x) `Either` In x xs
 ```
 
-Your first task is to use \idr{In} to define a proposition \idr{Disjoint {t} l1
-l2}, which should be provable exactly when \idr{l1} and \idr{l2} are lists (with
-elements of type \idr{t}) that have no elements in common.
+Your first task is to use \idr{In} to define a proposition 
+\idr{Disjoint {t} l1 l2}, which should be provable exactly when \idr{l1} and
+\idr{l2} are lists (with elements of type \idr{t}) that have no elements in
+common.
 
 > -- FILL IN HERE
 >
