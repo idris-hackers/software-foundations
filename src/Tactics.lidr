@@ -134,8 +134,8 @@ To use the \idr{exact} tactic, the (conclusion of the) fact being applied must
 match the goal exactly -- for example, \idr{exact} will not work if the left and
 right sides of the equality are swapped.
 
-> silly3_firsttry : (n : Nat) -> True = beq_nat n 5 ->
->                   beq_nat (S (S n)) 7 = True
+> silly3_firsttry : (n : Nat) -> True = n == 5 ->
+>                   (S (S n)) == 7 = True
 > silly3_firsttry = %runElab silly3_firsttry_tac
 > where
 >   silly3_firsttry_tac : Elab ()
