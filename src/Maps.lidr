@@ -88,7 +88,7 @@ about strings:
 >     bto : (beq_id x y = True) -> x = y
 >     bto {x=MkId n1} {y=MkId n2} prf with (decEq n1 n2)
 >       bto Refl | Yes eq = cong {f=MkId} eq
->       bto prf  | No _   = absurd prf
+>       bto Refl | No _ impossible
 >
 >     idInj : MkId x = MkId y -> x = y
 >     idInj Refl = Refl
@@ -101,25 +101,14 @@ about strings:
 
 Similarly:
 
-\todo[inline]{Copied and inlined \idr{not_true_iff_false} from \idr{Logic} here
-for now}
-
-> not_true_and_false : (b = False) -> Not (b = True)
-> not_true_and_false {b=False} _ Refl impossible
-> not_true_and_false {b=True} Refl _ impossible
->
-> not_true_is_false : Not (b = True) -> b = False
-> not_true_is_false {b=False} h = Refl
-> not_true_is_false {b=True} h  = absurd $ h Refl
->
 > beq_id_false_iff : (beq_id x y = False) <-> Not (x = y)
 > beq_id_false_iff = (to, fro)
 >   where
 >     to : (beq_id x y = False) -> Not (x = y)
->     to beqf = not_true_and_false beqf . (snd beq_id_true_iff)
+>     to beqf = (snd not_true_iff_false) beqf . (snd beq_id_true_iff)
 >
 >     fro : (Not (x = y)) -> beq_id x y = False
->     fro noteq = not_true_is_false $ noteq . (fst beq_id_true_iff)
+>     fro noteq = (fst not_true_iff_false) $ noteq . (fst beq_id_true_iff)
 >
 
 
@@ -266,7 +255,7 @@ boolean function \idr{beq_id}.
 Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
 following:
 
-> beq_idP : Reflect (x = y) (beq_id x y)
+> beq_idP : {x1, x2 : Id} -> Reflect (x = y) (beq_id x y)
 > beq_idP = ?beq_idP_rhs
 >
 

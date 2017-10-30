@@ -3,11 +3,14 @@
 > module Logic
 
 > import Basics
-
-> %access public export
+> import Induction
+> import Tactics
 
 > %hide Basics.Numbers.pred
 > %hide Basics.Playground2.plus
+
+> %access public export
+> %default total
 
 In previous chapters, we have seen many examples of factual claims
 (_propositions_) and ways of presenting evidence of their truth (_proofs_). In
@@ -313,7 +316,8 @@ $\square$
 This is how we use \idr{Not} to state that \idr{0} and \idr{1} are different
 elements of \idr{Nat}:
 
-\todo[inline]{Explain \idr{Refl}-lambda syntax and \idr{Uninhabited}}
+\todo[inline]{Explain \idr{Refl}-lambda syntax and \idr{Uninhabited}, keep in
+mind https://github.com/idris-lang/Idris-dev/issues/3943}
 
 > zero_not_one : Not (Z = S _)
 > zero_not_one = \Refl impossible
@@ -367,7 +371,7 @@ $\square$
 $\square$
 
 
-==== Exercise: 1 star, advancedM (informal_not_PNP)
+==== Exercise: 1 star, advanced (informal_not_PNP)
 
 Write an informal proof (in English) of the proposition \idr{Not (p, Not p)}.
 
@@ -785,7 +789,7 @@ We will see many more examples of the idioms from this section in later chapters
 
 \todo[inline]{Edit, Idris's core is likely some variant of MLTT}
 
-Idris's logical core, the Calculus of Inductive Constructions, differs in some
+Coq's logical core, the Calculus of Inductive Constructions, differs in some
 important ways from other formal systems that are used by mathematicians for
 writing down precise and rigorous proofs. For example, in the most popular
 foundation for mainstream paper-and-pencil mathematics, Zermelo-Fraenkel Set
@@ -887,10 +891,6 @@ have is that it performs a call to \idr{++} on each step; running \idr{++} takes
 time asymptotically linear in the size of the list, which means that \idr{rev}
 has quadratic running time.
 
-> rev : (l : List x) -> List x
-> rev [] = []
-> rev (h::t) = (rev t) ++ [h]
-
 We can improve this with the following definition:
 
 > rev_append : (l1, l2 : List x) -> List x
@@ -930,10 +930,6 @@ For instance, to claim that a number \idr{n} is even, we can say either
 We often say that the boolean \idr{evenb n} _reflects_ the proposition \idr{(k
 ** n = double k)}.
 
-> double : (n : Nat) -> Nat
-> double  Z    = Z
-> double (S k) = S (S (double k))
-
 > evenb_double : evenb (double k) = True
 > evenb_double {k = Z} = Refl
 > evenb_double {k = (S k')} = evenb_double {k=k'}
@@ -953,47 +949,30 @@ $\square$
 > even_bool_prop = (to, fro)
 > where
 >   to : evenb n = True -> (k ** n = double k)
->   to {n} prf = let
->     (k ** p) = evenb_double_conv {n}
->   in
-
-\todo[inline]{Is there a shorter way?}
-
->     (k ** replace prf p {P = \x => n = if x then double k else S (double k)})
+>   to {n} prf =
+>     let (k ** p) = evenb_double_conv {n}
+>     in (k ** rewrite p in rewrite prf in Refl)
 >   fro : (k ** n = double k) -> evenb n = True
 >   fro {n} (k**prf) = rewrite prf in evenb_double {k}
 
 Similarly, to state that two numbers \idr{n} and \idr{m} are equal, we can say
-either (1) that \idr{beq_nat n m} returns \idr{True} or (2) that \idr{n = m}.
-These two notions are equivalent.
+either (1) that \idr{n == m} returns \idr{True} or (2) that \idr{n = m}. These
+two notions are equivalent.
 
-\todo[inline]{Copy these 2 here for now}
-
->  beq_nat_true : beq_nat n m = True -> n = m
->  beq_nat_true {n=Z} {m=Z} _ = Refl
->  beq_nat_true {n=(S _)} {m=Z} Refl impossible
->  beq_nat_true {n=Z} {m=(S _)} Refl impossible
->  beq_nat_true {n=(S n')} {m=(S m')} eq =
->   rewrite beq_nat_true {n=n'} {m=m'} eq in Refl
-
->  beq_nat_refl : (n : Nat) -> True = beq_nat n n
->  beq_nat_refl Z = Refl
->  beq_nat_refl (S k) = beq_nat_refl k
-
->  beq_nat_true_iff : (n1, n2 : Nat) -> (beq_nat n1 n2 = True) <-> (n1 = n2)
+>  beq_nat_true_iff : (n1, n2 : Nat) -> (n1 == n2 = True) <-> (n1 = n2)
 >  beq_nat_true_iff n1 n2 = (to, fro n1 n2)
 >  where
->    to : (beq_nat n1 n2 = True) -> (n1 = n2)
+>    to : (n1 == n2 = True) -> (n1 = n2)
 >    to = beq_nat_true {n=n1} {m=n2}
->    fro : (n1, n2 : Nat) -> (n1 = n2) -> (beq_nat n1 n2 = True)
+>    fro : (n1, n2 : Nat) -> (n1 = n2) -> (n1 == n2 = True)
 >    fro n1 n1 Refl = sym $ beq_nat_refl n1
 
 However, while the boolean and propositional formulations of a claim are
 equivalent from a purely logical perspective, they need not be equivalent
-_operationally_. Equality provides an extreme example: knowing that \idr{beq_nat
-n m = True} is generally of little direct help in the middle of a proof
-involving \idr{n} and \idr{m}; however, if we convert the statement to the
-equivalent form \idr{n = m}, we can rewrite with it.
+_operationally_. Equality provides an extreme example: knowing that \idr{n == m
+= True} is generally of little direct help in the middle of a proof involving
+\idr{n} and \idr{m}; however, if we convert the statement to the equivalent form
+\idr{n = m}, we can rewrite with it.
 
 The case of even numbers is also interesting. Recall that, when proving the
 backwards direction of \idr{even_bool_prop} (i.e., \idr{evenb_double}, going
@@ -1081,13 +1060,13 @@ chapter to the corresponding boolean operations.
 $\square$
 
 
-==== Exercise: 1 star (beq_Nat_false_iff)
+==== Exercise: 1 star (beq_nat_false_iff)
 
 The following theorem is an alternate "negative" formulation of
 \idr{beq_nat_true_iff} that is more convenient in certain situations (we'll see
 examples in later chapters).
 
-> beq_nat_false_iff : (x, y : Nat) -> (beq_nat x y = False) <-> (Not (x = y))
+> beq_nat_false_iff : (x, y : Nat) -> (x == y = False) <-> (Not (x = y))
 > beq_nat_false_iff x y = ?beq_nat_false_iff_rhs
 
 $\square$

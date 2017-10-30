@@ -7,6 +7,9 @@ modules    = Basics
            , Tactics
            , Logic
            , IndProp
+           , Maps
+           , ProofObjects
+           , Rel
            , Imp
 
 brief      = "Software Foundations in Idris"
