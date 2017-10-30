@@ -1160,7 +1160,7 @@ readability:
 \[
   \begin{prooftree}
     \hypo{\idr{aeval st a1 = n}}
-    \infer2[\idr{E_Ass}]{\idr{x := a1 / st |/ (t_update st x n)}}
+    \infer1[\idr{E_Ass}]{\idr{x := a1 / st |/ (t_update st x n)}}
   \end{prooftree}
 \]
 
@@ -1191,7 +1191,7 @@ readability:
 \[
   \begin{prooftree}
     \hypo{\idr{beval st b = False}}
-    \infer2[\idr{E_WhileEnd}]{\idr{WHILE b DO c END / st |/ st}}
+    \infer1[\idr{E_WhileEnd}]{\idr{WHILE b DO c END / st |/ st}}
   \end{prooftree}
 \]
 
@@ -1200,9 +1200,9 @@ readability:
     \hypo{\idr{beval st b = True}}
     \hypo{\idr{c / st |/ st'}}
     \hypo{\idr{WHILE b DO c END / st' |/ st''}}
-    \infer2[\idr{E_WhileLoop}]{\idr{WHILE b DO c END / st |/ st''}}
+    \infer3[\idr{E_WhileLoop}]{\idr{WHILE b DO c END / st |/ st''}}
   \end{prooftree}
-\]	
+\]
 
 Here is the formal definition. Make sure you understand how it corresponds to
 the inference rules.
