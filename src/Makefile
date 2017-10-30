@@ -21,7 +21,9 @@ LIDR_FILES := Preface.lidr \
 	IndProp.lidr \
 	Maps.lidr \
 	ProofObjects.lidr \
-	Rel.lidr
+	Rel.lidr \
+	Imp.lidr
+  
 # TODO: Add more chapters, in order, here.
 
 

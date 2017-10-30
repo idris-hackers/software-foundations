@@ -4,6 +4,9 @@
 >
 > import Logic
 > import IndProp
+>
+> %access public export
+>
 
 Maps (or dictionaries) are ubiquitous data structures both generally and in the
 theory of programming languages in particular; we're going to need them in many
