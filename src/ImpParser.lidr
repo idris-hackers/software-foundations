@@ -28,6 +28,7 @@ Require Import Coq.Lists.List.
 Import ListNotations.
 
 > import Maps
+> import Imp
 >
 
 == Internals
@@ -82,7 +83,7 @@ Import ListNotations.
 > tokenize : (s : String) -> List String
 > tokenize s = map pack (tokenizeHelper White [] (unpack s))
 
-> tokenizeEx1 : tokenize "abc12==3  223*(3+(a+c))" = ["abc", "12", "==", "3", "223", "*", "(", "3", "+", "(", "a", "+", "c", ")", ")"]
+> tokenizeEx1 : tokenize "abc12==3  223*(3+(a+c))" = ["abc","12","==","3","223","*","(","3","+","(","a","+","c",")",")"]
 > tokenizeEx1 = Refl
 
 === Parsing
@@ -95,24 +96,30 @@ An `option` type with error messages:
 >   SomeE : x -> OptionE x
 >   NoneE : String -> OptionE x
 
-Some syntactic sugar to make writing nested match-expressions on `OptionE` more
-convenient.
+Some interface instances to make writing nested match-expressions on `OptionE`
+more convenient.
 
-```coq
-Notation "'DO' ( x , y ) <== e1 ; e2"
-   := (match e1 with
-         | SomeE (x,y) => e2
-         | NoneE err => NoneE err
-       end)
-   (right associativity, at level 60).
+\todo[inline]{Explain these/link to Haskell etc?}
 
-Notation "'DO' ( x , y ) <-- e1 ; e2 'OR' e3"
-   := (match e1 with
-         | SomeE (x,y) => e2
-         | NoneE err => e3
-       end)
-   (right associativity, at level 60, e2 at next level).
-```
+> Functor OptionE where
+>   map f (SomeE x)   = SomeE (f x)
+>   map _ (NoneE err) = NoneE err
+
+> Applicative OptionE where
+>   pure = SomeE
+>   (SomeE f)  <*> (SomeE x)  = SomeE (f x)
+>   (SomeE _)  <*> (NoneE e2) = NoneE e2
+>   (NoneE e1) <*> (SomeE _)  = NoneE e1
+>   (NoneE e1) <*> (NoneE e2) = NoneE (e1 ++ ";" ++ e2)
+
+> Alternative OptionE where
+>     empty = NoneE ""
+>     (SomeE x) <|> _ = SomeE x
+>     (NoneE _) <|> v = v
+
+> Monad OptionE where
+>     (NoneE e) >>= _ = NoneE e
+>     (SomeE x) >>= k = k x
 
 ==== Generic Combinators for Building Parsers
 
@@ -145,100 +152,67 @@ A parser that expects a particular token:
 
 Identifiers:
 
-```coq
-Definition parseIdentifier (xs : list token)
-                         : optionE (id * list token) :=
-match xs with
-| [] => NoneE "Expected identifier"
-| x::xs' =>
-    if forallb isLowerAlpha (list_of_string x) then
-      SomeE (Id x, xs')
-    else
-      NoneE ("Illegal identifier:'" ++ x ++ "'")
-end.
-```
+> parseIdentifier : (xs : List Token) -> OptionE (Id, List Token)
+> parseIdentifier [] = NoneE "Expected identifier"
+> parseIdentifier (x::xs') =
+>   if all isLowerAlpha (unpack x)
+>     then SomeE (MkId x, xs')
+>     else NoneE ("Illegal identifier:'" ++ x ++ "'")
 
 Numbers:
 
-```coq
-Definition parseNumber (xs : list token)
-                     : optionE (nat * list token) :=
-match xs with
-| [] => NoneE "Expected number"
-| x::xs' =>
-    if forallb isDigit (list_of_string x) then
-      SomeE (fold_left
-               (fun n d =>
-                  10 * n + (nat_of_ascii d -
-                            nat_of_ascii "0"%char))
-               (list_of_string x)
-               0,
-             xs')
-    else
-      NoneE "Expected number"
-end.
-```
+> parseNumber : (xs : List Token) -> OptionE (Nat, List Token)
+> parseNumber [] = NoneE "Expected number"
+> parseNumber (x::xs') =
+>   if all isDigit (unpack x)
+>     then SomeE (foldl (\n, d => 10 * n + (cast (ord d - ord '0'))) 0 (unpack x), xs')
+>     else NoneE "Expected number"
 
 Parse arithmetic expressions
 
-```coq
-Fixpoint parsePrimaryExp (steps:nat)
-                         (xs : list token)
-                       : optionE (aexp * list token) :=
-  match steps with
-  | 0 => NoneE "Too many recursive calls"
-  | S steps' =>
-      DO (i, rest) <-- parseIdentifier xs ;
-          SomeE (AId i, rest)
-      OR DO (n, rest) <-- parseNumber xs ;
-          SomeE (ANum n, rest)
-                OR (DO (e, rest) <== firstExpect "("
-                       (parseSumExp steps') xs;
-          DO (u, rest') <== expect ")" rest ;
-          SomeE(e,rest'))
-  end
-
-with parseProductExp (steps:nat)
-                     (xs : list token) :=
-  match steps with
-  | 0 => NoneE "Too many recursive calls"
-  | S steps' =>
-    DO (e, rest) <==
-      parsePrimaryExp steps' xs ;
-    DO (es, rest') <==
-       many (firstExpect "*" (parsePrimaryExp steps'))
-            steps' rest;
-    SomeE (fold_left AMult es e, rest')
-  end
-
-with parseSumExp (steps:nat) (xs : list token)  :=
-  match steps with
-  | 0 => NoneE "Too many recursive calls"
-  | S steps' =>
-    DO (e, rest) <==
-      parseProductExp steps' xs ;
-    DO (es, rest') <==
-      many (fun xs =>
-        DO (e,rest') <--
-           firstExpect "+"
-             (parseProductExp steps') xs;
-           SomeE ( (true, e), rest')
-        OR DO (e,rest') <==
-        firstExpect "-"
-           (parseProductExp steps') xs;
-            SomeE ( (false, e), rest'))
-        steps' rest;
-      SomeE (fold_left (fun e0 term =>
-                          match term with
-                            (true,  e) => APlus e0 e
-                          | (false, e) => AMinus e0 e
-                          end)
-                       es e,
-             rest')
-  end.
-
-Definition parseAExp := parseSumExp.
-```
+> mutual
+>   parsePrimaryExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parsePrimaryExp Z _ = NoneE "Too many recursive calls"
+>   parsePrimaryExp (S steps') xs =
+>     (do (i, rest) <- parseIdentifier xs
+>         pure (AId i, rest))
+>     <|>
+>     (do (n, rest) <- parseNumber xs
+>         pure (ANum n, rest))
+>     <|>
+>     (do (e, rest)  <- firstExpect "(" (parseSumExp steps') xs
+>         (u, rest') <- expect ")" rest
+>         pure (e, rest'))
+>
+>   parseProductExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parseProductExp Z _ = NoneE "Too many recursive calls"
+>   parseProductExp (S steps') xs =
+>     do (e, rest) <- parsePrimaryExp steps' xs
+>        (es, rest') <- many (firstExpect "*" (parsePrimaryExp steps')) steps' rest
+>        pure (foldl AMult e es, rest')
+>
+>   parseSumExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parseSumExp Z _ = NoneE "Too many recursive calls"
+>   parseSumExp (S steps') xs =
+>     do (e, rest) <- parseProductExp steps' xs
+>        (es, rest') <- many psum steps' rest
+>        pure (foldl (\e0, term =>
+>                      case term of
+>                        (True,  e) => APlus e0 e
+>                        (False, e) => AMinus e0 e
+>                    ) e es, rest')
+>     where
+>     psum : Parser (Bool, AExp)
+>     psum xs =
+>       let p = parseProductExp steps' in
+>       (do (e, r) <- firstExpect "+" p xs
+>           pure ((True, e), r))
+>       <|>
+>       (do (e, r) <- firstExpect "-" p xs
+>           pure ((False, e), r))
+>
+> parseAExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+> parseAExp = parseSumExp
 
 Parsing boolean expressions:
 
