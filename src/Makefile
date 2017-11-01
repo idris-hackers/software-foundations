@@ -22,7 +22,8 @@ LIDR_FILES := Preface.lidr \
 	Maps.lidr \
 	ProofObjects.lidr \
 	Rel.lidr \
-	Imp.lidr
+	Imp.lidr \
+	ImpParser.lidr
   
 # TODO: Add more chapters, in order, here.
 
