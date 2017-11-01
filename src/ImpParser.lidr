@@ -146,13 +146,13 @@ A parser that expects a given token, followed by `p`:
 A parser that expects a particular token:
 
 > expect : (t : Token) -> Parser ()
-> expect t = firstExpect t (\xs => SomeE((), xs))
+> expect t = firstExpect t (\xs => SomeE ((), xs))
 
 ==== A Recursive-Descent Parser for Imp
 
 Identifiers:
 
-> parseIdentifier : (xs : List Token) -> OptionE (Id, List Token)
+> parseIdentifier : Parser Id
 > parseIdentifier [] = NoneE "Expected identifier"
 > parseIdentifier (x::xs') =
 >   if all isLowerAlpha (unpack x)
@@ -161,7 +161,7 @@ Identifiers:
 
 Numbers:
 
-> parseNumber : (xs : List Token) -> OptionE (Nat, List Token)
+> parseNumber : Parser Nat
 > parseNumber [] = NoneE "Expected number"
 > parseNumber (x::xs') =
 >   if all isDigit (unpack x)
@@ -171,7 +171,7 @@ Numbers:
 Parse arithmetic expressions
 
 > mutual
->   parsePrimaryExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parsePrimaryExp : (steps : Nat) -> Parser AExp
 >   parsePrimaryExp Z _ = NoneE "Too many recursive calls"
 >   parsePrimaryExp (S steps') xs =
 >     (do (i, rest) <- parseIdentifier xs
@@ -184,14 +184,14 @@ Parse arithmetic expressions
 >         (u, rest') <- expect ")" rest
 >         pure (e, rest'))
 >
->   parseProductExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parseProductExp : (steps : Nat) -> Parser AExp
 >   parseProductExp Z _ = NoneE "Too many recursive calls"
 >   parseProductExp (S steps') xs =
 >     do (e, rest) <- parsePrimaryExp steps' xs
 >        (es, rest') <- many (firstExpect "*" (parsePrimaryExp steps')) steps' rest
 >        pure (foldl AMult e es, rest')
 >
->   parseSumExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+>   parseSumExp : (steps : Nat) -> Parser AExp
 >   parseSumExp Z _ = NoneE "Too many recursive calls"
 >   parseSumExp (S steps') xs =
 >     do (e, rest) <- parseProductExp steps' xs
@@ -211,61 +211,48 @@ Parse arithmetic expressions
 >       (do (e, r) <- firstExpect "-" p xs
 >           pure ((False, e), r))
 >
-> parseAExp : (steps : Nat) -> (xs : List Token) -> OptionE (AExp, List Token)
+> parseAExp : (steps : Nat) -> Parser AExp
 > parseAExp = parseSumExp
 
 Parsing boolean expressions:
 
-```coq
-Fixpoint parseAtomicExp (steps:nat)
-                        (xs : list token)  :=
-match steps with
-  | 0 => NoneE "Too many recursive calls"
-  | S steps' =>
-     DO    (u,rest) <-- expect "true" xs;
-         SomeE (BTrue,rest)
-     OR DO (u,rest) <-- expect "false" xs;
-         SomeE (BFalse,rest)
-     OR DO (e,rest) <--
-            firstExpect "not"
-               (parseAtomicExp steps')
-               xs;
-         SomeE (BNot e, rest)
-     OR DO (e,rest) <--
-              firstExpect "("
-                (parseConjunctionExp steps') xs;
-          (DO (u,rest') <== expect ")" rest;
-              SomeE (e, rest'))
-     OR DO (e, rest) <== parseProductExp steps' xs;
-            (DO (e', rest') <--
-              firstExpect "=="
-                (parseAExp steps') rest;
-              SomeE (BEq e e', rest')
-             OR DO (e', rest') <--
-               firstExpect "<="
-                 (parseAExp steps') rest;
-               SomeE (BLe e e', rest')
-             OR
-               NoneE
-      "Expected '==' or '<=' after arithmetic expression")
-end
+> mutual
+>   parseAtomicExp : (steps : Nat) -> Parser BExp
+>   parseAtomicExp Z _ = NoneE "Too many recursive calls"
+>   parseAtomicExp (S steps') xs =
+>     (do (u, rest) <- expect "true" xs
+>         pure (BTrue, rest))
+>     <|>
+>     (do (u, rest) <- expect "false" xs
+>         pure (BFalse, rest))
+>     <|>
+>     (do (e, rest) <- firstExpect "not" (parseAtomicExp steps') xs
+>         pure (BNot e, rest))
+>     <|>
+>     (do (e, rest) <- firstExpect "(" (parseConjunctionExp steps') xs
+>         (u, rest') <- expect ")" rest
+>         pure (e, rest'))
+>     <|>
+>     (do (e, rest) <- parseProductExp steps' xs
+>         ((do (e', rest') <- firstExpect "==" (parseAExp steps') rest
+>              pure (BEq e e', rest'))
+>          <|>
+>          (do (e', rest') <- firstExpect "<=" (parseAExp steps') rest
+>              pure (BLe e e', rest'))
+>          <|>
+>          (NoneE "Expected '==' or '<=' after arithmetic expression")))
+>
+>   parseConjunctionExp : (steps : Nat) -> Parser BExp
+>   parseConjunctionExp Z _ = NoneE "Too many recursive calls"
+>   parseConjunctionExp (S steps') xs =
+>     do (e, rest) <- parseAtomicExp steps' xs
+>        (es, rest') <- many (firstExpect "&&" (parseAtomicExp steps')) steps' rest
+>        pure (foldl BAnd e es, rest')
+>
+> parseBExp : (steps : Nat) -> Parser BExp
+> parseBExp = parseConjunctionExp
 
-with parseConjunctionExp (steps:nat)
-                         (xs : list token) :=
-  match steps with
-  | 0 => NoneE "Too many recursive calls"
-  | S steps' =>
-    DO (e, rest) <==
-      parseAtomicExp steps' xs ;
-    DO (es, rest') <==
-       many (firstExpect "&&"
-               (parseAtomicExp steps'))
-            steps' rest;
-    SomeE (fold_left BAnd es e, rest')
-  end.
-
-Definition parseBExp := parseConjunctionExp.
-
+``coq
 Check parseConjunctionExp.
 
 Definition testParsing {X : Type}
