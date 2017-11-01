@@ -5,10 +5,10 @@
 
 The development of the Imp language in `Imp.lidr` completely ignores issues of
 concrete syntax -- how an ascii string that a programmer might write gets
-translated into abstract syntax trees defined by the datatypes `aexp`, `bexp`,
-and `com`.  In this chapter, we illustrate how the rest of the story can be
-filled in by building a simple lexical analyzer and parser using Idris's
-functional programming facilities.
+translated into abstract syntax trees defined by the datatypes \idr{AExp},
+\idr{BExp}, and \idr{Com}.  In this chapter, we illustrate how the rest of the
+story can be filled in by building a simple lexical analyzer and parser using
+Idris's functional programming facilities.
 
 It is not important to understand all the details here (and accordingly, the
 explanations are fairly terse and there are no exercises).  The main point is
@@ -26,9 +26,6 @@ very end to get the punchline.
 
 === Lexical Analysis
 
-> isLowerAlpha : (c : Char) -> Bool
-> isLowerAlpha c = isLower c || isDigit c
->
 > data Chartype = White | Alpha | Digit | Other
 >
 > classifyChar : (c : Char) -> Chartype
@@ -100,10 +97,9 @@ more convenient.
 >
 > Applicative OptionE where
 >   pure = SomeE
->   (SomeE f)  <*> (SomeE x)  = SomeE (f x)
->   (SomeE _)  <*> (NoneE e2) = NoneE e2
->   (NoneE e1) <*> (SomeE _)  = NoneE e1
->   (NoneE e1) <*> (NoneE e2) = NoneE (e1 ++ ";" ++ e2)
+>   (SomeE f) <*> (SomeE x) = SomeE (f x)
+>   (SomeE _) <*> (NoneE e) = NoneE e
+>   (NoneE e) <*> _         = NoneE e
 >
 > Alternative OptionE where
 >   empty = NoneE ""
@@ -145,6 +141,7 @@ A parser that expects a particular token:
 > expect : (t : Token) -> Parser ()
 > expect t = firstExpect t (\xs => SomeE ((), xs))
 >
+
 ==== A Recursive-Descent Parser for Imp
 
 Identifiers:
@@ -152,7 +149,7 @@ Identifiers:
 > parseIdentifier : Parser Id
 > parseIdentifier [] = NoneE "Expected identifier"
 > parseIdentifier (x::xs) =
->   if all isLowerAlpha (unpack x)
+>   if all isLower (unpack x)
 >     then SomeE (MkId x, xs)
 >     else NoneE ("Illegal identifier:'" ++ x ++ "'")
 >
@@ -306,85 +303,26 @@ Parsing commands:
 
 == Examples
 
-```coq
-(*
-Compute parse "
-  IF x == y + 1 + 2 - y * 6 + 3 THEN
-    x := x * 1;;
-    y := 0
-  ELSE
-    SKIP
-  END  ".
-====>
-  SomeE
-     (IFB BEq (AId (Id 0))
-              (APlus
-                 (AMinus (APlus (APlus (AId (Id 1)) (ANum 1)) (ANum 2))
-                    (AMult (AId (Id 1)) (ANum 6)))
-                 (ANum 3))
-      THEN Id 0 ::= AMult (AId (Id 0)) (ANum 1);; Id 1 ::= ANum 0
-      ELSE SKIP FI, [])
-*)
+```idris
+λΠ> parse "IF x == y + 1 + 2 - y * 6 + 3 THEN x := x * 1;; y := 0 ELSE SKIP END"
+SomeE (CIf (BEq (AId (MkId "x")) (APlus (AMinus (APlus (APlus (AId (MkId "y")) (ANum 1)) (ANum 2)) (AMult (AId (MkId "y")) (ANum 6))) (ANum 3)))
+           (CSeq (CAss (MkId "x") (AMult (AId (MkId "x")) (ANum 1))) (CAss (MkId "y") (ANum 0)))
+           CSkip,
+       []) : OptionE (Com, List String)
 
-(*
-Compute parse "
-  SKIP;;
-  z:=x*y*(x*x);;
-  WHILE x==x DO
-    IF z <= z*z && not x == 2 THEN
-      x := z;;
-      y := z
-    ELSE
-      SKIP
-    END;;
-    SKIP
-  END;;
-  x:=z  ".
-====>
-  SomeE
-     (SKIP;;
-      Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
-                     (AMult (AId (Id 1)) (AId (Id 1)));;
-      WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
-        IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))
-                  (BNot (BEq (AId (Id 1)) (ANum 2)))
-           THEN Id 1 ::= AId (Id 0);; Id 2 ::= AId (Id 0)
-           ELSE SKIP FI;;
-        SKIP
-      END;;
-      Id 1 ::= AId (Id 0),
-     [])
-*)
+λΠ> parse "SKIP;; z:=x*y*(x*x);; WHILE x==x DO IF z <= z*z && not x == 2 THEN x := z;; y := z ELSE SKIP END;; SKIP END;; x:=z"
+```
 
-(*
-Compute parse "
-  SKIP;;
-  z:=x*y*(x*x);;
-  WHILE x==x DO
-    IF z <= z*z && not x == 2 THEN
-      x := z;;
-      y := z
-    ELSE
-      SKIP
-    END;;
-    SKIP
-  END;;
-  x:=z  ".
-=====>
-  SomeE
-     (SKIP;;
-      Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
-            (AMult (AId (Id 1)) (AId (Id 1)));;
-      WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
-        IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))
-                 (BNot (BEq (AId (Id 1)) (ANum 2)))
-          THEN Id 1 ::= AId (Id 0);;
-               Id 2 ::= AId (Id 0)
-          ELSE SKIP
-        FI;;
-        SKIP
-      END;;
-      Id 1 ::= AId (Id 0),
-     []).
-*)
+\todo[inline]{This one is repeated twice in the book for some reason}
+
+```idris
+SomeE (CSeq CSkip
+            (CSeq (CAss (MkId "z") (AMult (AMult (AId (MkId "x")) (AId (MkId "y"))) (AMult (AId (MkId "x")) (AId (MkId "x")))))
+                  (CSeq (CWhile (BEq (AId (MkId "x")) (AId (MkId "x")))
+                                (CSeq (CIf (BAnd (BLe (AId (MkId "z")) (AMult (AId (MkId "z")) (AId (MkId "z")))) (BNot (BEq (AId (MkId "x")) (ANum 2))))
+                                           (CSeq (CAss (MkId "x") (AId (MkId "z"))) (CAss (MkId "y") (AId (MkId "z"))))
+                                           CSkip)
+                                      CSkip))
+                        (CAss (MkId "x") (AId (MkId "z"))))),
+       []) : OptionE (Com, List String)
 ```
