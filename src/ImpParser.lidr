@@ -4,19 +4,19 @@
 >
 
 The development of the Imp language in `Imp.lidr` completely ignores issues of
-concrete syntax -- how an ascii string that a programmer might write gets
+concrete syntax -- how an ASCII string that a programmer might write gets
 translated into abstract syntax trees defined by the datatypes \idr{AExp},
-\idr{BExp}, and \idr{Com}.  In this chapter, we illustrate how the rest of the
+\idr{BExp}, and \idr{Com}. In this chapter, we illustrate how the rest of the
 story can be filled in by building a simple lexical analyzer and parser using
 Idris's functional programming facilities.
 
 It is not important to understand all the details here (and accordingly, the
-explanations are fairly terse and there are no exercises).  The main point is
-simply to demonstrate that it can be done.  You are invited to look through the
+explanations are fairly terse and there are no exercises). The main point is
+simply to demonstrate that it can be done. You are invited to look through the
 code -- most of it is not very complicated, though the parser relies on some
 "monadic" programming idioms that may require a little work to make out -- but
-most readers will probably want to just skim down to the Examples section at the
-very end to get the punchline.
+most readers will probably want to just skim down to the `Examples` section at
+the very end to get the punchline.
 
 > import Maps
 > import Imp
@@ -79,15 +79,15 @@ very end to get the punchline.
 
 ==== Options With Errors
 
-An `option` type with error messages:
+An \idr{Option} type with error messages:
 
 > data OptionE : (x : Type) -> Type where
 >   SomeE : x -> OptionE x
 >   NoneE : String -> OptionE x
 >
 
-Some interface instances to make writing nested match-expressions on `OptionE`
-more convenient.
+Some interface instances to make writing nested match-expressions on
+\idr{OptionE} more convenient.
 
 \todo[inline]{Explain these/link to Haskell etc?}
 
@@ -123,13 +123,13 @@ more convenient.
 >  | SomeE (t', xs') = manyHelper p (t'::acc) steps' xs'
 >
 
-A (step-indexed) parser that expects zero or more `p`s:
+A (step-indexed) parser that expects zero or more \idr{p}s:
 
 > many : (p : Parser t) -> (steps : Nat) -> Parser (List t)
 > many p steps = manyHelper p [] steps
 >
 
-A parser that expects a given token, followed by `p`:
+A parser that expects a given token, followed by \idr{p}:
 
 > firstExpect : (a : Token) -> (p : Parser t) -> Parser t
 > firstExpect a p (x::xs) = if x == a then p xs else NoneE ("Expected '" ++ a ++ "'")
@@ -316,6 +316,7 @@ SomeE (CIf (BEq (AId (MkId "x")) (APlus (AMinus (APlus (APlus (AId (MkId "y")) (
 \todo[inline]{This one is repeated twice in the book for some reason}
 
 ```idris
+λΠ> parse "SKIP;; z:=x*y*(x*x);; WHILE x==x DO IF z <= z*z && not x == 2 THEN x := z;; y := z ELSE SKIP END;; SKIP END;; x:=z"
 SomeE (CSeq CSkip
             (CSeq (CAss (MkId "z") (AMult (AMult (AId (MkId "x")) (AId (MkId "y"))) (AMult (AId (MkId "x")) (AId (MkId "x")))))
                   (CSeq (CWhile (BEq (AId (MkId "x")) (AId (MkId "x")))
