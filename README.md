@@ -30,6 +30,9 @@ Others may work, but here are the versions I'm using.
 | [Pygments][]     |                                  2.2.0 |
 | [XeLaTeX][]      | 3.14159265-2.6-0.99998 (TeX Live 2017) |
 
+### Installing prerequisites
+
+- [macOS](prerequisites_macOS.md)
 
 <!-- Named Links -->
 
