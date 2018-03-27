@@ -11,6 +11,7 @@ modules    = Basics
            , ProofObjects
            , Rel
            , Imp
+           , ImpParser
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
