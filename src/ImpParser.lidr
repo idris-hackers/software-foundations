@@ -279,7 +279,7 @@ Parsing commands:
 >     (do (e, rest) <- firstExpect "WHILE" (parseBExp steps') xs
 >         (c, rest') <- firstExpect "DO" (parseSequencedCommand steps') rest
 >         (_, rest'') <- expect "END" rest'
->         pure (WHILE e DO c END, rest''))
+>         pure (WHILE e c, rest''))
 >     <|>
 >     (do (i, rest) <- parseIdentifier xs;
 >         (e, rest') <- firstExpect ":=" (parseAExp steps') rest
@@ -290,7 +290,7 @@ Parsing commands:
 >   parseSequencedCommand (S steps') xs =
 >     do (c, rest) <- parseSimpleCommand steps' xs
 >        ((do (c', rest') <- firstExpect ";;" (parseSequencedCommand steps') rest
->             pure (c ;; c', rest'))
+>             pure ((do c; c'), rest'))
 >         <|>
 >         (pure (c, rest)))
 >
