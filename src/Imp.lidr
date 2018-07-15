@@ -29,6 +29,8 @@ _Hoare Logic_, a widely used logic for reasoning about imperative programs.
 
 > import Maps
 
+> %hide (\\)
+
 > %default total
 > %access public export
 
@@ -583,33 +585,31 @@ data AEvalR : AExp0 -> Nat -> Type where
 \todo[inline]{Edit}
 
 It will be convenient to have an infix notation for \idr{AEvalR}. We'll write
-\idr{e |/ n} to mean that arithmetic expression \idr{e} evaluates to value
+\idr{e \\ n} to mean that arithmetic expression \idr{e} evaluates to value
 \idr{n}.
 
 In fact, Idris provides a way to use this notation in the definition of
 \idr{AevalR} itself. This reduces confusion by avoiding situations where we're
-working on a proof involving statements in the form \idr{e |/ n} but we have to
+working on a proof involving statements in the form \idr{e \\ n} but we have to
 refer back to a definition written using the form \idr{AEvalR e n}.
 
 We do this by first "reserving" the notation, then giving the definition
 together with a declaration of what the notation means.
 
-> infixl 5 |/
-
-> data (|/) : AExp0 -> (n : Nat) -> Type where
->   E_ANum : (ANum0 n) |/ n
->   E_APlus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 + n2) ->
->             (APlus0 e1 e2) |/ n
+> data (\\) : AExp0 -> (n : Nat) -> Type where
+>   E_ANum : (ANum0 n) \\ n
+>   E_APlus : e1 \\ n1 -> e2 \\ n2 -> n = n1 + n2 ->
+>             (APlus0 e1 e2) \\ n
 
 \todo[inline]{We don't use \idr{-} since it requires a proof of \idr{LTE n1 n2}}
 
->   E_AMinus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 `minus` n2) ->
->              (AMinus0 e1 e2) |/ n
->   E_AMult : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 * n2) ->
->             (AMult0 e1 e2) |/ n
+>   E_AMinus : e1 \\ n1 -> e2 \\ n2 -> n = n1 `minus` n2 ->
+>              (AMinus0 e1 e2) \\ n
+>   E_AMult : e1 \\ n1 -> e2 \\ n2 -> n = n1 * n2 ->
+>             (AMult0 e1 e2) \\ n
 
 > AEvalR : AExp0 -> Nat -> Type
-> AEvalR = (|/)
+> AEvalR = (\\)
 
 
 === Inference Rule Notation
@@ -624,17 +624,17 @@ already seen them in the `IndProp` chapter).
 For example, the constructor \idr{E_APlus}...
 
 ```idris
-  E_APlus : (e1 |/ n1) -> (e2 |/ n2) -> (n = n1 + n2) ->
-            (APlus0 e1 e2) |/ n
+  E_APlus : (e1 \\ n1) -> (e2 \\ n2) -> (n = n1 + n2) ->
+            (APlus0 e1 e2) \\ n
 ```
 
 ...would be written like this as an inference rule:
 
 \[
   \begin{prooftree}
-    \hypo{\idr{e1 |/ n1}}
-    \hypo{\idr{e2 |/ n2}}
-    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 |/ n1+n2}}
+    \hypo{\idr{e1 \\ n1}}
+    \hypo{\idr{e2 \\ n2}}
+    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 \\ n1+n2}}
   \end{prooftree}
 \]
 
@@ -651,35 +651,35 @@ declaration. In informal prose, this is either elided or else indicated by
 saying something like "Let \idr{AEvalR} be the smallest relation closed under
 the following rules...".
 
-For example, \idr{|/} is the smallest relation closed under these rules:
+For example, \idr{\\} is the smallest relation closed under these rules:
 
 \[
   \begin{prooftree}
-    \infer0[\idr{E_ANum}]{\idr{ANum n |/ n}}
+    \infer0[\idr{E_ANum}]{\idr{ANum n \\ n}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{e1 |/ n1}}
-    \hypo{\idr{e2 |/ n2}}
-    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 |/ n1+n2}}
+    \hypo{\idr{e1 \\ n1}}
+    \hypo{\idr{e2 \\ n2}}
+    \infer2[\idr{E_APlus}]{\idr{APlus e1 e2 \\ n1+n2}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{e1 |/ n1}}
-    \hypo{\idr{e2 |/ n2}}
-    \infer2[\idr{E_AMinus}]{\idr{AMinus e1 e2 |/ n1-n2}}
+    \hypo{\idr{e1 \\ n1}}
+    \hypo{\idr{e2 \\ n2}}
+    \infer2[\idr{E_AMinus}]{\idr{AMinus e1 e2 \\ n1-n2}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{e1 |/ n1}}
-    \hypo{\idr{e2 |/ n2}}
-    \infer2[\idr{E_AMult}]{\idr{AMult e1 e2 |/ n1*n2}}
+    \hypo{\idr{e1 \\ n1}}
+    \hypo{\idr{e2 \\ n2}}
+    \infer2[\idr{E_AMult}]{\idr{AMult e1 e2 \\ n1*n2}}
   \end{prooftree}
 \]
 
@@ -689,10 +689,10 @@ For example, \idr{|/} is the smallest relation closed under these rules:
 It is straightforward to prove that the relational and functional definitions of
 evaluation agree:
 
-> aeval_iff_aevalR : (a |/ n) <-> aeval0 a = n
+> aeval_iff_aevalR : (a \\ n) <-> aeval0 a = n
 > aeval_iff_aevalR = (to, fro)
 > where
->   to : (a |/ n) -> aeval0 a = n
+>   to : (a \\ n) -> aeval0 a = n
 >   to E_ANum = Refl
 >   to (E_APlus x y xy) =
 >     rewrite xy in
@@ -706,7 +706,7 @@ evaluation agree:
 >     rewrite xy in
 >     rewrite to x in
 >     rewrite to y in Refl
->   fro : (aeval0 a = n) -> (a |/ n)
+>   fro : (aeval0 a = n) -> (a \\ n)
 >   fro {a=ANum0 n} Refl = E_ANum
 >   fro {a=APlus0 x y} prf =
 >     E_APlus (fro {a=x} {n=aeval0 x} Refl)
@@ -725,7 +725,7 @@ We can make the proof quite a bit shorter by making more use of tacticals.
 
 ```coq
 Theorem aeval_iff_aevalR' : forall a n,
-  (a |/ n) <-> aeval a = n.
+  (a \\ n) <-> aeval a = n.
 Proof.
   (* WORKED IN CLASS *)
   split.
@@ -763,32 +763,34 @@ much better than functional ones.
 For example, suppose that we wanted to extend the arithmetic operations by
 considering also a division operation:
 
-> data AExpD : Type where
->   ANumD : Nat -> AExpD
->   APlusD : AExpD -> AExpD -> AExpD
->   AMinusD : AExpD -> AExpD -> AExpD
->   AMultD : AExpD -> AExpD -> AExpD
->   ADivD : AExpD -> AExpD -> AExpD -- <--- new
+> namespace AEvalRDiv
+
+>   data AExpD : Type where
+>     ANumD : Nat -> AExpD
+>     APlusD : AExpD -> AExpD -> AExpD
+>     AMinusD : AExpD -> AExpD -> AExpD
+>     AMultD : AExpD -> AExpD -> AExpD
+>     ADivD : AExpD -> AExpD -> AExpD -- <--- new
 
 Extending the definition of \idr{aeval} to handle this new operation would not
 be straightforward (what should we return as the result of
 \idr{ADiv (ANum 5) (ANum 0)}?). But extending \idr{AEvalR} is straightforward.
 
-> infixl 5 ||/
+>   infix 5 \\\
 
-> data (||/) : AExpD -> (n : Nat) -> Type where
->   E_ANumD : (ANumD n) ||/ n
->   E_APlusD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 + n2) ->
->     (APlusD e1 e2) ||/ n
->   E_AMinusD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 `minus` n2) ->
->     (AMinusD e1 e2) ||/ n
->   E_AMultD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n = n1 * n2) ->
->     (AMultD e1 e2) ||/ n
->   E_ADivD : (e1 ||/ n1) -> (e2 ||/ n2) -> (n2 `GT` 0) -> (n1 = n2*n3) ->
->     (ADivD e1 e2) ||/ n3
+>   data (\\\) : AExpD -> (n : Nat) -> Type where
+>     E_ANumD : (ANumD n) \\\ n
+>     E_APlusD : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 + n2 ->
+>       (APlusD e1 e2) \\\ n
+>     E_AMinusD : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 `minus` n2 ->
+>       (AMinusD e1 e2) \\\ n
+>     E_AMultD : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 * n2 ->
+>       (AMultD e1 e2) \\\ n
+>     E_ADivD : e1 \\\ n1 -> e2 \\\ n2 -> n2 `GT` 0 -> n1 = n2*n3 ->
+>       (ADivD e1 e2) \\\ n3
 
-> AEvalRD : AExpD -> Nat -> Type
-> AEvalRD = (||/)
+>   AEvalRD : AExpD -> Nat -> Type
+>   AEvalRD = (\\\)
 
 Suppose, instead, that we want to extend the arithmetic operations by a
 nondeterministic number generator \idr{any} that, when evaluated, may yield any
@@ -796,31 +798,33 @@ number. (Note that this is not the same as making a _probabilistic_ choice among
 all possible numbers — we're not specifying any particular distribution of
 results, but just saying what results are _possible_.)
 
-> data AExpA : Type where
->   AAnyA : AExpA -- <--- new
->   ANumA : Nat -> AExpA
->   APlusA : AExpA -> AExpA -> AExpA
->   AMinusA : AExpA -> AExpA -> AExpA
->   AMultA : AExpA -> AExpA -> AExpA
+> namespace AEvalRAny
+
+>   data AExpA : Type where
+>     AAnyA : AExpA -- <--- new
+>     ANumA : Nat -> AExpA
+>     APlusA : AExpA -> AExpA -> AExpA
+>     AMinusA : AExpA -> AExpA -> AExpA
+>     AMultA : AExpA -> AExpA -> AExpA
 
 Again, extending \idr{aeval} would be tricky, since now evaluation is _not_ a
 deterministic function from expressions to numbers, but extending \idr{AEvalR}
 is no problem:
 
-> infix 5 |||/
+>   infix 5 \\\
 
-> data (|||/) : AExpA -> (n : Nat) -> Type where
->   E_AnyA : AAnyA |||/ n
->   E_ANumA : (ANumA n) |||/ n
->   E_APlusA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 + n2) ->
->     (APlusA e1 e2) |||/ n
->   E_AMinusA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 `minus` n2) ->
->     (AMinusA e1 e2) |||/ n
->   E_AMultA : (e1 |||/ n1) -> (e2 |||/ n2) -> (n = n1 * n2) ->
->     (AMultA e1 e2) |||/ n
+>   data (\\\) : AExpA -> (n : Nat) -> Type where
+>     E_AnyA : AAnyA \\\ n
+>     E_ANumA : (ANumA n) \\\ n
+>     E_APlusA : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 + n2 ->
+>       (APlusA e1 e2) \\\ n
+>     E_AMinusA : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 `minus` n2 ->
+>       (AMinusA e1 e2) \\\ n
+>     E_AMultA : e1 \\\ n1 -> e2 \\\ n2 -> n = n1 * n2 ->
+>       (AMultA e1 e2) \\\ n
 
-> AEvalRA : AExpA -> Nat -> Type
-> AEvalRA = (|||/)
+>   AEvalRA : AExpA -> Nat -> Type
+>   AEvalRA = (\\\)
 
 At this point you maybe wondering: which style should I use by default? The
 examples above show that relational definitions are fundamentally more powerful
@@ -1004,25 +1008,34 @@ To avoid conflicts with Idris's built-in notations, we keep this light — in
 particular, we don't introduce any notations for \idr{AExp}s and \idr{BExp}s to
 avoid confusion with the numeric and boolean operators we've already defined.
 
-\todo[inline]{Use do-notation and functions instead?}
+\todo[inline]{Explain do-notation}
 
-> syntax SKIP = CSkip
-> syntax [x] "::=" [a] = CAss x a
-> syntax [c1] ";;" [c2] = CSeq c1 c2
-> syntax WHILE [b] DO [c] END = CWhile b c
+> infix 5 ::= 
+
+> SKIP : Com
+> SKIP = CSkip
+
+> (::=) : Id -> AExp -> Com
+> (::=) = CAss
+
+> (>>=) : Com -> (() -> Com) -> Com
+> (>>=) c f = CSeq c (f ())
+
+> WHILE : BExp -> Com -> Com
+> WHILE = CWhile
+
 > syntax IFB [c1] THEN [c2] ELSE [c3] FI = CIf c1 c2 c3
 
 For example, here is the factorial function again, written as a formal
 definition to Idris:
 
 > fact_in_idris : Com
-> fact_in_idris =
->  (Z ::= AId X) ;;
->  (Y ::= ANum 1) ;;
->  WHILE BNot (BEq (AId Z) (ANum 0)) DO
->    (Y ::= AMult (AId Y) (AId Z)) ;;
->    (Z ::= AMinus (AId Z) (ANum 1))
->  END
+> fact_in_idris = do
+>  Z ::= AId X
+>  Y ::= ANum 1
+>  WHILE (BNot (BEq (AId Z) (ANum 0))) $ do
+>    Y ::= AMult (AId Y) (AId Z)
+>    Z ::= AMinus (AId Z) (ANum 1)
 
 
 === More Examples
@@ -1032,30 +1045,29 @@ definition to Idris:
 
 > plus2 : Com
 > plus2 =
->  X ::= (APlus (AId X) (ANum 2))
+>  X ::= APlus (AId X) (ANum 2)
 
 > XtimesYinZ : Com
 > XtimesYinZ =
->  Z ::= (AMult (AId X) (AId Y))
+>  Z ::= AMult (AId X) (AId Y)
 
 > subtract_slowly_body : Com
-> subtract_slowly_body =
->   (Z ::= AMinus (AId Z) (ANum 1)) ;;
->   (X ::= AMinus (AId X) (ANum 1))
+> subtract_slowly_body = do
+>   Z ::= AMinus (AId Z) (ANum 1)
+>   X ::= AMinus (AId X) (ANum 1)
 
 
 ==== Loops
 
 > subtract_slowly : Com
 > subtract_slowly =
->  WHILE BNot (BEq (AId X) (ANum 0)) DO
+>  WHILE (BNot (BEq (AId X) (ANum 0))) $ do
 >    subtract_slowly_body
->  END
 
 > subtract_3_from_5_slowly : Com
-> subtract_3_from_5_slowly =
->   (X ::= ANum 3) ;;
->   (Z ::= ANum 5) ;;
+> subtract_3_from_5_slowly = do
+>   X ::= ANum 3
+>   Z ::= ANum 5
 >   subtract_slowly
 
 
@@ -1063,9 +1075,8 @@ definition to Idris:
 
 > loop : Com
 > loop =
->   WHILE BTrue DO
+>   WHILE BTrue $ do
 >     SKIP
->   END
 
 
 == Evaluating Commands
@@ -1140,8 +1151,8 @@ nondeterministic features like \idr{any} to the language, we want the definition
 of evaluation to be nondeterministic — i.e., not only will it not be total, it
 will not even be a function!
 
-We'll use the notation \idr{c / st |/ st'} for the \idr{CEval} relation:
-\idr{c / st |/ st'} means that executing program \idr{c} in a starting state
+We'll use the notation \idr{c / st \\ st'} for the \idr{CEval} relation:
+\idr{c / st \\ st'} means that executing program \idr{c} in a starting state
 \idr{st} results in an ending state \idr{st'}. This can be pronounced "\idr{c}
 takes state \idr{st} to \idr{st'}".
 
@@ -1153,54 +1164,54 @@ readability:
 
 \[
   \begin{prooftree}
-    \infer0[\idr{E_Skip}]{\idr{SKIP / st |/ st}}
+    \infer0[\idr{E_Skip}]{\idr{SKIP / st \\ st}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{aeval st a1 = n}}
-    \infer2[\idr{E_Ass}]{\idr{x := a1 / st |/ (t_update st x n)}}
+    \infer2[\idr{E_Ass}]{\idr{x := a1 / st \\ (t_update st x n)}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{c1 / st |/ st'}}
-    \hypo{\idr{c2 / st' |/ st''}}
-    \infer2[\idr{E_Seq}]{\idr{c1;;c2 / st |/ st''}}
+    \hypo{\idr{c1 / st \\ st'}}
+    \hypo{\idr{c2 / st' \\ st''}}
+    \infer2[\idr{E_Seq}]{\idr{c1;;c2 / st \\ st''}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{beval st b1 = True}}
-    \hypo{\idr{c1 / st |/ st'}}
-    \infer2[\idr{E_IfTrue}]{\idr{IF b1 THEN c1 ELSE c2 FI / st |/ st'}}
+    \hypo{\idr{c1 / st \\ st'}}
+    \infer2[\idr{E_IfTrue}]{\idr{IF b1 THEN c1 ELSE c2 FI / st \\ st'}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{beval st b1 = False}}
-    \hypo{\idr{c2 / st |/ st'}}
-    \infer2[\idr{E_IfFalse}]{\idr{IF b1 THEN c1 ELSE c2 FI / st |/ st'}}
+    \hypo{\idr{c2 / st \\ st'}}
+    \infer2[\idr{E_IfFalse}]{\idr{IF b1 THEN c1 ELSE c2 FI / st \\ st'}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{beval st b = False}}
-    \infer2[\idr{E_WhileEnd}]{\idr{WHILE b DO c END / st |/ st}}
+    \infer2[\idr{E_WhileEnd}]{\idr{WHILE b DO c END / st \\ st}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{beval st b = True}}
-    \hypo{\idr{c / st |/ st'}}
-    \hypo{\idr{WHILE b DO c END / st' |/ st''}}
-    \infer2[\idr{E_WhileLoop}]{\idr{WHILE b DO c END / st |/ st''}}
+    \hypo{\idr{c / st \\ st'}}
+    \hypo{\idr{WHILE b DO c END / st' \\ st''}}
+    \infer2[\idr{E_WhileLoop}]{\idr{WHILE b DO c END / st \\ st''}}
   \end{prooftree}
 \]	
 
@@ -1222,20 +1233,29 @@ the inference rules.
 >     CEval c st st' -> CEval (CWhile b c) st' st'' ->
 >     CEval (CWhile b c) st st''
 
-> syntax [c1] "/" [st] "|/" [st'] = CEval c1 st st'
+> syntax [c1] "/" [st] "\\\\" [st'] = CEval c1 st st'
 
 The cost of defining evaluation as a relation instead of a function is that we
 now need to construct _proofs_ that some program evaluates to some result state,
 rather than just letting Idris's computation mechanism do it for us.
 
-> ceval_example1 : (
->   (X ::= ANum 2) ;;
->   (IFB BLe (AId X) (ANum 1)
+ test : Com
+ test = do 
+   X ::= ANum 2
+   IFB BLe (AId X) (ANum 1)
+     THEN (Y ::= ANum 3)
+     ELSE (Z ::= ANum 4)
+   FI
+
+
+> ceval_example1 : (do
+>   X ::= ANum 2
+>   IFB BLe (AId X) (ANum 1)
 >     THEN (Y ::= ANum 3)
 >     ELSE (Z ::= ANum 4)
->    FI)
->   ) / Imp.empty_state
->    |/ (t_update Z 4 $ t_update X 2 Imp.empty_state)
+>   FI) 
+>   / Imp.empty_state 
+>  \\ (t_update Z 4 $ t_update X 2 $ Imp.empty_state)
 > ceval_example1 =
 >   E_Seq
 >     (E_Ass Refl)
@@ -1245,10 +1265,12 @@ rather than just letting Idris's computation mechanism do it for us.
 
 ==== Exercise: 2 stars (ceval_example2)
 
-> ceval_example2 :
->    ((X ::= ANum 0);; (Y ::= ANum 1);; (Z ::= ANum 2))
+> ceval_example2 : (do 
+>    X ::= ANum 0
+>    Y ::= ANum 1
+>    Z ::= ANum 2)
 >    / Imp.empty_state
->   |/ (t_update Z 2 $ t_update Y 1 $ t_update X 0 Imp.empty_state)
+>   \\ (t_update Z 2 $ t_update Y 1 $ t_update X 0 $ Imp.empty_state)
 > ceval_example2 = ?ceval_example2_rhs
 
 $\square$
@@ -1264,13 +1286,14 @@ as intended for \idr{X = 2} (this is trickier than you might expect).
 > pup_to_n = ?pup_to_n_rhs
 
 > pup_to_2_ceval :
->   Imp.pup_to_n / (t_update X 2 Imp.empty_state) |/
+>   Imp.pup_to_n / (t_update X 2 Imp.empty_state) \\
 >    (t_update X 0 $
 >     t_update Y 3 $
 >     t_update X 1 $
 >     t_update Y 2 $
 >     t_update Y 0 $
->     t_update X 2 Imp.empty_state)
+>     t_update X 2 $ 
+>     Imp.empty_state)
 > pup_to_2_ceval = ?pup_to_2_ceval_rhs
 
 $\square$
@@ -1287,7 +1310,7 @@ reach two different output states \idr{st'} and \idr{st''}?
 
 In fact, this cannot happen: \idr{CEval} _is_ a partial function:
 
-> ceval_deterministic : (c / st |/ st1) -> (c / st |/ st2) -> st1 = st2
+> ceval_deterministic : (c / st \\ st1) -> (c / st \\ st2) -> st1 = st2
 > ceval_deterministic E_Skip E_Skip = Refl
 > ceval_deterministic (E_Ass aev1) (E_Ass aev2) =
 >   rewrite sym aev1 in
@@ -1323,7 +1346,7 @@ We'll get deeper into systematic techniques for reasoning about Imp programs in
 the following chapters, but we can do quite a bit just working with the bare
 definitions. This section explores some examples.
 
-> plus2_spec : st X = n -> (Imp.plus2 / st |/ st') -> st' X = n + 2
+> plus2_spec : st X = n -> (Imp.plus2 / st \\ st') -> st' X = n + 2
 
 \todo[inline]{Edit}
 
@@ -1345,7 +1368,7 @@ $\square$
 
 ==== Exercise: 3 stars, recommended (loop_never_stops)
 
-> loop_never_stops : Not (Imp.loop / st |/ st')
+> loop_never_stops : Not (Imp.loop / st \\ st')
 > loop_never_stops contra = ?loop_never_stops_rhs
 
 \todo[inline]{Edit the hint}
@@ -1545,22 +1568,34 @@ statement for interrupting the execution of loops. In this exercise we consider
 how to add \idr{break} to Imp. First, we need to enrich the language of commands
 with an additional case.
 
-> data ComB : Type where
->   CSkipB : ComB
->   CBreakB : ComB  -- <-- new
->   CAssB : Id -> AExp -> ComB
->   CSeqB : ComB -> ComB -> ComB
->   CIfB : BExp -> ComB -> ComB -> ComB
->   CWhileB : BExp -> ComB -> ComB
+> namespace ComBreak
 
-\todo[inline]{Also use do-notation here?}
+>   data ComB : Type where
+>     CSkipB : ComB
+>     CBreakB : ComB  -- <-- new
+>     CAssB : Id -> AExp -> ComB
+>     CSeqB : ComB -> ComB -> ComB
+>     CIfB : BExp -> ComB -> ComB -> ComB
+>     CWhileB : BExp -> ComB -> ComB
 
-> syntax SKIP' = CSkipB
-> syntax BREAK' = CBreakB
-> syntax [x] "::='" [a] = CAssB x a
-> syntax [c1] ";;'" [c2] = CSeqB c1 c2
-> syntax WHILE' [b] DO [c] END = CWhileB b c
-> syntax IFB' [c1] THEN [c2] ELSE [c3] FI = CIfB c1 c2 c3
+>   infix 5 ::=
+
+>   SKIP : ComB
+>   SKIP = CSkipB
+
+>   BREAK : ComB
+>   BREAK = CBreakB
+
+>   (::=) : Id -> AExp -> ComB
+>   (::=) = CAssB
+
+>   (>>=) : ComB -> (() -> ComB) -> ComB
+>   (>>=) c f = CSeqB c (f ())
+
+>   WHILE : BExp -> ComB -> ComB
+>   WHILE = CWhileB
+
+>   syntax IFB [c1] THEN [c2] ELSE [c3] FI = CIfB c1 c2 c3
 
 Next, we need to define the behavior of \idr{BREAK}. Informally, whenever
 \idr{BREAK} is executed in a sequence of commands, it stops the execution of
@@ -1591,18 +1626,18 @@ One way of expressing this behavior is to add another parameter to the
 evaluation relation that specifies whether evaluation of a command executes a
 \idr{BREAK} statement:
 
-> data Result : Type where
->   SContinue : Result
->   SBreak : Result
+>   data Result : Type where
+>     SContinue : Result
+>     SBreak : Result
 
-Intuitively, \idr{c // st |/ s / st'} means that, if \idr{c} is started in state
+Intuitively, \idr{c // st \\ s / st'} means that, if \idr{c} is started in state
 \idr{st}, then it terminates in state \idr{st'} and either signals that the
 innermost surrounding loop (or the whole program) should exit immediately
 (\idr{s = SBreak}) or that execution should continue normally
 (\idr{s = SContinue}).
 
-The definition of the "\idr{c // st |/ s / st'}" relation is very similar to the
-one we gave above for the regular evaluation relation (\idr{c / st |/ st'}) —
+The definition of the "\idr{c // st \\ s / st'}" relation is very similar to the
+one we gave above for the regular evaluation relation (\idr{c / st \\ st'}) —
 we just need to handle the termination signals appropriately:
 
   - If the command is \idr{SKIP}, then the state doesn't change and execution of
@@ -1638,44 +1673,45 @@ we just need to handle the termination signals appropriately:
 Based on the above description, complete the definition of the \idr{CEvalB}
 relation.
 
-> data CEvalB : ComB -> State -> Result -> State -> Type where
->   E_SkipB : CEvalB CSkipB st SContinue st
->   -- FILL IN HERE
+>   data CEvalB : ComB -> State -> Result -> State -> Type where
+>     E_SkipB : CEvalB CSkipB st SContinue st
+>     -- FILL IN HERE
 
-> syntax [c1] "//" [st] "|/" [s] "/" [st'] = CEvalB c1 st s st'
+>   syntax [c1] "//" [st] "\\\\" [s] "/" [st'] = CEvalB c1 st s st'
 
 Now prove the following properties of your definition of \idr{CEvalB}:
 
-> break_ignore : (((BREAK') ;;' (c)) // st |/ s / st') -> st = st'
-> break_ignore x = ?break_ignore_rhs
+>   break_ignore : ((do BREAK; c) // st \\ s / st') -> st = st'
+>   break_ignore x = ?break_ignore_rhs
 
-> while_continue : ((WHILE' b DO c END) // st  |/ s / st') -> s = SContinue
-> while_continue x = ?while_continue_rhs
 
-> while_stops_on_break : beval st b = True ->
->                        (c // st |/ SBreak / st') ->
->                        ((WHILE' b DO c END) // st |/ SContinue / st')
-> while_stops_on_break prf x = ?while_stops_on_break_rhs
+>   while_continue : ((WHILE b c) // st \\ s / st') -> s = SContinue
+>   while_continue x = ?while_continue_rhs
+
+>   while_stops_on_break : beval st b = True ->
+>                          (c // st \\ SBreak / st') ->
+>                          ((WHILE b c) // st \\ SContinue / st')
+>   while_stops_on_break prf x = ?while_stops_on_break_rhs
 
 $\square$
 
 
 ==== Exercise: 3 stars, advanced, optional (while_break_true)
 
-> while_break_true : ((WHILE' b DO c END) // st |/ SContinue / st') ->
->                    beval st' b = True ->
->                    (st'' ** c // st'' |/ SBreak / st')
-> while_break_true x prf = ?while_break_true_rhs
+>   while_break_true : ((WHILE b c) // st \\ SContinue / st') ->
+>                      beval st' b = True ->
+>                      (st'' ** c // st'' \\ SBreak / st')
+>   while_break_true x prf = ?while_break_true_rhs
 
 $\square$
 
 
 ==== Exercise: 4 stars, advanced, optional (cevalB_deterministic)
 
-> cevalB_deterministic : (c // st |/ s1 / st1) ->
->                        (c // st |/ s2 / st2) ->
->                        (st1 = st2, s1 = s2)
-> cevalB_deterministic x y = ?cevalB_deterministic_rhs
+>   cevalB_deterministic : (c // st \\ s1 / st1) ->
+>                          (c // st \\ s2 / st2) ->
+>                          (st1 = st2, s1 = s2)
+>   cevalB_deterministic x y = ?cevalB_deterministic_rhs
 
 $\square$
 
