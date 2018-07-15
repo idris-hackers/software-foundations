@@ -8,6 +8,8 @@ solution of changing from a functional to a relational definition of evaluation.
 In this optional chapter, we consider strategies for getting the functional
 approach to work.
 
+> import Logic
+> import Maps
 > import Imp
 
 > %access public export
@@ -15,51 +17,45 @@ approach to work.
 
 == A Broken Evaluator
 
-Require Import Idris.omega.Omega.
-Require Import Idris.Arith.Arith.
-Require Import Imp Maps.
-
 Here was our first try at an evaluation function for commands, omitting
 \idr{WHILE}. 
 
-```coq
-Fixpoint ceval_step1 (st : state) (c : com) : state :=
-  match c with
-    | SKIP =>
-        st
-    | l ::= a1 =>
-        t_update st l (aeval st a1)
-    | c1 ;; c2 =>
-        let st' := ceval_step1 st c1 in
-        ceval_step1 st' c2
-    | IFB b THEN c1 ELSE c2 FI =>
-        if (beval st b)
-          then ceval_step1 st c1
-          else ceval_step1 st c2
-    | WHILE b1 DO c1 END =>
-        st  (* bogus *)
-  end.
-```
+> ceval_step1 : (st : State) -> (c : Com) -> State
+> ceval_step1 st CSkip = st
+> ceval_step1 st (CAss l a1) = t_update l (aeval st a1) st
+> ceval_step1 st (CSeq c1 c2) =
+>   let st' = ceval_step1 st c1
+>   in ceval_step1 st' c2
+> ceval_step1 st (CIf b c1 c2) =
+>   if beval st b
+>     then ceval_step1 st c1
+>     else ceval_step1 st c2
+> ceval_step1 st (CWhile b c) = st   -- bogus
 
 As we remarked in chapter `Imp`, in a traditional functional programming
 language like ML or Haskell we could write the WHILE case as follows:
 
-```coq
-    | WHILE b1 DO c1 END => if (beval st b1) then ceval_step1 st (c1;;
-        WHILE b1 DO c1 END) else st
+```idris
+...
+ceval_step1 st (CWhile b c) =
+  if (beval st b)
+    then ceval_step1 st (CSeq c $ CWhile b c)
+    else st
 ```
 
-Idris doesn't accept such a definition (\idr{Error: Cannot guess decreasing
-argument of fix}) because the function we want to define is not guaranteed to
-terminate. Indeed, the changed [ceval_step1] function applied to the \idr{loop}
-program from `Imp.lidr` would never terminate. Since Idris is not just a
-functional programming language, but also a consistent logic, any potentially
-non-terminating function needs to be rejected. Here is an invalid(!) Idris
-program showing what would go wrong if Idris allowed non-terminating recursive
-functions:
+Idris doesn't accept such a definition (\idr{ImpCEvalFun.ceval_step1 is possibly 
+not total due to recursive path ImpCEvalFun.ceval_step1 --> 
+ImpCEvalFun.ceval_step1 --> ImpCEvalFun.ceval_step1}) because the function we 
+want to define is not guaranteed to terminate. Indeed, the changed 
+\idr{ceval_step1} function applied to the \idr{loop} program from `Imp.lidr` 
+would never terminate. Since Idris is not just a functional programming 
+language, but also a consistent logic, any potentially non-terminating function 
+needs to be rejected. Here is an invalid(!) Idris program showing what would go 
+wrong if Idris allowed non-terminating recursive functions: 
 
-```coq
-     Fixpoint loop_false (n : nat) : False := loop_false n.
+```idris
+loop_false : (n : Nat) -> Void 
+loop_false n = loop_false n
 ```
 
 That is, propositions like \idr{Void} would become provable (e.g.,
@@ -73,42 +69,33 @@ additional trick...
 == A Step-Indexed Evaluator
 
 The trick we need is to pass an _additional_ parameter to the evaluation
-function that tells it how long to run.  Informally, we start the evaluator with
+function that tells it how long to run. Informally, we start the evaluator with
 a certain amount of "gas" in its tank, and we allow it to run until either it
 terminates in the usual way _or_ it runs out of gas, at which point we simply
-stop evaluating and say that the final result is the empty memory.  (We could
+stop evaluating and say that the final result is the empty memory. (We could
 also say that the result is the current state at the point where the evaluator
 runs out fo gas -- it doesn't really matter because the result is going to be
 wrong in either case!) 
 
-```coq
-Fixpoint ceval_step2 (st : state) (c : com) (i : nat) : state :=
-  match i with
-  | O => empty_state
-  | S i' =>
-    match c with
-      | SKIP =>
-          st
-      | l ::= a1 =>
-          t_update st l (aeval st a1)
-      | c1 ;; c2 =>
-          let st' := ceval_step2 st c1 i' in
-          ceval_step2 st' c2 i'
-      | IFB b THEN c1 ELSE c2 FI =>
-          if (beval st b)
-            then ceval_step2 st c1 i'
-            else ceval_step2 st c2 i'
-      | WHILE b1 DO c1 END =>
-          if (beval st b1)
-          then let st' := ceval_step2 st c1 i' in
-               ceval_step2 st' c i'
-          else st
-    end
-  end.
-```
+> ceval_step2 : (st : State) -> (c : Com) -> (i : Nat) -> State
+> ceval_step2 _ _ Z = empty_state
+> ceval_step2 st CSkip (S i') = st
+> ceval_step2 st (CAss l a1) (S i') = t_update l (aeval st a1) st
+> ceval_step2 st (CSeq c1 c2) (S i') = 
+>   let st' = ceval_step2 st c1 i'
+>   in ceval_step2 st' c2 i'
+> ceval_step2 st (CIf b c1 c2) (S i') = 
+>   if beval st b
+>     then ceval_step2 st c1 i'
+>     else ceval_step2 st c2 i'
+> ceval_step2 st c@(CWhile b1 c1) (S i') = 
+>   if (beval st b1)
+>     then let st' = ceval_step2 st c1 i' in 
+>          ceval_step2 st' c i'
+>     else st
 
 _Note_: It is tempting to think that the index \idr{i} here is counting the
-"number of steps of evaluation."  But if you look closely you'll see that this
+"number of steps of evaluation." But if you look closely you'll see that this
 is not the case: for example, in the rule for sequencing, the same \idr{i} is
 passed to both recursive calls. Understanding the exact way that \idr{i} is
 treated will be important in the proof of \idr{ceval__ceval_step}, which is
@@ -116,93 +103,65 @@ given as an exercise below.
 
 One thing that is not so nice about this evaluator is that we can't tell, from
 its result, whether it stopped because the program terminated normally or
-because it ran out of gas.  Our next version returns an \idr{Option State}
-instead of just a \idr{state}, so that we can distinguish between normal and
+because it ran out of gas.  Our next version returns an \idr{Maybe State}
+instead of just a \idr{State}, so that we can distinguish between normal and
 abnormal termination.
 
-```coq   
-Fixpoint ceval_step3 (st : state) (c : com) (i : nat)
-                    : option state :=
-  match i with
-  | O => None
-  | S i' =>
-    match c with
-      | SKIP =>
-          Some st
-      | l ::= a1 =>
-          Some (t_update st l (aeval st a1))
-      | c1 ;; c2 =>
-          match (ceval_step3 st c1 i') with
-          | Some st' => ceval_step3 st' c2 i'
-          | None => None
-          end
-      | IFB b THEN c1 ELSE c2 FI =>
-          if (beval st b)
-            then ceval_step3 st c1 i'
-            else ceval_step3 st c2 i'
-      | WHILE b1 DO c1 END =>
-          if (beval st b1)
-          then match (ceval_step3 st c1 i') with
-               | Some st' => ceval_step3 st' c i'
-               | None => None
-               end
-          else Some st
-    end
-  end.
-```
+> ceval_step3 : (st : State) -> (c : Com) -> (i : Nat) -> Maybe State
+> ceval_step3 _ _ Z = Nothing
+> ceval_step3 st CSkip (S i') = Just st
+> ceval_step3 st (CAss l a1) (S i') = Just $ t_update l (aeval st a1) st
+> ceval_step3 st (CSeq c1 c2) (S i') = 
+>   case ceval_step3 st c1 i' of
+>     Just st' => ceval_step3 st' c2 i'
+>     Nothing => Nothing
+> ceval_step3 st (CIf b c1 c2) (S i') = 
+>   if beval st b
+>     then ceval_step3 st c1 i'
+>     else ceval_step3 st c2 i'
+> ceval_step3 st c@(CWhile b1 c1) (S i') = 
+>   if (beval st b1)
+>     then case ceval_step3 st c1 i' of 
+>            Just st' => ceval_step3 st' c i'
+>            Nothing => Nothing
+>     else Just st
 
-We can improve the readability of this version by introducing a bit of auxiliary
-notation to hide the plumbing involved in repeatedly matching against optional
+We can improve the readability of this version by using the fact that /idr{Maybe} forms a monad to hide the plumbing involved in repeatedly matching against optional
 states.
 
-```coq
-Notation "'LETOPT' x <== e1 'IN' e2"
-   := (match e1 with
-         | Some x => e2
-         | None => None
-       end)
-   (right associativity, at level 60).
+```idris
+Monad Maybe where
+    Nothing  >>= k = Nothing
+    (Just x) >>= k = k x
+```
 
-Fixpoint ceval_step (st : state) (c : com) (i : nat)
-                    : option state :=
-  match i with
-  | O => None
-  | S i' =>
-    match c with
-      | SKIP =>
-          Some st
-      | l ::= a1 =>
-          Some (t_update st l (aeval st a1))
-      | c1 ;; c2 =>
-          LETOPT st' <== ceval_step st c1 i' IN
-          ceval_step st' c2 i'
-      | IFB b THEN c1 ELSE c2 FI =>
-          if (beval st b)
-            then ceval_step st c1 i'
-            else ceval_step st c2 i'
-      | WHILE b1 DO c1 END =>
-          if (beval st b1)
-          then LETOPT st' <== ceval_step st c1 i' IN
-               ceval_step st' c i'
-          else Some st
-    end
-  end.
+> ceval_step : (st : State) -> (c : Com) -> (i : Nat) -> Maybe State
+> ceval_step _ _ Z = Nothing
+> ceval_step st CSkip (S i') = Just st
+> ceval_step st (CAss l a1) (S i') = Just $ t_update l (aeval st a1) st
+> ceval_step st (CSeq c1 c2) (S i') = 
+>   do st' <- ceval_step st c1 i'
+>      ceval_step st' c2 i'
+> ceval_step st (CIf b c1 c2) (S i') = 
+>   if beval st b
+>     then ceval_step st c1 i'
+>     else ceval_step st c2 i'
+> ceval_step st c@(CWhile b1 c1) (S i') = 
+>   if (beval st b1)
+>     then do st' <- ceval_step st c1 i'
+>             ceval_step st' c i'
+>     else Just st
 
-Definition test_ceval (st:state) (c:com) :=
-  match ceval_step st c 500 with
-  | None    => None
-  | Some st => Some (st X, st Y, st Z)
-  end.
+> test_ceval : (st : State) -> (c : Com) -> Maybe (Nat, Nat, Nat)
+> test_ceval st c  = case ceval_step st c 500 of
+>   Nothing => Nothing
+>   Just st => Just (st X, st Y, st Z)
 
-(* Compute
-     (test_ceval empty_state
-         (X ::= ANum 2;;
-          IFB BLe (AId X) (ANum 1)
-            THEN Y ::= ANum 3
-            ELSE Z ::= ANum 4
-          FI)).
-   ====>
-      Some (2, 0, 4)   *)
+\todo[inline]{Syntax sugar for IF breaks down here}
+
+```idris 
+λΠ> test_ceval Imp.empty_state (CSeq (X ::= ANum 2) (CIf (BLe (AId X) (ANum 1)) (Y ::= ANum 3) (Z ::= ANum 4)))
+Just (2, 0, 4) : Maybe (Nat, Nat, Nat)
 ```
 
 ==== Exercise: 2 stars, recommended (pup_to_n)
@@ -211,28 +170,23 @@ Write an Imp program that sums the numbers from \idr{1} to \idr{X} (inclusive:
 \idr{1 + 2 + ... + X}) in the variable \idr{Y}. Make sure your solution
 satisfies the test that follows.
 
-```coq
-Definition pup_to_n : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+> pup_to_n : Com
+> pup_to_n = ?pup_to_n_rhs
 
-(* 
-Example pup_to_n_1 :
-  test_ceval (t_update empty_state X 5) pup_to_n
-  = Some (0, 15, 0).
-Proof. reflexivity. Qed.
-*)
-(** [] *)
-```
+> pup_to_n_1 : test_ceval (t_update X 5 $ Imp.empty_state) Imp.pup_to_n = Just (0, 15, 0)
+> pup_to_n_1 = ?pup_to_n_1 -- replace with Refl when done
+
+$\square$
+
 
 ==== Exercise: 2 stars, optional (peven) 
 
 Write a \idr{While} program that sets \idr{Z} to \idr{0} if \idr{X} is even and
 sets \idr{Z} to \idr{1} otherwise. Use \idr{ceval_test} to test your program.
 
-```coq
-(* FILL IN HERE *)
-(** [] *)
-```
+> -- FILL IN HERE
+
+$\square$
 
 == Relational vs. Step-Indexed Evaluation
 
@@ -240,61 +194,33 @@ As for arithmetic and boolean expressions, we'd hope that the two alternative
 definitions of evaluation would actually amount to the same thing in the end.
 This section shows that this is the case. 
 
-```coq
-Theorem ceval_step__ceval: forall c st st',
-      (exists i, ceval_step st c i = Some st') ->
-      c / st \\ st'.
-Proof.
-  intros c st st' H.
-  inversion H as [i E].
-  clear H.
-  generalize dependent st'.
-  generalize dependent st.
-  generalize dependent c.
-  induction i as [| i' ].
+> ceval_step__ceval : (c : Com) -> (st, st' : State) -> (i ** ceval_step st c i = Just st') -> c / st \\ st'
+> ceval_step__ceval c st st' (Z ** prf) = absurd prf
+> ceval_step__ceval CSkip st st (S i ** Refl) = E_Skip
+> ceval_step__ceval (CAss l a) st st' (S i ** prf) = 
+>  rewrite sym $ justInjective prf in 
+>  E_Ass {n=aeval st a} Refl
+> ceval_step__ceval (CSeq c1 c2) st st' (S i ** prf) with (ceval_step st c1 i) proof c1prf
+>   ceval_step__ceval (CSeq c1 c2) st st' (S i ** prf) | Just st1 = 
+>     E_Seq (ceval_step__ceval c1 st st1 (i**sym c1prf))
+>           (ceval_step__ceval c2 st1 st' (i**prf))
+>   ceval_step__ceval (CSeq c1 c2) st st' (S i ** prf) | Nothing = absurd prf
+> ceval_step__ceval (CIf b c1 c2) st st' (S i ** prf) with (beval st b) proof bprf
+>   ceval_step__ceval (CIf b c1 c2) st st' (S i ** prf) | True  = 
+>     E_IfTrue (sym bprf) (ceval_step__ceval c1 st st' (i**prf))
+>   ceval_step__ceval (CIf b c1 c2) st st' (S i ** prf) | False = 
+>     E_IfFalse (sym bprf) (ceval_step__ceval c2 st st' (i**prf))
+> ceval_step__ceval (CWhile b c) st st' (S i ** prf) with (beval st b) proof bprf
+>   ceval_step__ceval (CWhile b c) st st' (S i ** prf) | True with (ceval_step st c i) proof cprf
+>     ceval_step__ceval (CWhile b c) st st' (S i ** prf) | True | Just st1 =
+>       E_WhileLoop (sym bprf) (ceval_step__ceval c st st1 (i**sym cprf)) 
 
-  - (* i = 0 -- contradictory *)
-    intros c st st' H. inversion H.
+\todo[inline]{Idris can't see sigma is decreasing, use WellFounded here?}
 
-  - (* i = S i' *)
-    intros c st st' H.
-    destruct c;
-           simpl in H; inversion H; subst; clear H.
-      + (* SKIP *) apply E_Skip.
-      + (* ::= *) apply E_Ass. reflexivity.
+>                              (assert_total $ ceval_step__ceval (CWhile b c) st1 st' (i**prf))       
+>     ceval_step__ceval (CWhile b c) st st' (S i ** prf) | True | Nothing = absurd prf
+>   ceval_step__ceval (CWhile b c) st st (S i ** Refl) | False = E_WhileEnd (sym bprf)
 
-      + (* ;; *)
-        destruct (ceval_step st c1 i') eqn:Heqr1.
-        * (* Evaluation of r1 terminates normally *)
-          apply E_Seq with s.
-            apply IHi'. rewrite Heqr1. reflexivity.
-            apply IHi'. simpl in H1. assumption.
-        * (* Otherwise -- contradiction *)
-          inversion H1.
-
-      + (* IFB *)
-        destruct (beval st b) eqn:Heqr.
-        * (* r = true *)
-          apply E_IfTrue. rewrite Heqr. reflexivity.
-          apply IHi'. assumption.
-        * (* r = false *)
-          apply E_IfFalse. rewrite Heqr. reflexivity.
-          apply IHi'. assumption.
-
-      + (* WHILE *) destruct (beval st b) eqn :Heqr.
-        * (* r = true *)
-         destruct (ceval_step st c i') eqn:Heqr1.
-         { (* r1 = Some s *)
-           apply E_WhileTrue with s. rewrite Heqr.
-           reflexivity.
-           apply IHi'. rewrite Heqr1. reflexivity.
-           apply IHi'. simpl in H1. assumption. }
-         { (* r1 = None *) inversion H1. }
-        * (* r = false *)
-          inversion H1.
-          apply E_WhileFalse.
-          rewrite <- Heqr. subst. reflexivity.  Qed.
-```
 
 ==== Exercise: 4 stars (ceval_step__ceval_inf)
 
@@ -304,81 +230,48 @@ look the same as for induction, except that there is no induction hypothesis.)
 Make your proof communicate the main ideas to a human reader; do not simply
 transcribe the steps of the formal proof.
 
-```coq
-(* FILL IN HERE *)
-[]
-*)
-```
+> -- FILL IN HERE
 
-```coq
-Theorem ceval_step_more: forall i1 i2 st st' c,
-  i1 <= i2 ->
-  ceval_step st c i1 = Some st' ->
-  ceval_step st c i2 = Some st'.
-Proof.
-induction i1 as [|i1']; intros i2 st st' c Hle Hceval.
-  - (* i1 = 0 *)
-    simpl in Hceval. inversion Hceval.
-  - (* i1 = S i1' *)
-    destruct i2 as [|i2']. inversion Hle.
-    assert (Hle': i1' <= i2') by omega.
-    destruct c.
-    + (* SKIP *)
-      simpl in Hceval. inversion Hceval.
-      reflexivity.
-    + (* ::= *)
-      simpl in Hceval. inversion Hceval.
-      reflexivity.
-    + (* ;; *)
-      simpl in Hceval. simpl.
-      destruct (ceval_step st c1 i1') eqn:Heqst1'o.
-      * (* st1'o = Some *)
-        apply (IHi1' i2') in Heqst1'o; try assumption.
-        rewrite Heqst1'o. simpl. simpl in Hceval.
-        apply (IHi1' i2') in Hceval; try assumption.
-      * (* st1'o = None *)
-        inversion Hceval.
+$\square$
 
-    + (* IFB *)
-      simpl in Hceval. simpl.
-      destruct (beval st b); apply (IHi1' i2') in Hceval;
-        assumption.
+> ceval_step_more : (i1, i2 : Nat) -> (st, st' : State) -> (c : Com) -> LTE i1 i2 -> ceval_step st c i1 = Just st' 
+>                -> ceval_step st c i2 = Just st'
+> ceval_step_more Z i2 st st' c lte prf = absurd prf
+> ceval_step_more (S i1) Z st st' c lte prf = absurd lte
+> ceval_step_more (S i1) (S i2) st st' CSkip lte prf = prf
+> ceval_step_more (S i1) (S i2) st st' (CAss l a) lte prf = prf
+> ceval_step_more (S i1) (S i2) st st' (CSeq c1 c2) lte prf with (ceval_step st c1 i1) proof cprf
+>   ceval_step_more (S i1) (S i2) st st' (CSeq c1 c2) lte prf | Just st1 = 
+>     rewrite ceval_step_more i1 i2 st st1 c1 (fromLteSucc lte) (sym cprf) in 
+>     ceval_step_more i1 i2 st1 st' c2 (fromLteSucc lte) prf
+>   ceval_step_more (S i1) (S i2) st st' (CSeq c1 c2) lte prf | Nothing = absurd prf
+> ceval_step_more (S i1) (S i2) st st' (CIf b c1 c2) lte prf with (beval st b) proof bprf
+>   ceval_step_more (S i1) (S i2) st st' (CIf b c1 c2) lte prf | True = 
+>     ceval_step_more i1 i2 st st' c1 (fromLteSucc lte) prf
+>   ceval_step_more (S i1) (S i2) st st' (CIf b c1 c2) lte prf | False = 
+>     ceval_step_more i1 i2 st st' c2 (fromLteSucc lte) prf
+> ceval_step_more (S i1) (S i2) st st' (CWhile b c) lte prf with (beval st b) 
+>   ceval_step_more (S i1) (S i2) st st' (CWhile b c) lte prf | True with (ceval_step st c i1) proof cprf
+>     ceval_step_more (S i1) (S i2) st st' (CWhile b c) lte prf | True | Just st1 = 
+>       rewrite ceval_step_more i1 i2 st st1 c (fromLteSucc lte) (sym cprf) in 
+>       ceval_step_more i1 i2 st1 st' (CWhile b c) (fromLteSucc lte) prf
+>     ceval_step_more (S i1) (S i2) st st' (CWhile b c) lte prf | True | Nothing = absurd prf
+>   ceval_step_more (S i1) (S i2) st st' (CWhile b c) lte prf | False = prf
 
-    + (* WHILE *)
-      simpl in Hceval. simpl.
-      destruct (beval st b); try assumption.
-      destruct (ceval_step st c i1') eqn: Heqst1'o.
-      * (* st1'o = Some *)
-        apply (IHi1' i2') in Heqst1'o; try assumption.
-        rewrite -> Heqst1'o. simpl. simpl in Hceval.
-        apply (IHi1' i2') in Hceval; try assumption.
-      * (* i1'o = None *)
-        simpl in Hceval. inversion Hceval.  Qed.
-```
 
 ==== Exercise: 3 stars, recommended (ceval__ceval_step)
 
 Finish the following proof. You'll need \idr{ceval_step_more} in a few places,
-as well as some basic facts about \idr{<=} and \idr{plus}. 
+as well as some basic facts about \idr{LTE} and \idr{+}. 
 
-```coq
-Theorem ceval__ceval_step: forall c st st',
-      c / st \\ st' ->
-      exists i, ceval_step st c i = Some st'.
-Proof.
-  intros c st st' Hce.
-  induction Hce.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+> ceval__ceval_step : (c : Com) -> (st, st' : State) -> (c / st \\ st') -> (i ** ceval_step st c i = Just st')
+> ceval__ceval_step c st st' prf = ?ceval__ceval_step_rhs 
 
-Theorem ceval_and_ceval_step_coincide: forall c st st',
-      c / st \\ st'
-  <-> exists i, ceval_step st c i = Some st'.
-Proof.
-  intros c st st'.
-  split. apply ceval__ceval_step. apply ceval_step__ceval.
-Qed.
-```
+$\square$
+
+> ceval_and_ceval_step_coincide : (c : Com) -> (st, st' : State) -> (c / st \\ st') <-> (i ** ceval_step st c i = Just st')
+> ceval_and_ceval_step_coincide c st st' = (ceval__ceval_step c st st', ceval_step__ceval c st st')
+
 
 == Determinism of Evaluation Again 
 
@@ -386,19 +279,12 @@ Using the fact that the relational and step-indexed definition of evaluation are
 the same, we can give a slicker proof that the evaluation _relation_ is
 deterministic. 
 
-```coq
-Theorem ceval_deterministic' : forall c st st1 st2,
-     c / st \\ st1  ->
-     c / st \\ st2 ->
-     st1 = st2.
-Proof.
-  intros c st st1 st2 He1 He2.
-  apply ceval__ceval_step in He1.
-  apply ceval__ceval_step in He2.
-  inversion He1 as [i1 E1].
-  inversion He2 as [i2 E2].
-  apply ceval_step_more with (i2 := i1 + i2) in E1.
-  apply ceval_step_more with (i2 := i1 + i2) in E2.
-  rewrite E1 in E2. inversion E2. reflexivity.
-  omega. omega.  Qed.
-```
+> ceval_deterministic' : (c : Com) -> (st, st1, st2 : State) -> (c / st \\ st1) -> (c / st \\ st2) -> st1 = st2
+> ceval_deterministic' c st st1 st2 prf1 prf2 = 
+>   let 
+>     (i1**e1) = ceval__ceval_step c st st1 prf1 
+>     (i2**e2) = ceval__ceval_step c st st2 prf2 
+>     plus1 = ceval_step_more i1 (i1+i2) st st1 c (lteAddRight i1) e1
+>     plus2 = ceval_step_more i2 (i1+i2) st st2 c (rewrite plusCommutative i1 i2 in lteAddRight i2) e2
+>     in     
+>   justInjective (trans (sym plus1) plus2)
