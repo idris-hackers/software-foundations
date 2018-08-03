@@ -173,7 +173,7 @@ satisfies the test that follows.
 > pup_to_n : Com
 > pup_to_n = ?pup_to_n_rhs
 
-> pup_to_n_1 : test_ceval (t_update X 5 $ Imp.empty_state) Imp.pup_to_n = Just (0, 15, 0)
+> pup_to_n_1 : test_ceval (t_update X 5 $ Imp.empty_state) ImpCEvalFun.pup_to_n = Just (0, 15, 0)
 > pup_to_n_1 = ?pup_to_n_1 -- replace with Refl when done
 
 $\square$
@@ -182,7 +182,7 @@ $\square$
 ==== Exercise: 2 stars, optional (peven) 
 
 Write a \idr{While} program that sets \idr{Z} to \idr{0} if \idr{X} is even and
-sets \idr{Z} to \idr{1} otherwise. Use \idr{ceval_test} to test your program.
+sets \idr{Z} to \idr{1} otherwise. Use \idr{test_ceval} to test your program.
 
 > -- FILL IN HERE
 
@@ -262,7 +262,7 @@ $\square$
 ==== Exercise: 3 stars, recommended (ceval__ceval_step)
 
 Finish the following proof. You'll need \idr{ceval_step_more} in a few places,
-as well as some basic facts about \idr{LTE} and \idr{+}. 
+as well as some basic facts about \idr{LTE} and \idr{S}. 
 
 > ceval__ceval_step : (c : Com) -> (st, st' : State) -> (c / st \\ st') -> (i ** ceval_step st c i = Just st')
 > ceval__ceval_step c st st' prf = ?ceval__ceval_step_rhs 
@@ -287,4 +287,4 @@ deterministic.
 >     plus1 = ceval_step_more i1 (i1+i2) st st1 c (lteAddRight i1) e1
 >     plus2 = ceval_step_more i2 (i1+i2) st st2 c (rewrite plusCommutative i1 i2 in lteAddRight i2) e2
 >     in     
->   justInjective (trans (sym plus1) plus2)
+>   justInjective $ trans (sym plus1) plus2
