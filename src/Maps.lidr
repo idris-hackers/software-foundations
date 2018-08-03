@@ -255,7 +255,7 @@ boolean function \idr{beq_id}.
 Use the proof of \idr{beq_natP} in chapter `IndProp` as a template to prove the
 following:
 
-> beq_idP : {x1, x2 : Id} -> Reflect (x = y) (beq_id x y)
+> beq_idP : {x, y : Id} -> Reflect (x = y) (beq_id x y)
 > beq_idP = ?beq_idP_rhs
 >
 
