@@ -291,7 +291,7 @@ Qed.
 Using `try` and `;` together, we can get rid of the repetition in the proof that
 was bothering us a little while ago.
 
-\todo[inline]{Mention
+\ \todo[inline]{Mention
 http://docs.idris-lang.org/en/latest/reference/misc.html#alternatives ?}
 
 ```coq
@@ -503,7 +503,7 @@ try Refl.`"
 
 === The `omega` Tactic
 
-\ \todo[inline]{Probably related to https://github.com/forestbelton/cooper}
+\ \todo[inline]{Related to https://github.com/forestbelton/cooper}
 
 The `omega` tactic implements a decision procedure for a subset of first-order
 logic called _Presburger arithmetic_. It is based on the Omega algorithm
@@ -582,7 +582,7 @@ data AEvalR : AExp0 -> Nat -> Type where
     AEvalR (AMult0 e1 e2) (n1 * n2)
 ```
 
-\todo[inline]{Edit}
+\ \todo[inline]{Edit}
 
 It will be convenient to have an infix notation for \idr{AEvalR}. We'll write
 \idr{e \\ n} to mean that arithmetic expression \idr{e} evaluates to value
@@ -601,7 +601,7 @@ together with a declaration of what the notation means.
 >   E_APlus : e1 \\ n1 -> e2 \\ n2 -> n = n1 + n2 ->
 >             (APlus0 e1 e2) \\ n
 
-\todo[inline]{We don't use \idr{-} since it requires a proof of \idr{LTE n1 n2}}
+\ \todo[inline]{We don't use \idr{-} since it requires a proof of \idr{LTE n1 n2}}
 
 >   E_AMinus : e1 \\ n1 -> e2 \\ n2 -> n = n1 `minus` n2 ->
 >              (AMinus0 e1 e2) \\ n
@@ -709,17 +709,11 @@ evaluation agree:
 >   fro : (aeval0 a = n) -> (a \\ n)
 >   fro {a=ANum0 n} Refl = E_ANum
 >   fro {a=APlus0 x y} prf =
->     E_APlus (fro {a=x} {n=aeval0 x} Refl)
->             (fro {a=y} {n=aeval0 y} Refl)
->             (sym prf)
+>     E_APlus (fro Refl) (fro Refl) (sym prf)
 >   fro {a=AMinus0 x y} prf =
->     E_AMinus (fro {a=x} {n=aeval0 x} Refl)
->              (fro {a=y} {n=aeval0 y} Refl)
->              (sym prf)
+>     E_AMinus (fro Refl) (fro Refl) (sym prf)
 >   fro {a=AMult0 x y} prf =
->     E_AMult (fro {a=x} {n=aeval0 x} Refl)
->             (fro {a=y} {n=aeval0 y} Refl)
->             (sym prf)
+>     E_AMult (fro Refl) (fro Refl) (sym prf)
 
 We can make the proof quite a bit shorter by making more use of tacticals.
 
@@ -741,12 +735,12 @@ Qed.
 ==== Exercise: 3 stars (bevalR)
 
 Write a relation \idr{BEvalR} in the same style as \idr{AEvalR}, and prove that
-it is equivalent to \idr{beval}.
+it is equivalent to \idr{beval0}.
 
-> -- data BevalR : BExp0 -> (b : Bool) -> Type where
+> -- data BEvalR : BExp0 -> (b : Bool) -> Type where
 >   -- FILL IN HERE
 >
-> -- beval_iff_bevalR : (BEvalR b bv) <-> beval b = bv
+> -- beval_iff_bevalR : (BEvalR b bv) <-> beval0 b = bv
 
 $\square$
 
@@ -832,7 +826,7 @@ than functional ones. For situations like these, where the thing being defined
 is not easy to express as a function, or indeed where it is _not_ a function,
 there is no choice. But what about when both styles are workable?
 
-\todo[inline]{Edit}
+\ \todo[inline]{Edit}
 
 One point in favor of relational definitions is that some people feel they are
 more elegant and easier to understand. Another is that Idris automatically
@@ -911,7 +905,7 @@ to read:
 > Z : Id
 > Z = MkId "Z"
 
-\todo[inline]{Edit}
+\ \todo[inline]{Edit}
 
 (This convention for naming program variables (\idr{X}, \idr{Y}, \idr{Z})
 clashes a bit with our earlier use of uppercase letters for types. Since we're
@@ -1008,7 +1002,7 @@ To avoid conflicts with Idris's built-in notations, we keep this light — in
 particular, we don't introduce any notations for \idr{AExp}s and \idr{BExp}s to
 avoid confusion with the numeric and boolean operators we've already defined.
 
-\todo[inline]{Explain do-notation}
+\ \todo[inline]{Explain do-notation}
 
 > infix 5 ::= 
 
@@ -1074,9 +1068,7 @@ definition to Idris:
 ==== An infinite loop:
 
 > loop : Com
-> loop =
->   WHILE BTrue $ do
->     SKIP
+> loop = WHILE BTrue SKIP
 
 
 == Evaluating Commands
@@ -1124,7 +1116,7 @@ any potentially non-terminating function needs to be rejected. Here is an
 (invalid!) program showing what would go wrong if Idris allowed non-terminating
 recursive functions:
 
-\todo[inline]{Edit, discuss \idr{partial}}
+\ \todo[inline]{Edit, discuss \idr{partial}}
 
 ```idris
 loop_false : (n : Nat) -> Void
@@ -1348,13 +1340,13 @@ definitions. This section explores some examples.
 
 > plus2_spec : st X = n -> (Imp.plus2 / st \\ st') -> st' X = n + 2
 
-\todo[inline]{Edit}
+\ \todo[inline]{Edit}
 
 Inverting `Heval` essentially forces Idris to expand one step of the \idr{CEval}
 computation — in this case revealing that \idr{st'} must be st extended with the
 new value of \idr{X}, since \idr{plus2} is an assignment
 
-> plus2_spec prf (E_Ass aev) = rewrite sym aev in rewrite prf in Refl
+> plus2_spec Refl (E_Ass Refl) = Refl
 
 
 ==== Exercise: 3 stars, recommendedM (XtimesYinZ_spec)
@@ -1371,7 +1363,7 @@ $\square$
 > loop_never_stops : Not (Imp.loop / st \\ st')
 > loop_never_stops contra = ?loop_never_stops_rhs
 
-\todo[inline]{Edit the hint}
+\ \todo[inline]{Edit the hint}
 
 ```coq
 Proof.
@@ -1418,7 +1410,6 @@ $\square$
 
 Imp programs that don't involve while loops always terminate. State and prove a
 theorem \idr{no_whiles_terminating} that says this. Use either \idr{no_whiles}
-
 or \idr{No_whilesR}, as you prefer.
 
 > -- FILL IN HERE
@@ -1497,7 +1488,7 @@ Note that the specification leaves unspecified what to do when encountering an
 than two elements. In a sense, it is immaterial what we do, since our compiler
 will never emit such a malformed program.
 
-> s_execute : (st : state) -> (stack : List Nat) -> (prog : List SInstr) ->
+> s_execute : (st : State) -> (stack : List Nat) -> (prog : List SInstr) ->
 >             List Nat
 > s_execute st stack prog = ?s_execute_rhs
 
@@ -1538,13 +1529,18 @@ Prove the following theorem. You will need to start by stating a more general
 lemma to get a usable induction hypothesis; the main theorem will then be a
 simple corollary of this lemma.
 
-> s_compile_correct : s_execute st [] (s_compile e) = [aeval st e]
-> s_compile_correct = ?s_compile_correct_rhs
+\ \todo[inline]{Tip: make parameters explicit in general lemma, or Idris will 
+get lost}
+
+> s_compile_correct : (st : State) -> (e : AExp) -> s_execute st [] (s_compile e) = [aeval st e]
+> s_compile_correct st e = ?s_compile_correct_rhs
 
 $\square$
 
 
 ==== Exercise: 3 stars, optional (short_circuit)
+
+\ \todo[inline]{This already happens since Idris' && short-circuits}
 
 Most modern programming languages use a "short-circuit" evaluation rule for
 boolean \idr{and}: to evaluate \idr{BAnd b1 b2}, first evaluate \idr{b1}. If it
@@ -1707,6 +1703,14 @@ $\square$
 
 
 ==== Exercise: 4 stars, advanced, optional (cevalB_deterministic)
+
+These will come in handy in the following exercise:
+
+>   Uninhabited (SBreak = SContinue) where
+>     uninhabited Refl impossible
+>
+>   Uninhabited (SContinue = SBreak) where
+>     uninhabited Refl impossible
 
 >   cevalB_deterministic : (c // st \\ s1 / st1) ->
 >                          (c // st \\ s2 / st2) ->
