@@ -833,9 +833,9 @@ Proof.
 
 (** Third, [multi R] is _transitive_. *)
 
-> multi_trans: {X:Type} -> {R: Relation X} -> (x, y, z : X) ->
+> multi_trans: {X:Type} -> {R: Relation X} -> {x, y, z : X} ->
 >   Multi R x y  -> Multi R y z -> Multi R x z
-> multi_trans _ _ _ m1 m2 =
+> multi_trans m1 m2 =
 >    case m1 of
 >      Multi_refl => m2
 >      Multi_step r _ => Multi_step r Multi_refl
@@ -1073,19 +1073,47 @@ Proof.
       It is clear that our choice of [t' = C (n1 + n2)] is a value,
       which is in turn a normal form. [] *)
 
+
+--     > normalizing : {X: Type} -> (R: Relation X) -> Type
+--     > normalizing {X=x} {R=r} = (t: x) -> (t' : x ** ((Multi r) t t', normal_form r t'))
+
+
 > step_normalizing : normalizing Smallstep.Step
 > step_normalizing (C n) = (C n ** (Multi_refl, notStepCN))
 >   where notStepCN: (t' : Tm ** Smallstep.Step (C n) t') -> Void
 >         notStepCN (t' ** c) impossible
 > step_normalizing (P l r) =
->   let (t1 ** (ih1l,ih1r)) = step_normalizing l
->       (t2 ** (ih2l,ih2r)) = step_normalizing r
->       interm : ((P l r) ==>* P _ r) = multistep_congr_1 ih1l
->   in case interm of
->     Multi_refl => ?hole --(C n ** (Multi_refl, notStepCN))
+>   let (_ ** (ih1l,(ih1r))) = step_normalizing l
+>       (_ ** (ih2l,(ih2r))) = step_normalizing r
+>       ih1v = (fst nf_same_as_value) ih1r
+>       ih2v = (fst nf_same_as_value) ih2r
+>       n1   = lemma_get ih1v
+>       n2   = lemma_get ih2v
+>       (n1**p1)   = lemma_deconstruct ih1v
+>       (n2**p2)   = lemma_deconstruct ih2v
+>       m1 = replace p1 ih1l
+>       m2 = replace p2 ih2l
 
--- \ e => (e ** (?hole1, ?hole2)) ?hole0
+>       reduction : ((P l r) ==>* (C (plus n1 n2))) =
+>         let left_transform = multistep_congr_1 m1
+>             right_transform =
+>               let leftT = multistep_congr_2 (V_const n1) m2
+>                   rightT = Multi_step ST_PlusConstConst Multi_refl
+>                   conc2 = multi_trans {x=P (C n1) r} {y=P (C n1) (C n2)} {z=C (plus n1 n2)}
+>               in conc2 leftT rightT
+>             conc1 = multi_trans {x=P l r} {y=P (C n1) r} {z=C (plus n1 n2)}
+>         in conc1 left_transform right_transform
 
+>       normal_form : ((t'1 : Tm ** Smallstep.Step (C (plus n1 n2)) t'1) -> Void) =
+>         (snd nf_same_as_value) (V_const (plus n1 n2))
+
+>   in (C (n1 + n2) ** (reduction, normal_form))
+>     where
+>           lemma_get : Value v -> Nat
+>           lemma_get (V_const n) = n
+
+>           lemma_deconstruct : Value v -> (n : Nat ** v = C n)
+>           lemma_deconstruct v@(V_const n) = (n ** Refl)
 
 Theorem step_normalizing :
   normalizing step.
