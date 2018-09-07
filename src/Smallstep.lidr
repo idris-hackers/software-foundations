@@ -244,26 +244,26 @@ Imp language.
 
 
 > deterministic : {xt: Type} -> (r: Relation xt) -> Type
-> deterministic {xt} r = {x, y1, y2: xt} -> r x y1 -> r x y2 -> y1 = y2
+> deterministic {xt} r = (x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
 
 > namespace SimpleArith2
 
 >   step_deterministic : deterministic Step
->   step_deterministic ST_PlusConstConst hyp =
+>   step_deterministic _ _ _ ST_PlusConstConst hyp =
 >     case hyp of
 >       ST_PlusConstConst => Refl
 >       ST_Plus1 _ impossible
 >       ST_Plus2 _ impossible
->   step_deterministic (ST_Plus1 l) hyp =
+>   step_deterministic _ _ _ (ST_Plus1 l) hyp =
 >     case hyp of
 >       ST_PlusConstConst impossible
->       ST_Plus1 l' => rewrite step_deterministic l l' in Refl
+>       ST_Plus1 l' => rewrite step_deterministic _ _ _ l l' in Refl
 >       ST_Plus2 _ impossible
->   step_deterministic (ST_Plus2 r) hyp =
+>   step_deterministic _ _ _ (ST_Plus2 r) hyp =
 >     case hyp of
 >       ST_PlusConstConst impossible
 >       ST_Plus1 _ impossible
->       ST_Plus2 r' => rewrite step_deterministic r r' in Refl
+>       ST_Plus2 r' => rewrite step_deterministic _ _ _ r r' in Refl
 
 (* ================================================================= *)
 (** ** Values *)
@@ -774,7 +774,7 @@ multi-step closure of [R]_ as follows.
 
 > data Multi: {X: Type} -> (R: Relation X) -> (x: X) -> (y : X) -> Type where
 >   Multi_refl  : {X: Type} -> {R: Relation X} -> {x : X} ->  Multi R x x
->   Multi_step : {X: Type} -> {R: Relation X} -> {x, y, z : X} -> R x y -> Multi R y z -> Multi R x z.
+>   Multi_step  : {X: Type} -> {R: Relation X} -> {x, y, z : X} -> R x y -> Multi R y z -> Multi R x z.
 
 Inductive multi {X:Type} (R: relation X) : relation X :=
   | multi_refl  : forall (x : X), multi R x x
@@ -989,18 +989,27 @@ Proof.
 > notStepEqual (ST_Plus2 s h) = notStepEqual h
 
 > normal_forms_unique : deterministic Smallstep.normal_form_of
-> normal_forms_unique h h' =
->    (\ (l,r) => (\ (l',r') =>
+> normal_forms_unique x z1 z2 (l,r) (l2,r2) =
 >     case l of
 >       Multi_refl =>
->         case l' of
+>         case l2 of
 >           Multi_refl => Refl
->           Multi_step {y} single mult => void (r (y ** single))
->       Multi_step {x} {y} {z} single mult =>
->         case l' of
->           Multi_refl => void (r' (y ** single))
->           Multi_step {x} {y=y1} {z=z1} single' mult' => ?holeXX
->       ) h') h
+>           Multi_step {x} {y=y'} single mult => void (r (y' ** single))
+>       Multi_step {x} {y} single mult =>
+>         case l2 of
+>           Multi_refl => void (r2 (y ** single))
+>           Multi_step {x} {y=y'} single' mult' => ?hole
+
+-- >             let indHyp1 = step_deterministic x y y' -- single single'
+-- >                 indHyp2 = normal_forms_unique y z1 z2
+-- >             in ?hole
+
+-- > deterministic : {xt: Type} -> (r: Relation xt) -> Type
+-- > deterministic {xt} r = (x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
+
+> -- normal_form_of : Tm -> Tm -> Type
+> -- normal_form_of t t' = ((t ==>* t'), step_normal_form t')
+
 
 (** Indeed, something stronger is true for this language (though not
     for all languages): the reduction of _any_ term [t] will
