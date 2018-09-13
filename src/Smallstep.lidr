@@ -243,27 +243,27 @@ Imp language.
 (** Formally: *)
 
 
-> deterministic : {xt: Type} -> (r: Relation xt) -> Type
-> deterministic {xt} r = (x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
+> deterministic : {xt: Type} -> {x: xt} -> {y1: xt} -> {y2: xt} -> (r: Relation xt) -> Type
+> deterministic {xt} {x} {y1} {y2} r =  r x y1 -> r x y2 -> y1 = y2
 
 > namespace SimpleArith2
 
 >   step_deterministic : deterministic Step
->   step_deterministic _ _ _ ST_PlusConstConst hyp =
+>   step_deterministic ST_PlusConstConst hyp =
 >     case hyp of
 >       ST_PlusConstConst => Refl
 >       ST_Plus1 _ impossible
 >       ST_Plus2 _ impossible
->   step_deterministic _ _ _ (ST_Plus1 l) hyp =
+>   step_deterministic (ST_Plus1 l) hyp =
 >     case hyp of
 >       ST_PlusConstConst impossible
->       ST_Plus1 l' => rewrite step_deterministic _ _ _ l l' in Refl
+>       ST_Plus1 l' => rewrite step_deterministic l l' in Refl
 >       ST_Plus2 _ impossible
->   step_deterministic _ _ _ (ST_Plus2 r) hyp =
+>   step_deterministic (ST_Plus2 r) hyp =
 >     case hyp of
 >       ST_PlusConstConst impossible
 >       ST_Plus1 _ impossible
->       ST_Plus2 r' => rewrite step_deterministic _ _ _ r r' in Refl
+>       ST_Plus2 r' => rewrite step_deterministic r r' in Refl
 
 (* ================================================================= *)
 (** ** Values *)
@@ -988,8 +988,8 @@ Proof.
 > notStepEqual (ST_Plus1 h) = notStepEqual h
 > notStepEqual (ST_Plus2 s h) = notStepEqual h
 
-> normal_forms_unique : deterministic Smallstep.normal_form_of
-> normal_forms_unique x z1 z2 (l,r) (l2,r2) =
+> normal_forms_unique : deterministic {x} {y1} {y2} Smallstep.normal_form_of
+> normal_forms_unique (l,r) (l2,r2) =
 >     case l of
 >       Multi_refl =>
 >         case l2 of
@@ -998,14 +998,13 @@ Proof.
 >       Multi_step {x} {y} single mult =>
 >         case l2 of
 >           Multi_refl => void (r2 (y ** single))
->           Multi_step {x} {y=y'} single' mult' => ?hole
-
--- >             let indHyp1 = step_deterministic x y y' -- single single'
--- >                 indHyp2 = normal_forms_unique y z1 z2
--- >             in ?hole
+>           Multi_step {x} {y=y'} single' mult' =>
+>             let -- indHyp1 = step_deterministic single single'
+>                 -- indHyp2 = normal_forms_unique y z1 z2
+>             in ?hole
 
 -- > deterministic : {xt: Type} -> (r: Relation xt) -> Type
--- > deterministic {xt} r = (x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
+-- > deterministic {xt} r = {x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
 
 > -- normal_form_of : Tm -> Tm -> Type
 > -- normal_form_of t t' = ((t ==>* t'), step_normal_form t')
@@ -1041,11 +1040,12 @@ Definition normalizing {X:Type} (R:relation X) :=
 
 (** **** Exercise: 2 stars (multistep_congr_2)  *)
 
-> multistep_congr_2 : {t1, t2', t2: Tm} -> (Value t1) -> (t2 ==>* t2') -> ((P t1 t2) ==>* P t1 t2')
-> multistep_congr_2 {t2'} {t2} (V_const i) mult =
+> multistep_congr_2 : {t1, t2', t2: Tm} -> {v:Value t1} -> (t2 ==>* t2') -> ((P t1 t2) ==>* P t1 t2')
+> multistep_congr_2 {t2'} {t2} {v=V_const i} mult =
 >   case mult of
 >     Multi_refl => Multi_refl
 >     Multi_step step mult => Multi_step (ST_Plus2 (V_const i) step) Multi_refl
+
 
 Lemma multistep_congr_2 : forall t1 t2 t2',
      value t1 ->
@@ -1106,7 +1106,7 @@ Proof.
 >       reduction : ((P l r) ==>* (C (plus n1 n2))) =
 >         let left_transform = multistep_congr_1 m1
 >             right_transform =
->               let leftT = multistep_congr_2 (V_const n1) m2
+>               let leftT = multistep_congr_2 {v=V_const n1} m2
 >                   rightT = Multi_step ST_PlusConstConst Multi_refl
 >                   conc2 = multi_trans {x=P (C n1) r} {y=P (C n1) (C n2)} {z=C (plus n1 n2)}
 >               in conc2 leftT rightT
@@ -1166,8 +1166,15 @@ Proof.
     details are left as an exercise. *)
 
 (** **** Exercise: 3 stars (eval__multistep)  *)
-Theorem eval__multistep : forall t n,
-  t \\ n -> t ==>* C n.
+
+> eval__multistep : {t: Tm} -> {n: Nat} -> t # n -> t ==>* C n
+> eval__multistep hyp =
+>   case hyp of
+>     E_Const => Multi_refl
+>     E_Plus l r =>
+>       let hypl = multistep_congr_1 (eval__multistep l)
+>           hypr = multistep_congr_2 {v = V_const _}(eval__multistep r)
+>       in multi_trans (multi_trans hypl hypr)(Multi_step Smallstep.ST_PlusConstConst Multi_refl)
 
 (** The key ideas in the proof can be seen in the following picture:
 
