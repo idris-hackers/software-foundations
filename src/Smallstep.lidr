@@ -5,8 +5,7 @@
 > module Smallstep
 > %access public export
 > %default total
-
-
+> %hide Language.Reflection.P
 
 The evaluators we have seen so far (for `aexp`s, `bexp`s,
 commands, ...) have been formulated in a "big-step" style: they
@@ -278,7 +277,7 @@ Formally:
 >     ST_Plus2' r' => rewrite step_deterministic r r' in Refl
 
 
-== Values
+=== Values
 
 Next, it will be useful to slightly reformulate the
     definition of single-step reduction by stating it in terms of
@@ -393,7 +392,7 @@ Most of this proof is the same as the one above.  But to get
 >
 
 
-== Strong Progress and Normal Forms
+=== Strong Progress and Normal Forms
 
 The definition of single-step reduction for our toy language
     is fairly simple, but for a larger language it would be easy to
@@ -424,7 +423,7 @@ _Proof_: By induction on `t`.
 
 Or, formally:
 
-> strong_progress : (t: Tm) -> Either (Value t) (t': Tm ** Smallstep.Step t t')
+> strong_progress : (t: Tm) -> Either (Value t) (t': Tm ** Step t t')
 
 > strong_progress (C n) = Left (V_const n)
 > strong_progress (P (C n) r) = Right $
@@ -432,11 +431,11 @@ Or, formally:
 >       (C n')    =>  (C (n + n') ** ST_PlusConstConst)
 >       (P l' r') =>  case strong_progress (P l' r') of
 >                           Right (r ** prf1) => (P (C n) r ** ST_Plus2 (V_const n) prf1)
->                           Left (V_const (Smallstep.P l r)) impossible
+>                           Left (V_const (P l r)) impossible
 > strong_progress (P (P l' r') r) = Right $
 >     case strong_progress (P l' r') of
 >       Right (l ** prf1) => (P l r  ** ST_Plus1 prf1)
->       Left (V_const (Smallstep.P l r)) impossible
+>       Left (V_const (P l r)) impossible
 
 This important property is called _strong progress_, because
     every term either is a value or can "make progress" by stepping to
@@ -466,15 +465,15 @@ We can use this terminology to generalize the observation we made
     in the strong progress theorem: in this language, normal forms and
     values are actually the same thing.
 
-> value_is_nf : (v : Tm) -> Value v -> normal_form Smallstep.Step v
+> value_is_nf : (v : Tm) -> Value v -> normal_form Step v
 > value_is_nf (C n) prf = notStepCN
->   where notStepCN: (t' : Tm ** Smallstep.Step (C n) t') -> Void
+>   where notStepCN: (t' : Tm ** Step (C n) t') -> Void
 >         notStepCN (t' ** c) impossible
 > value_is_nf (P l r) prf = void (notValueP prf)
 >   where notValueP: Not (Value (P l r))
 >         notValueP (V_const _) impossible
 
-> nf_is_value : (v : Tm) -> normal_form Smallstep.Step v -> Value v
+> nf_is_value : (v : Tm) -> normal_form Step v -> Value v
 > nf_is_value (C n) prf = V_const n
 > nf_is_value (P l r) prf =
 >   case strong_progress (P l r) of
@@ -486,7 +485,7 @@ We can use this terminology to generalize the observation we made
 
 > syntax [p] "<->" [q] = iff {p} {q}
 
-> nf_same_as_value : (normal_form Smallstep.Step t) <-> (Value t)
+> nf_same_as_value : (normal_form Step t) <-> (Value t)
 > nf_same_as_value {t} = (nf_is_value t,value_is_nf t)
 
 Why is this interesting?
@@ -580,92 +579,80 @@ Finally, we might define `value` and `step` so that there is some
 > value_not_same_as_normal_form'''' = ?value_not_same_as_normal_form_rhs''''
 
 
-(* ----------------------------------------------------------------- *)
-(** *** Additional Exercises *)
+=== Additional Exercises
 
-Module Temp4.
-
-(** Here is another very simple language whose terms, instead of being
+Here is another very simple language whose terms, instead of being
     just addition expressions and numbers, are just the booleans true
-    and false and a conditional expression... *)
+    and false and a conditional expression...
 
-Inductive tm : Type :=
-  | ttrue : tm
-  | tfalse : tm
-  | tif : tm -> tm -> tm -> tm.
+> data TmB : Type where
+>   Ttrue : TmB
+>   Tfalse : TmB
+>   Tif : TmB -> TmB -> TmB -> TmB
 
-Inductive value : tm -> Prop :=
-  | v_true : value ttrue
-  | v_false : value tfalse.
+> data ValueB : TmB -> Type where
+>   V_true : ValueB Ttrue
+>   V_false : ValueB Tfalse
 
-Reserved Notation " t '->>' t' " (at level 40).
 
-Inductive step : tm -> tm -> Prop :=
-  | ST_IfTrue : forall t1 t2,
-      tif ttrue t1 t2 ->> t1
-  | ST_IfFalse : forall t1 t2,
-      tif tfalse t1 t2 ->> t2
-  | ST_If : forall t1 t1' t2 t3,
-      t1 ->> t1' ->
-      tif t1 t2 t3 ->> tif t1' t2 t3
+> mutual
+>   infixl 6 ->-
+>   (->-) : TmB -> TmB -> Type
+>   (->-) = StepB
+>
+>   data StepB : TmB -> TmB -> Type where
+>     ST_IfTrue : Tif Ttrue t1 t2 ->- t1
+>     ST_IfFalse : Tif Tfalse t1 t2 ->- t2
+>     ST_If : t1 ->- t1' -> Tif t1 t2 t3 ->- Tif t1' t2 t3
 
-  where " t '->>' t' " := (step t t').
 
-(** **** Exercise: 1 star (smallstep_bools)  *)
-(** Which of the following propositions are provable?  (This is just a
+==== Exercise: 1 star (smallstep_bools)
+
+Which of the following propositions are provable?  (This is just a
     thought exercise, but for an extra challenge feel free to prove
-    your answers in Coq.) *)
+    your answers in Idris.)
 
-Definition bool_step_prop1 :=
-  tfalse ->> tfalse.
+> bool_step_prop1 : Tfalse ->- Tfalse
+> bool_step_prop1 = ?bool_step_prop1_rhs
 
-(* FILL IN HERE *)
+> bool_step_prop2 :
+>     Tif
+>       Ttrue
+>       (Tif Ttrue Ttrue Ttrue)
+>       (Tif Tfalse Tfalse Tfalse)
+>  ->-
+>     Ttrue
+> bool_step_prop2 = ?bool_step_prop2_rhs
 
-Definition bool_step_prop2 :=
-     tif
-       ttrue
-       (tif ttrue ttrue ttrue)
-       (tif tfalse tfalse tfalse)
-  ->>
-     ttrue.
+> bool_step_prop3 :
+>     Tif
+>       (Tif Ttrue Ttrue Ttrue)
+>       (Tif Ttrue Ttrue Ttrue)
+>       Tfalse
+>   ->-
+>     Tif
+>       Ttrue
+>       (Tif Ttrue Ttrue Ttrue)
+>       Tfalse
+> bool_step_prop3 = ?bool_step_prop3_rhs
 
-(* FILL IN HERE *)
 
-Definition bool_step_prop3 :=
-     tif
-       (tif ttrue ttrue ttrue)
-       (tif ttrue ttrue ttrue)
-       tfalse
-   ->>
-     tif
-       ttrue
-       (tif ttrue ttrue ttrue)
-       tfalse.
+==== Exercise: 3 stars, optional (progress_bool)
 
-(* FILL IN HERE *)
-(** [] *)
+Just as we proved a progress theorem for plus expressions, we can
+    do so for boolean expressions, as well.
 
-(** **** Exercise: 3 stars, optional (progress_bool)  *)
-(** Just as we proved a progress theorem for plus expressions, we can
-    do so for boolean expressions, as well. *)
+> strong_progressB : {t : TmB} -> (ValueB t, (t': TmB ** t ->- t'))
+> strong_progressB = ?strong_progressB_rhs
 
-Theorem strong_progress : forall t,
-  value t \/ (exists t', t ->> t').
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 2 stars, optional (step_deterministic)
 
-(** **** Exercise: 2 stars, optional (step_deterministic)  *)
-Theorem step_deterministic :
-  deterministic step.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+> step_deterministicB : deterministic StepB
+> step_deterministicB = ?step_deterministicB_rhs
 
-Module Temp5.
+==== Exercise: 2 stars (smallstep_bool_shortcut)
 
-(** **** Exercise: 2 stars (smallstep_bool_shortcut)  *)
-(** Suppose we want to add a "short circuit" to the step relation for
+Suppose we want to add a "short circuit" to the step relation for
     boolean expressions, so that it can recognize when the `then` and
     `else` branches of a conditional are the same value (either
     `ttrue` or `tfalse`) and reduce the whole conditional to this
@@ -673,198 +660,155 @@ Module Temp5.
     to a value. For example, we would like this proposition to be
     provable:
 
-         tif
-            (tif ttrue ttrue ttrue)
-            tfalse
-            tfalse
-     ->>
-         tfalse.
-*)
+```idris
+     tif
+        (tif ttrue ttrue ttrue)
+        tfalse
+        tfalse
+ ->>
+     tfalse.
+```
 
-(** Write an extra clause for the step relation that achieves this
-    effect and prove `bool_step_prop4`. *)
+Write an extra clause for the step relation that achieves this
+    effect and prove `bool_step_prop4`.
 
-Reserved Notation " t '->>' t' " (at level 40).
+> mutual
+>   infixl 6 ->->
+>   (->->) : TmB -> TmB -> Type
+>   (->->) = StepB'
+>
+>   data StepB' : TmB -> TmB -> Type where
+>     ST_IfTrue' : Tif Ttrue t1 t2 ->-> t1
+>     ST_IfFalse' : Tif Tfalse t1 t2 ->-> t2
+>     ST_If' : t1 ->-> t1' -> Tif t1 t2 t3 ->-> Tif t1' t2 t3
 
-Inductive step : tm -> tm -> Prop :=
-  | ST_IfTrue : forall t1 t2,
-      tif ttrue t1 t2 ->> t1
-  | ST_IfFalse : forall t1 t2,
-      tif tfalse t1 t2 ->> t2
-  | ST_If : forall t1 t1' t2 t3,
-      t1 ->> t1' ->
-      tif t1 t2 t3 ->> tif t1' t2 t3
-  (* FILL IN HERE *)
+> bool_step_prop4 :
+>         Tif
+>            (Tif Ttrue Ttrue Ttrue)
+>            Tfalse
+>            Tfalse
+>     ->->
+>         Tfalse
 
-  where " t '->>' t' " := (step t t').
+> bool_step_prop4_holds : bool_step_prop4
+> bool_step_prop4_holds = ?bool_step_prop4_holds_rhs
 
-Definition bool_step_prop4 :=
-         tif
-            (tif ttrue ttrue ttrue)
-            tfalse
-            tfalse
-     ->>
-         tfalse.
 
-Example bool_step_prop4_holds :
-  bool_step_prop4.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** **** Exercise: 3 stars, optional (properties_of_altered_step)  *)
-(** It can be shown that the determinism and strong progress theorems
+==== Exercise: 3 stars, optional (properties_of_altered_step)
+It can be shown that the determinism and strong progress theorems
     for the step relation in the lecture notes also hold for the
     definition of step given above.  After we add the clause
     `ST_ShortCircuit`...
 
-    - Is the `step` relation still deterministic?  Write yes or no and
-      briefly (1 sentence) explain your answer.
+- Is the `step` relation still deterministic?  Write yes or no and
+  briefly (1 sentence) explain your answer.
 
-      Optional: prove your answer correct in Coq. *)
+Optional: prove your answer correct in Idris.
 
-(* FILL IN HERE *)
-(**
-   - Does a strong progress theorem hold? Write yes or no and
-     briefly (1 sentence) explain your answer.
+- Does a strong progress theorem hold? Write yes or no and
+ briefly (1 sentence) explain your answer.
 
-     Optional: prove your answer correct in Coq.
-*)
+ Optional: prove your answer correct in Idris.
 
-(* FILL IN HERE *)
-(**
-   - In general, is there any way we could cause strong progress to
+In general, is there any way we could cause strong progress to
      fail if we took away one or more constructors from the original
      step relation? Write yes or no and briefly (1 sentence) explain
      your answer.
 
-(* FILL IN HERE *)
-*)
-(** [] *)
-
-End Temp5.
-End Temp4.
-
-> {-}
-
-==== Multi-Step Reduction
+== Multi-Step Reduction
 
 We've been working so far with the _single-step reduction_
-relation [->>], which formalizes the individual steps of an
+relation `->>`, which formalizes the individual steps of an
 abstract machine for executing programs.
 
 We can use the same machine to reduce programs to completion -- to
 find out what final result they yield.  This can be formalized as
 follows:
 
-- First, we define a _multi-step reduction relation_ [->>*], which
-  relates terms [t] and [t'] if [t] can reach [t'] by any number
+- First, we define a _multi-step reduction relation_ `->>*`, which
+  relates terms `t` and `t'` if `t` can reach `t'` by any number
   (including zero) of single reduction steps.
 
-- Then we define a "result" of a term [t] as a normal form that
-  [t] can reach by multi-step reduction.
-
+- Then we define a "result" of a term `t` as a normal form that
+  `t` can reach by multi-step reduction.
 
 Since we'll want to reuse the idea of multi-step reduction many
 times, let's take a little extra trouble and define it
 generically.
 
-Given a relation [R], we define a relation [multi R], called the
-multi-step closure of [R]_ as follows.
+Given a relation `R`, we define a relation `multi R`, called the
+multi-step closure of `R`_ as follows.
 
-> data Multi: {X: Type} -> (R: Relation X) -> (x: X) -> (y : X) -> Type where
->   Multi_refl  : {X: Type} -> {R: Relation X} -> {x : X} ->  Multi R x x
->   Multi_step  : {X: Type} -> {R: Relation X} -> {x, y, z : X} -> R x y -> Multi R y z -> Multi R x z.
+> mutual
+>   infixl 6 ->>*
+>   (->>*) : Tm -> Tm -> Type
+>   (->>*) t t' = Multi Step t t'
+>
+>   data Multi: {X: Type} -> (R: Relation X) -> Relation X where
+>     Multi_refl  : {X: Type} -> {R: Relation X} -> {x : X} ->  Multi R x x
+>     Multi_step  : {X: Type} -> {R: Relation X} -> {x, y, z : X} ->
+>                       R x y -> Multi R y z -> Multi R x z
 
-Inductive multi {X:Type} (R: relation X) : relation X :=
-  | multi_refl  : forall (x : X), multi R x x
-  | multi_step : forall (x y z : X),
-                    R x y ->
-                    multi R y z ->
-                    multi R x z.
-
-(In the [Rel] chapter of _Logical Foundations_ and
-the Coq standard library, this relation is called
-[clos_refl_trans_1n].  We give it a shorter name here for the sake
+(In the `Rel` chapter of _Logical Foundations_ this relation is called
+`clos_refl_trans_1n`.  We give it a shorter name here for the sake
 of readability.)
 
-The effect of this definition is that [multi R] relates two
-elements [x] and [y] if
+The effect of this definition is that `multi R` relates two
+elements `x` and `y` if
 
-       - [x = y], or
-       - [R x y], or
-       - there is some nonempty sequence [z1], [z2], ..., [zn] such that
+- `x = y`, or
+- `R x y`, or
+- there is some nonempty sequence `z1`, `z2`, ..., `zn` such that
 
-           R x z1
-           R z1 z2
-           ...
-           R zn y.
+   R x z1
+   R z1 z2
+   ...
+   R zn y.
 
-    Thus, if [R] describes a single-step of computation, then [z1]...[zn]
-    is the sequence of intermediate steps of computation between [x] and
-    [y]. *)
+Thus, if `R` describes a single-step of computation, then `z1`...`zn`
+is the sequence of intermediate steps of computation between `x` and
+`y`.
 
-(** We write [->>*] for the [multi step] relation on terms. *)
+We write `->>*` for the `multi step` relation on terms.
 
-Notation " t '->>*' t' " := (multi step t t') (at level 40).
+The relation `multi R` has several crucial properties.
 
-> syntax [t] "->>*" [t'] = Multi Smallstep.Step t t'
+First, it is obviously _reflexive_ (that is, `forall x, multi R x
+x`).  In the case of the `->>*` (i.e., `multi step`) relation, the
+intuition is that a term can execute to itself by taking zero
+steps of execution.
 
-(** The relation [multi R] has several crucial properties.
+Second, it contains `R` -- that is, single-step executions are a
+particular case of multi-step executions.  (It is this fact that
+justifies the word "closure" in the term "multi-step closure of
+`R`.")
 
-    First, it is obviously _reflexive_ (that is, [forall x, multi R x
-    x]).  In the case of the [->>*] (i.e., [multi step]) relation, the
-    intuition is that a term can execute to itself by taking zero
-    steps of execution.
 
-    Second, it contains [R] -- that is, single-step executions are a
-    particular case of multi-step executions.  (It is this fact that
-    justifies the word "closure" in the term "multi-step closure of
-    [R].") *)
-
-Theorem multi_R : forall (X:Type) (R:relation X) (x y : X),
-       R x y -> (multi R) x y.
-Proof.
-  intros X R x y H.
-  apply multi_step with y. apply H. apply multi_refl.   Qed.
-
-> multi_R: {X: Type} -> {R: Relation X} -> (x,y: X) -> R x y -> (Multi R) x y
+> multi_R : {X: Type} -> {R: Relation X} -> (x,y: X) -> R x y -> (Multi R) x y
 > multi_R x y h = Multi_step h (Multi_refl)
 
-(** Third, [multi R] is _transitive_. *)
+Third, `multi R` is _transitive_.
 
 > multi_trans: {X:Type} -> {R: Relation X} -> {x, y, z : X} ->
 >   Multi R x y  -> Multi R y z -> Multi R x z
 > multi_trans m1 m2 =
 >    case m1 of
 >      Multi_refl => m2
->      Multi_step r _ => Multi_step r Multi_refl
+>      Multi_step r mx =>
+>         let indHyp = multi_trans mx m2
+>         in Multi_step r indHyp
 
-Theorem multi_trans :
-  forall (X:Type) (R: relation X) (x y z : X),
-      multi R x y  ->
-      multi R y z ->
-      multi R x z.
-Proof.
-  intros X R x y z G H.
-  induction G.
-    - (* multi_refl *) assumption.
-    - (* multi_step *)
-      apply multi_step with y. assumption.
-      apply IHG. assumption.  Qed.
+In particular, for the `multi step` relation on terms, if
+    `t1->>*t2` and `t2->>*t3`, then `t1->>*t3`.
 
-(** In particular, for the [multi step] relation on terms, if
-    [t1->>*t2] and [t2->>*t3], then [t1->>*t3]. *)
+=== Examples
 
-(* ================================================================= *)
-(** ** Examples *)
-
-(** Here's a specific instance of the [multi step] relation: *)
+Here's a specific instance of the `multi step` relation:
 
 > test_multistep_1:
->      (P
+>      P
 >        (P (C 0) (C 3))
->        (P (C 2) (C 4)))
+>        (P (C 2) (C 4))
 >   ->>*
 >      C ((0 + 3) + (2 + 4))
 > test_multistep_1 =
@@ -873,122 +817,67 @@ Proof.
 >       (Multi_step {z=z} (ST_Plus2 (V_const 3) ST_PlusConstConst)
 >         (Multi_step ST_PlusConstConst Multi_refl))
 
-Lemma test_multistep_1:
-      P
-        (P (C 0) (C 3))
-        (P (C 2) (C 4))
-   ->>*
-      C ((0 + 3) + (2 + 4)).
-Proof.
-  apply multi_step with
-            (P (C (0 + 3))
-               (P (C 2) (C 4))).
-  apply ST_Plus1. apply ST_PlusConstConst.
-  apply multi_step with
-            (P (C (0 + 3))
-               (C (2 + 4))).
-  apply ST_Plus2. apply v_const.
-  apply ST_PlusConstConst.
-  apply multi_R.
-  apply ST_PlusConstConst. Qed.
 
-(** Here's an alternate proof of the same fact that uses [eapply] to
-    avoid explicitly constructing all the intermediate terms. *)
+==== Exercise: 1 star, optional (test_multistep_2)
 
-Lemma test_multistep_1':
-      P
-        (P (C 0) (C 3))
-        (P (C 2) (C 4))
-  ->>*
-      C ((0 + 3) + (2 + 4)).
-Proof.
-  eapply multi_step. apply ST_Plus1. apply ST_PlusConstConst.
-  eapply multi_step. apply ST_Plus2. apply v_const.
-  apply ST_PlusConstConst.
-  eapply multi_step. apply ST_PlusConstConst.
-  apply multi_refl.  Qed.
+> test_multistep_2: C 3 ->>* C 3
+> test_multistep_2 = ?test_multistep_2_rhs
 
-(** **** Exercise: 1 star, optional (test_multistep_2)  *)
-Lemma test_multistep_2:
-  C 3 ->>* C 3.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 1 star, optional (test_multistep_3)
 
-(** **** Exercise: 1 star, optional (test_multistep_3)  *)
-Lemma test_multistep_3:
-      P (C 0) (C 3)
-   ->>*
-      P (C 0) (C 3).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+> test_multistep_3:
+>      P (C 0) (C 3)
+>   ->>*
+>      P (C 0) (C 3)
+> test_multistep_3 = ?test_multistep_3_rhs
 
-(** **** Exercise: 2 stars (test_multistep_4)  *)
-Lemma test_multistep_4:
-      P
-        (C 0)
-        (P
-          (C 2)
-          (P (C 0) (C 3)))
-  ->>*
-      P
-        (C 0)
-        (C (2 + (0 + 3))).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 2 stars (test_multistep_4)
 
-(* ================================================================= *)
-(** ** Normal Forms Again *)
+> test_multistep_4:
+>      P
+>        (C 0)
+>        (P
+>          (C 2)
+>          (P (C 0) (C 3)))
+>  ->>*
+>      P
+>        (C 0)
+>        (C (2 + (0 + 3)))
+> test_multistep_4 = ?test_multistep_4_rhs
 
-(** If [t] reduces to [t'] in zero or more steps and [t'] is a
-    normal form, we say that "[t'] is a normal form of [t]." *)
+=== Normal Forms Again
 
-Definition step_normal_form := normal_form step.
-
-> -- step_normal : (x: Tm) -> (prf: Not (t' ** Smallstep.Step x t')) -> normal_form Smallstep.Step x
-
-> -- data normal_form : {X:Type} -> Relation X -> X -> Type where
-> --  Normal : {X:Type} -> (R: Relation X) -> (t: X) -> (prf: Not (t' ** R t t')) -> normal_form R t
+If `t` reduces to `t'` in zero or more steps and `t'` is a
+    normal form, we say that "`t'` is a normal form of `t`."
 
 > step_normal_form : (t : Tm) -> Type
-> step_normal_form = normal_form Smallstep.Step
-
+> step_normal_form = normal_form Step
 
 > normal_form_of : Tm -> Tm -> Type
-> normal_form_of t t' = ((t ->>* t'), step_normal_form t')
+> normal_form_of t t' = (t ->>* t', step_normal_form t')
 
-
-(** We have already seen that, for our language, single-step reduction is
+We have already seen that, for our language, single-step reduction is
     deterministic -- i.e., a given term can take a single step in
-    at most one way.  It follows from this that, if [t] can reach
+    at most one way.  It follows from this that, if `t` can reach
     a normal form, then this normal form is unique.  In other words, we
-    can actually pronounce [normal_form t t'] as "[t'] is _the_
-    normal form of [t]." *)
+    can actually pronounce `normal_form t t'` as "`t'` is _the_
+    normal form of `t`."
 
-(** **** Exercise: 3 stars, optional (normal_forms_unique)  *)
-Theorem normal_forms_unique:
-  deterministic normal_form_of.
-Proof.
-  (* We recommend using this initial setup as-is! *)
-  unfold deterministic. unfold normal_form_of.
-  intros x y1 y2 P1 P2.
-  inversion P1 as [P11 P12]; clear P1.
-  inversion P2 as [P21 P22]; clear P2.
-  generalize dependent y2.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 3 stars, optional (normal_forms_unique)
 
+> normal_forms_unique : deterministic Smallstep.normal_form_of
+> normal_forms_unique (l,r) (l2,r2) = ?normal_forms_unique_rhs
+
+> {-
 > notAndLemmaLeft : Not x -> Not (x,y)
 > notAndLemmaLeft nx (l,r) = nx l
 
-> notStepEqual : Not (Smallstep.Step x x)
-> notStepEqual Smallstep.ST_PlusConstConst impossible
+> notStepEqual : Not (Step x x)
+> notStepEqual ST_PlusConstConst impossible
 > notStepEqual (ST_Plus1 h) = notStepEqual h
 > notStepEqual (ST_Plus2 s h) = notStepEqual h
 
-> normal_forms_unique : deterministic {x} {y1} {y2} Smallstep.normal_form_of
+> normal_forms_unique : deterministic {x} {y1} {y2} normal_form_of
 > normal_forms_unique (l,r) (l2,r2) =
 >     case l of
 >       Multi_refl =>
@@ -1002,94 +891,70 @@ Proof.
 >             let -- indHyp1 = step_deterministic single single'
 >                 -- indHyp2 = normal_forms_unique y z1 z2
 >             in ?hole
-
--- > deterministic : {xt: Type} -> (r: Relation xt) -> Type
--- > deterministic {xt} r = {x, y1, y2: xt) -> r x y1 -> r x y2 -> y1 = y2
-
-> -- normal_form_of : Tm -> Tm -> Type
-> -- normal_form_of t t' = ((t ->>* t'), step_normal_form t')
+> -}
 
 
-(** Indeed, something stronger is true for this language (though not
-    for all languages): the reduction of _any_ term [t] will
-    eventually reach a normal form -- i.e., [normal_form_of] is a
-    _total_ function.  Formally, we say the [step] relation is
-    _normalizing_. *)
+Indeed, something stronger is true for this language (though not
+    for all languages): the reduction of _any_ term `t` will
+    eventually reach a normal form -- i.e., `normal_form_of` is a
+    _total_ function.  Formally, we say the `step` relation is
+    _normalizing_.
 
-Definition normalizing {X:Type} (R:relation X) :=
-  forall t, exists t',
-    (multi R) t t' /\ normal_form R t'.
+> normalizing : {x: Type} -> (r: Relation x) -> Type
+> normalizing {x} {r} = (t: x) -> (t' : x ** (Multi r t t', normal_form r t'))
 
-> normalizing : {X: Type} -> (R: Relation X) -> Type
-> normalizing {X=x} {R=r} = (t: x) -> (t' : x ** ((Multi r) t t', normal_form r t'))
+To prove that `step` is normalizing, we need a couple of lemmas.
 
-(** To prove that [step] is normalizing, we need a couple of lemmas.
+First, we observe that, if `t` reduces to `t'` in many steps, then
+the same sequence of reduction steps within `t` is also possible
+when `t` appears as the left-hand child of a `P` node, and
+similarly when `t` appears as the right-hand child of a `P`
+node whose left-hand child is a value.
 
-    First, we observe that, if [t] reduces to [t'] in many steps, then
-    the same sequence of reduction steps within [t] is also possible
-    when [t] appears as the left-hand child of a [P] node, and
-    similarly when [t] appears as the right-hand child of a [P]
-    node whose left-hand child is a value. *)
-
-> multistep_congr_1 : {t1, t1', t2: Tm} -> (t1 ->>* t1') -> ((P t1 t2) ->>* P t1' t2)
-> multistep_congr_1 {t1} {t1'} {t2} mult =
+> multistep_congr_1 : (t1 ->>* t1') -> ((P t1 t2) ->>* P t1' t2)
+> multistep_congr_1 mult =
 >   case mult of
 >     Multi_refl => Multi_refl
->     Multi_step step mult => Multi_step (ST_Plus1 step) Multi_refl
+>     Multi_step step mult' =>
+>       let indHyp = multistep_congr_1 mult'
+>       in Multi_step (ST_Plus1 step) indHyp
 
 
-(** **** Exercise: 2 stars (multistep_congr_2)  *)
+==== Exercise: 2 stars (multistep_congr_2)
 
-> multistep_congr_2 : {t1, t2', t2: Tm} -> {v:Value t1} -> (t2 ->>* t2') -> ((P t1 t2) ->>* P t1 t2')
-> multistep_congr_2 {t2'} {t2} {v=V_const i} mult =
->   case mult of
->     Multi_refl => Multi_refl
->     Multi_step step mult => Multi_step (ST_Plus2 (V_const i) step) Multi_refl
+> multistep_congr_2 : {v:Value t1} -> (t2 ->>* t2') -> ((P t1 t2) ->>* P t1 t2')
+> multistep_congr_2 {v=V_const i} mult = ?multistep_congr_2_rhs
 
-
-Lemma multistep_congr_2 : forall t1 t2 t2',
-     value t1 ->
-     t2 ->>* t2' ->
-     P t1 t2 ->>* P t1 t2'.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** With these lemmas in hand, the main proof is a straightforward
+With these lemmas in hand, the main proof is a straightforward
     induction.
 
-    _Theorem_: The [step] function is normalizing -- i.e., for every
-    [t] there exists some [t'] such that [t] steps to [t'] and [t'] is
+_Theorem_: The `step` function is normalizing -- i.e., for every
+    `t` there exists some `t'` such that `t` steps to `t'` and `t'` is
     a normal form.
 
-    _Proof sketch_: By induction on terms.  There are two cases to
+_Proof sketch_: By induction on terms.  There are two cases to
     consider:
 
-    - [t = C n] for some [n].  Here [t] doesn't take a step, and we
-      have [t' = t].  We can derive the left-hand side by reflexivity
-      and the right-hand side by observing (a) that values are normal
-      forms (by [nf_same_as_value]) and (b) that [t] is a value (by
-      [v_const]).
+- `t = C n` for some `n`.  Here `t` doesn't take a step, and we
+  have `t' = t`.  We can derive the left-hand side by reflexivity
+  and the right-hand side by observing (a) that values are normal
+  forms (by `nf_same_as_value`) and (b) that `t` is a value (by
+  `v_const`).
 
-    - [t = P t1 t2] for some [t1] and [t2].  By the IH, [t1] and [t2]
-      have normal forms [t1'] and [t2'].  Recall that normal forms are
-      values (by [nf_same_as_value]); we know that [t1' = C n1] and
-      [t2' = C n2], for some [n1] and [n2].  We can combine the [->>*]
-      derivations for [t1] and [t2] using [multi_congr_1] and
-      [multi_congr_2] to prove that [P t1 t2] reduces in many steps to
-      [C (n1 + n2)].
+- `t = P t1 t2` for some `t1` and `t2`.  By the IH, `t1` and `t2`
+  have normal forms `t1'` and `t2'`.  Recall that normal forms are
+  values (by `nf_same_as_value`); we know that `t1' = C n1` and
+  `t2' = C n2`, for some `n1` and `n2`.  We can combine the `->>*`
+  derivations for `t1` and `t2` using `multi_congr_1` and
+  `multi_congr_2` to prove that `P t1 t2` reduces in many steps to
+  `C (n1 + n2)`.
 
-      It is clear that our choice of [t' = C (n1 + n2)] is a value,
-      which is in turn a normal form. [] *)
+  It is clear that our choice of `t' = C (n1 + n2)` is a value,
+  which is in turn a normal form. `` *)
 
-
---     > normalizing : {X: Type} -> (R: Relation X) -> Type
---     > normalizing {X=x} {R=r} = (t: x) -> (t' : x ** ((Multi r) t t', normal_form r t'))
-
-
-> step_normalizing : normalizing Smallstep.Step
+> step_normalizing : normalizing Step
 > step_normalizing (C n) = (C n ** (Multi_refl, notStepCN))
->   where notStepCN: (t' : Tm ** Smallstep.Step (C n) t') -> Void
+>   where notStepCN: (t' : Tm ** Step (C n) t') -> Void
 >         notStepCN (t' ** c) impossible
 > step_normalizing (P l r) =
 >   let (_ ** (ih1l,(ih1r))) = step_normalizing l
@@ -1113,7 +978,7 @@ Proof.
 >             conc1 = multi_trans {x=P l r} {y=P (C n1) r} {z=C (plus n1 n2)}
 >         in conc1 left_transform right_transform
 
->       normal_form : ((t'1 : Tm ** Smallstep.Step (C (plus n1 n2)) t'1) -> Void) =
+>       normal_form : ((t'1 : Tm ** Step (C (plus n1 n2)) t'1) -> Void) =
 >         (snd nf_same_as_value) (V_const (plus n1 n2))
 
 >   in (C (n1 + n2) ** (reduction, normal_form))
@@ -1124,37 +989,7 @@ Proof.
 >           lemma_deconstruct : Value v -> (n : Nat ** v = C n)
 >           lemma_deconstruct v@(V_const n) = (n ** Refl)
 
-Theorem step_normalizing :
-  normalizing step.
-Proof.
-  unfold normalizing.
-  induction t.
-    - (* C *)
-      exists (C n).
-      split.
-      + (* l *) apply multi_refl.
-      + (* r *)
-        (* We can use [rewrite] with "iff" statements, not
-           just equalities: *)
-        rewrite nf_same_as_value. apply v_const.
-    - (* P *)
-      destruct IHt1 as [t1' [H11 H12]].
-      destruct IHt2 as [t2' [H21 H22]].
-      rewrite nf_same_as_value in H12. rewrite nf_same_as_value in H22.
-      inversion H12 as [n1 H]. inversion H22 as [n2 H'].
-      rewrite <- H in H11.
-      rewrite <- H' in H21.
-      exists (C (n1 + n2)).
-      split.
-        + (* l *)
-          apply multi_trans with (P (C n1) t2).
-          * apply multistep_congr_1. apply H11.
-          * apply multi_trans with
-             (P (C n1) (C n2)).
-            { apply multistep_congr_2. apply v_const. apply H21. }
-            { apply multi_R. apply ST_PlusConstConst. }
-        + (* r *)
-          rewrite nf_same_as_value. apply v_const.  Qed.
+> {-
 
 (* ================================================================= *)
 (** ** Equivalence of Big-Step and Small-Step *)
@@ -1174,7 +1009,7 @@ Proof.
 >     E_Plus l r =>
 >       let hypl = multistep_congr_1 (eval__multistep l)
 >           hypr = multistep_congr_2 {v = V_const _}(eval__multistep r)
->       in multi_trans (multi_trans hypl hypr)(Multi_step Smallstep.ST_PlusConstConst Multi_refl)
+>       in multi_trans (multi_trans hypl hypr)(Multi_step ST_PlusConstConst Multi_refl)
 
 (** The key ideas in the proof can be seen in the following picture:
 
@@ -1318,6 +1153,7 @@ Inductive step : tm -> tm -> Prop :=
 End Combined.
 (** [] *)
 
+<!--
 (* ################################################################# *)
 (** * Small-Step Imp *)
 
@@ -1725,3 +1561,5 @@ Proof.
 (** $Date$ *)
 
 > -}
+
+-->
