@@ -989,173 +989,150 @@ _Proof sketch_: By induction on terms.  There are two cases to
 >           lemma_deconstruct : Value v -> (n : Nat ** v = C n)
 >           lemma_deconstruct v@(V_const n) = (n ** Refl)
 
-> {-
 
-(* ================================================================= *)
-(** ** Equivalence of Big-Step and Small-Step *)
+=== Equivalence of Big-Step and Small-Step
 
-(** Having defined the operational semantics of our tiny programming
+Having defined the operational semantics of our tiny programming
     language in two different ways (big-step and small-step), it makes
     sense to ask whether these definitions actually define the same
     thing!  They do, though it takes a little work to show it.  The
-    details are left as an exercise. *)
+    details are left as an exercise.
 
-(** **** Exercise: 3 stars (eval__multistep)  *)
+==== Exercise: 3 stars (eval__multistep)
 
-> eval__multistep : {t: Tm} -> {n: Nat} -> t # n -> t ->>* C n
-> eval__multistep hyp =
->   case hyp of
->     E_Const => Multi_refl
->     E_Plus l r =>
->       let hypl = multistep_congr_1 (eval__multistep l)
->           hypr = multistep_congr_2 {v = V_const _}(eval__multistep r)
->       in multi_trans (multi_trans hypl hypr)(Multi_step ST_PlusConstConst Multi_refl)
+> eval__multistep: {t: Tm} -> {n: Nat} -> t >>> n -> t ->>* C n
+> eval__multistep hyp = ?eval__multistep_rhs
 
-(** The key ideas in the proof can be seen in the following picture:
+The key ideas in the proof can be seen in the following picture:
 
-       P t1 t2 ->>            (by ST_Plus1)
-       P t1' t2 ->>           (by ST_Plus1)
-       P t1'' t2 ->>          (by ST_Plus1)
-       ...
-       P (C n1) t2 ->>        (by ST_Plus2)
-       P (C n1) t2' ->>       (by ST_Plus2)
-       P (C n1) t2'' ->>      (by ST_Plus2)
-       ...
-       P (C n1) (C n2) ->>    (by ST_PlusConstConst)
-       C (n1 + n2)
+```
+   P t1 t2 ->>            (by ST_Plus1)
+   P t1' t2 ->>           (by ST_Plus1)
+   P t1'' t2 ->>          (by ST_Plus1)
+   ...
+   P (C n1) t2 ->>        (by ST_Plus2)
+   P (C n1) t2' ->>       (by ST_Plus2)
+   P (C n1) t2'' ->>      (by ST_Plus2)
+   ...
+   P (C n1) (C n2) ->>    (by ST_PlusConstConst)
+   C (n1 + n2)
+```
 
-    That is, the multistep reduction of a term of the form [P t1 t2]
-    proceeds in three phases:
-       - First, we use [ST_Plus1] some number of times to reduce [t1]
-         to a normal form, which must (by [nf_same_as_value]) be a
-         term of the form [C n1] for some [n1].
-       - Next, we use [ST_Plus2] some number of times to reduce [t2]
-         to a normal form, which must again be a term of the form [C
-         n2] for some [n2].
-       - Finally, we use [ST_PlusConstConst] one time to reduce [P (C
-         n1) (C n2)] to [C (n1 + n2)]. *)
+That is, the multistep reduction of a term of the form [P t1 t2]
+proceeds in three phases:
 
-(** To formalize this intuition, you'll need to use the congruence
+- First, we use [ST_Plus1] some number of times to reduce [t1]
+ to a normal form, which must (by [nf_same_as_value]) be a
+ term of the form [C n1] for some [n1].
+- Next, we use [ST_Plus2] some number of times to reduce [t2]
+ to a normal form, which must again be a term of the form [C
+ n2] for some [n2].
+- Finally, we use [ST_PlusConstConst] one time to reduce [P (C
+ n1) (C n2)] to [C (n1 + n2)].
+
+To formalize this intuition, you'll need to use the congruence
     lemmas from above (you might want to review them now, so that
     you'll be able to recognize when they are useful), plus some basic
     properties of [->>*]: that it is reflexive, transitive, and
-    includes [->>]. *)
+    includes [->>].
 
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
 
-(** **** Exercise: 3 stars, advanced (eval__multistep_inf)  *)
-(** Write a detailed informal version of the proof of [eval__multistep].
+==== Exercise: 3 stars, advanced (eval__multistep_inf)
+
+Write a detailed informal version of the proof of [eval__multistep]
 
 (* FILL IN HERE *)
-*)
-(** [] *)
 
-(** For the other direction, we need one lemma, which establishes a
-    relation between single-step reduction and big-step evaluation. *)
+For the other direction, we need one lemma, which establishes a
+    relation between single-step reduction and big-step evaluation.
 
-(** **** Exercise: 3 stars (step__eval)  *)
-Lemma step__eval : forall t t' n,
-     t ->> t' ->
-     t' \\ n ->
-     t \\ n.
-Proof.
-  intros t t' n Hs. generalize dependent n.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 3 stars (step__eval)
 
-(** The fact that small-step reduction implies big-step evaluation is
+> step__eval : {t, t': Tm} -> {n: Nat} ->
+>     t ->> t' ->
+>     t' >>> n ->
+>     t >>> n
+> step__eval h1 h2 = ?step__eval_rhs
+
+The fact that small-step reduction implies big-step evaluation is
     now straightforward to prove, once it is stated correctly.
 
-    The proof proceeds by induction on the multi-step reduction
-    sequence that is buried in the hypothesis [normal_form_of t t']. *)
+The proof proceeds by induction on the multi-step reduction
+    sequence that is buried in the hypothesis [normal_form_of t t'].
 
-(** Make sure you understand the statement before you start to
-    work on the proof.  *)
+Make sure you understand the statement before you start to
+    work on the proof.
 
-(** **** Exercise: 3 stars (multistep__eval)  *)
-Theorem multistep__eval : forall t t',
-  normal_form_of t t' -> exists n, t' = C n /\ t \\ n.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+==== Exercise: 3 stars (multistep__eval)
 
-(* ================================================================= *)
-(** ** Additional Exercises *)
+> multistep__eval : {t, t': Tm} ->
+>   normal_form_of t t' -> (n : Nat ** (t' = C n, t >>> n))
+> multistep__eval hyp = ?multistep__eval_rhs
 
-(** **** Exercise: 3 stars, optional (interp_tm)  *)
-(** Remember that we also defined big-step evaluation of terms as a
-    function [evalF].  Prove that it is equivalent to the existing
-    semantics.  (Hint: we just proved that [eval] and [multistep] are
+
+=== Additional Exercises
+
+==== Exercise: 3 stars, optional (interp_tm)
+
+Remember that we also defined big-step evaluation of terms as a
+    function `evalF`.  Prove that it is equivalent to the existing
+    semantics.  (Hint: we just proved that `eval` and `multistep` are
     equivalent, so logically it doesn't matter which you choose.
-    One will be easier than the other, though!) *)
+    One will be easier than the other, though!)
 
-Theorem evalF_eval : forall t n,
-  evalF t = n <-> t \\ n.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+> evalF_eval : {t: Tm} -> {n: Nat} -> ((evalF t = n) <-> (t >>> n))
 
-(** **** Exercise: 4 stars (combined_properties)  *)
-(** We've considered arithmetic and conditional expressions
-    separately.  This exercise explores how the two interact. *)
+==== Exercise: 4 stars (combined_properties)
 
-Module Combined.
+We've considered arithmetic and conditional expressions
+    separately.  This exercise explores how the two interact.
 
-Inductive tm : Type :=
-  | C : nat -> tm
-  | P : tm -> tm -> tm
-  | ttrue : tm
-  | tfalse : tm
-  | tif : tm -> tm -> tm -> tm.
 
-Inductive value : tm -> Prop :=
-  | v_const : forall n, value (C n)
-  | v_true : value ttrue
-  | v_false : value tfalse.
+> data TmC : Type where
+>   CC : Nat -> TmC
+>   PC : TmC -> TmC -> TmC
+>   TtrueC : TmC
+>   TfalseC : TmC
+>   TifC : TmC -> TmC -> TmC -> TmC
 
-Reserved Notation " t '->>' t' " (at level 40).
+> data ValueC : TmC -> Type where
+>   V_constC : {n: Nat} -> ValueC (CC n)
+>   V_trueC : ValueC TtrueC
+>   V_falseC : ValueC TfalseC
 
-Inductive step : tm -> tm -> Prop :=
-  | ST_PlusConstConst : forall n1 n2,
-      P (C n1) (C n2) ->> C (n1 + n2)
-  | ST_Plus1 : forall t1 t1' t2,
-      t1 ->> t1' ->
-      P t1 t2 ->> P t1' t2
-  | ST_Plus2 : forall v1 t2 t2',
-      value v1 ->
-      t2 ->> t2' ->
-      P v1 t2 ->> P v1 t2'
-  | ST_IfTrue : forall t1 t2,
-      tif ttrue t1 t2 ->> t1
-  | ST_IfFalse : forall t1 t2,
-      tif tfalse t1 t2 ->> t2
-  | ST_If : forall t1 t1' t2 t3,
-      t1 ->> t1' ->
-      tif t1 t2 t3 ->> tif t1' t2 t3
 
-  where " t '->>' t' " := (step t t').
+> mutual
+>   infixl 6 >>->
+>   (>>->) : TmC -> TmC -> Type
+>   (>>->) = StepC
+>
+>   data StepC : TmC -> TmC -> Type where
+>     ST_PlusConstConstC : PC (CC n1) (CC n2) >>-> CC (n1 + n2)
+>     ST_Plus1C : t1 >>-> t1' -> PC t1 t2 >>-> PC t1' t2
+>     ST_Plus2C : ValueC v1 -> t2 >>-> t2' -> PC v1 t2 >>-> PC v1 t2'
+>     ST_IfTrueC : TifC TtrueC t1 t2 >>-> t1
+>     ST_IfFalseC : TifC TfalseC t1 t2 >>-> t2
+>     ST_IfC : t1 >>-> t1' -> TifC t1 t2 t3 >>-> TifC t1' t2 t3
 
-(** Earlier, we separately proved for both plus- and if-expressions...
 
-    - that the step relation was deterministic, and
+Earlier, we separately proved for both plus- and if-expressions...
 
-    - a strong progress lemma, stating that every term is either a
-      value or can take a step.
+- that the step relation was deterministic, and
 
-    Formally prove or disprove these two properties for the combined
-    language.  (That is, state a theorem saying that the property
-    holds or does not hold, and prove your theorem.) *)
+- a strong progress lemma, stating that every term is either a
+  value or can take a step.
+
+Formally prove or disprove these two properties for the combined
+language.  (That is, state a theorem saying that the property
+holds or does not hold, and prove your theorem.)
 
 (* FILL IN HERE *)
 
-End Combined.
-(** [] *)
+  <!--
 
-<!--
 (* ################################################################# *)
 (** * Small-Step Imp *)
+
 
 (** Now for a more serious example: a small-step version of the Imp
     operational semantics. *)
@@ -1173,6 +1150,7 @@ Inductive aval : aexp -> Prop :=
     values, since they aren't needed in the definition of [->>b]
     below (why?), though they might be if our language were a bit
     larger (why?). *)
+
 
 Reserved Notation " t '/' st '->>a' t' "
                   (at level 40, st at level 39).
@@ -1286,7 +1264,7 @@ Inductive cstep : (com * state) -> (com * state) -> Prop :=
       a / st ->>a a' ->
       (i ::= a) / st ->> (i ::= a') / st
   | CS_Ass : forall st i n,
-      (i ::= (ANum n)) / st ->> SKIP / (st & { i --> n })
+      (i ::= (ANum n)) / st ->> SKIP / (st & { i ==> n })
   | CS_SeqStep : forall st c1 c1' st' c2,
       c1 / st ->> c1' / st' ->
       (c1 ;; c2) / st ->> (c1' ;; c2) / st'
@@ -1346,7 +1324,7 @@ Inductive cstep : (com * state)  -> (com * state) -> Prop :=
       a / st ->>a a' ->
       (i ::= a) / st ->> (i ::= a') / st
   | CS_Ass : forall st i n,
-      (i ::= (ANum n)) / st ->> SKIP / st & { i --> n }
+      (i ::= (ANum n)) / st ->> SKIP / st & { i ==> n }
   | CS_SeqStep : forall st c1 c1' st' c2,
       c1 / st ->> c1' / st' ->
       (c1 ;; c2) / st ->> (c1' ;; c2) / st'
@@ -1397,7 +1375,7 @@ Definition par_loop : com :=
 
 Example par_loop_example_0:
   exists st',
-       par_loop / { --> 0 }  ->>* SKIP / st'
+       par_loop / { ==> 0 }  ->>* SKIP / st'
     /\ st' X = 0.
 Proof.
   eapply ex_intro. split.
@@ -1418,7 +1396,7 @@ Proof.
 
 Example par_loop_example_2:
   exists st',
-       par_loop / { --> 0 } ->>* SKIP / st'
+       par_loop / { ==> 0 } ->>* SKIP / st'
     /\ st' X = 2.
 Proof.
   eapply ex_intro. split.
@@ -1466,7 +1444,7 @@ Proof.
 (** **** Exercise: 3 stars, optional (par_body_n__Sn)  *)
 Lemma par_body_n__Sn : forall n st,
   st X = n /\ st Y = 0 ->
-  par_loop / st ->>* par_loop / st & { X --> S n}.
+  par_loop / st ->>* par_loop / st & { X ==> S n}.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
@@ -1485,16 +1463,16 @@ Proof.
 
 Theorem par_loop_any_X:
   forall n, exists st',
-    par_loop / { --> 0 } ->>*  SKIP / st'
+    par_loop / { ==> 0 } ->>*  SKIP / st'
     /\ st' X = n.
 Proof.
   intros n.
-  destruct (par_body_n n { --> 0 }).
+  destruct (par_body_n n { ==> 0 }).
     split; unfold t_update; reflexivity.
 
   rename x into st.
   inversion H as [H' [HX HY]]; clear H.
-  exists (st & { Y --> 1 }). split.
+  exists (st & { Y ==> 1 }). split.
   eapply multi_trans with (par_loop,st). apply H'.
   eapply multi_step. apply CS_Par1. apply CS_Ass.
   eapply multi_step. apply CS_Par2. apply CS_While.
@@ -1557,9 +1535,6 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-
 (** $Date$ *)
-
-> -}
 
 -->
