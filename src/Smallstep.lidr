@@ -868,31 +868,6 @@ We have already seen that, for our language, single-step reduction is
 > normal_forms_unique : deterministic Smallstep.normal_form_of
 > normal_forms_unique (l,r) (l2,r2) = ?normal_forms_unique_rhs
 
-> {-
-> notAndLemmaLeft : Not x -> Not (x,y)
-> notAndLemmaLeft nx (l,r) = nx l
-
-> notStepEqual : Not (Step x x)
-> notStepEqual ST_PlusConstConst impossible
-> notStepEqual (ST_Plus1 h) = notStepEqual h
-> notStepEqual (ST_Plus2 s h) = notStepEqual h
-
-> normal_forms_unique : deterministic {x} {y1} {y2} normal_form_of
-> normal_forms_unique (l,r) (l2,r2) =
->     case l of
->       Multi_refl =>
->         case l2 of
->           Multi_refl => Refl
->           Multi_step {x} {y=y'} single mult => void (r (y' ** single))
->       Multi_step {x} {y} single mult =>
->         case l2 of
->           Multi_refl => void (r2 (y ** single))
->           Multi_step {x} {y=y'} single' mult' =>
->             let -- indHyp1 = step_deterministic single single'
->                 -- indHyp2 = normal_forms_unique y z1 z2
->             in ?hole
-> -}
-
 
 Indeed, something stronger is true for this language (though not
     for all languages): the reduction of _any_ term `t` will
@@ -1018,28 +993,28 @@ The key ideas in the proof can be seen in the following picture:
    C (n1 + n2)
 ```
 
-That is, the multistep reduction of a term of the form [P t1 t2]
+That is, the multistep reduction of a term of the form `P t1 t2`
 proceeds in three phases:
 
-- First, we use [ST_Plus1] some number of times to reduce [t1]
- to a normal form, which must (by [nf_same_as_value]) be a
- term of the form [C n1] for some [n1].
-- Next, we use [ST_Plus2] some number of times to reduce [t2]
- to a normal form, which must again be a term of the form [C
- n2] for some [n2].
-- Finally, we use [ST_PlusConstConst] one time to reduce [P (C
- n1) (C n2)] to [C (n1 + n2)].
+- First, we use `ST_Plus1` some number of times to reduce `t1`
+ to a normal form, which must (by `nf_same_as_value`) be a
+ term of the form `C n1` for some `n1`.
+- Next, we use `ST_Plus2` some number of times to reduce `t2`
+ to a normal form, which must again be a term of the form `C
+ n2` for some `n2`.
+- Finally, we use `ST_PlusConstConst` one time to reduce `P (C
+ n1) (C n2)` to `C (n1 + n2)`.
 
 To formalize this intuition, you'll need to use the congruence
     lemmas from above (you might want to review them now, so that
     you'll be able to recognize when they are useful), plus some basic
-    properties of [->>*]: that it is reflexive, transitive, and
-    includes [->>].
+    properties of `->>*`: that it is reflexive, transitive, and
+    includes `->>`.
 
 
 ==== Exercise: 3 stars, advanced (eval__multistep_inf)
 
-Write a detailed informal version of the proof of [eval__multistep]
+Write a detailed informal version of the proof of `eval__multistep`
 
 (* FILL IN HERE *)
 
@@ -1058,7 +1033,7 @@ The fact that small-step reduction implies big-step evaluation is
     now straightforward to prove, once it is stated correctly.
 
 The proof proceeds by induction on the multi-step reduction
-    sequence that is buried in the hypothesis [normal_form_of t t'].
+    sequence that is buried in the hypothesis `normal_form_of t t'`.
 
 Make sure you understand the statement before you start to
     work on the proof.
