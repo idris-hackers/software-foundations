@@ -6,20 +6,24 @@
 > import Smallstep
 > %hide Smallstep.(->>)
 > %hide Smallstep.Tm
+> %hide Smallstep.Ttrue
+> %hide Smallstep.Tfalse
+
+
 
 > %access public export
 > %default total
 
 
 Our next major topic is _type systems_ -- static program
-    analyses that classify expressions according to the "shapes" of
-    their results.  We'll begin with a typed version of the simplest
-    imaginable language, to introduce the basic ideas of types and
-    typing rules and the fundamental theorems about type systems:
-    _type preservation_ and _progress_.  In chapter `Stlc` we'll move
-    on to the _simply typed lambda-calculus_, which lives at the core
-    of every modern functional programming language (including
-    Coq!).
+analyses that classify expressions according to the "shapes" of
+their results.  We'll begin with a typed version of the simplest
+imaginable language, to introduce the basic ideas of types and
+typing rules and the fundamental theorems about type systems:
+_type preservation_ and _progress_.  In chapter `Stlc` we'll move
+on to the _simply typed lambda-calculus_, which lives at the core
+of every modern functional programming language (including
+Idris!).
 
 == Typed Arithmetic Expressions
 
@@ -77,75 +81,75 @@ _Values_ are `true`, `false`, and numeric values...
 
 Here is the single-step relation, first informally...
 
-\`
+\[
   \begin{prooftree}
-    \infer0`\idr{ST_IfTrue}`{\idr{if true then t1 else t2 ->> t1}}
+    \infer0[\idr{ST_IfTrue}]{\idr{if true then t1 else t2 ->> t1}}
   \end{prooftree}
   \newline
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
-    \infer0`\idr{ST_IfFalse}`{\idr{if false then t1 else t2 ->> t2}}
+    \infer0[\idr{ST_IfFalse}]{\idr{if false then t1 else t2 ->> t2}}
   \end{prooftree}
   \newline
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1`\idr{ST_If}`{\idr{if t1 then t2 else t3 ->> if t1' then t2 else t3}}
+    \infer1[\idr{ST_If}]{\idr{if t1 then t2 else t3 ->> if t1' then t2 else t3}}
   \end{prooftree}
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1`\idr{ST_Succ}`{\idr{succ t1 ->> succ t1'}}
+    \infer1[\idr{ST_Succ}]{\idr{succ t1 ->> succ t1'}}
   \end{prooftree}
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
-    \infer0`\idr{ST_PredZero}`{\idr{pred 0 ->> 0}}
+    \infer0[\idr{ST_PredZero}]{\idr{pred 0 ->> 0}}
   \end{prooftree}
   \newline
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{numeric value v1}}
-    \infer1`\idr{ST_PredSucc}`{\idr{pred (succ v1) ->> v1}}
+    \infer1[\idr{ST_PredSucc}]{\idr{pred (succ v1) ->> v1}}
   \end{prooftree}
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1`\idr{ST_Pred}`{\idr{pred t1 ->> pred t1'}}
+    \infer1[\idr{ST_Pred}]{\idr{pred t1 ->> pred t1'}}
   \end{prooftree}
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
-    \infer0`\idr{ST_IszeroZero}`{\idr{iszero 0 ->> true}}
+    \infer0[\idr{ST_IszeroZero}]{\idr{iszero 0 ->> true}}
   \end{prooftree}
   \newline
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{numeric value v1}}
-    \infer1`\idr{ST_IszeroSucc}`{\idr{iszero (succ v1) ->> false}}
+    \infer1[\idr{ST_IszeroSucc}]{\idr{iszero (succ v1) ->> false}}
   \end{prooftree}
-\`
+\]
 
-\`
+\[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1`\idr{ST_Iszero}`{\idr{iszero t1 ->> iszero t1'}}
+    \infer1[\idr{ST_Iszero}]{\idr{iszero t1 ->> iszero t1'}}
   \end{prooftree}
-\`
+\]
 
 ... and then formally:
 
@@ -156,16 +160,16 @@ Here is the single-step relation, first informally...
 >   (->>) = Types.Step
 >
 >   data Step     : Tm -> Tm -> Type where
->     ST_IfTrue   : Tif Ttrue t1 t2 ->> t1
->     ST_IfFalse  : Tif Tfalse t1 t2 ->> t2
->     ST_If       : t1 ->> t1' -> Tif t1 t2 t3 ->> Tif t1' t2 t3
->     ST_Succ     : t1 ->> t1' -> Tsucc t1 ->> Tsucc t1'
+>     ST_IfTrue   : {t1, t2: Tm} -> Tif Ttrue t1 t2 ->> t1
+>     ST_IfFalse  : {t1, t2: Tm} -> Tif Tfalse t1 t2 ->> t2
+>     ST_If       : {t1, t2, t3, t1': Tm} -> t1 ->> t1' -> Tif t1 t2 t3 ->> Tif t1' t2 t3
+>     ST_Succ     : {t1, t1': Tm} -> t1 ->> t1' -> Tsucc t1 ->> Tsucc t1'
 >     ST_PredZero : Tpred tzero ->> tzero
->     ST_PredSucc : Nvalue t1 -> Tpred (Tsucc t1) ->> t1
->     ST_Pred     : t1 ->> t1' -> Tpred t1 ->> Tpred t1'
+>     ST_PredSucc : {t1 :Tm} -> Nvalue t1 -> Tpred (Tsucc t1) ->> t1
+>     ST_Pred     : {t1, t1': Tm} -> t1 ->> t1' -> Tpred t1 ->> Tpred t1'
 >     ST_IszeroZero : Tiszero Tzero ->> Ttrue
->     ST_IszeroSucc : Nvalue t1 -> Tiszero (Tsucc t1) ->> Tfalse
->     ST_Iszero   : t1 ->> t1' -> Tiszero t1 ->> Tiszero t1'
+>     ST_IszeroSucc : {t1: Tm} -> Nvalue t1 -> Tiszero (Tsucc t1) ->> Tfalse
+>     ST_Iszero   : {t1, t1': Tm} -> t1 ->> t1' -> Tiszero t1 ->> Tiszero t1'
 
 
 Notice that the `step` relation doesn't care about whether
@@ -177,7 +181,7 @@ almost as obviously nonsensical term
 
        succ (if true then true else true)
 
-can take a step (once, before becoming stuck). *)
+can take a step (once, before becoming stuck).
 
 === Normal Forms and Values
 
@@ -200,182 +204,174 @@ terms are _stuck_.
 > some_term_is_stuck : (t ** stuck t)
 > some_term_is_stuck = ?some_term_is_stuck_rhs
 
-(** However, although values and normal forms are _not_ the same in this
-    language, the set of values is included in the set of normal
-    forms.  This is important because it shows we did not accidentally
-    define things so that some value could still take a step. *)
+However, although values and normal forms are _not_ the same in this
+language, the set of values is included in the set of normal
+forms.  This is important because it shows we did not accidentally
+define things so that some value could still take a step.
 
-(** **** Exercise: 3 stars (value_is_nf)  *)
-Lemma value_is_nf : forall t,
-  value t -> step_normal_form t.
-Proof.
-  (* FILL IN HERE *) Admitted.
+==== Exercise: 3 stars (value_is_nf)
 
-(** (Hint: You will reach a point in this proof where you need to
-    use an induction to reason about a term that is known to be a
-    numeric value.  This induction can be performed either over the
-    term itself or over the evidence that it is a numeric value.  The
-    proof goes through in either case, but you will find that one way
-    is quite a bit shorter than the other.  For the sake of the
-    exercise, try to complete the proof both ways.) *)
-(** `` *)
+> value_is_nf : {t: Tm} -> Value t -> step_normal_form t
+> value_is_nf = ?value_is_nf_rhs
 
-(** **** Exercise: 3 stars, optional (step_deterministic)  *)
-(** Use `value_is_nf` to show that the `step` relation is also
-    deterministic. *)
+==== Exercise: 3 stars, optional (step_deterministic)
 
-Theorem step_deterministic:
-  deterministic step.
-Proof with eauto.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+Use `value_is_nf` to show that the `step` relation is also
+    deterministic.
 
-    <!--
+> step_deterministic : deterministic step
+> step_deterministic = ?step_deterministic_rhs
 
 
-(* ================================================================= *)
-(** ** Typing *)
+== Typing
 
-(** The next critical observation is that, although this
-    language has stuck terms, they are always nonsensical, mixing
-    booleans and numbers in a way that we don't even _want_ to have a
-    meaning.  We can easily exclude such ill-typed terms by defining a
-    _typing relation_ that relates terms to the types (either numeric
-    or boolean) of their final results.  *)
+The next critical observation is that, although this
+language has stuck terms, they are always nonsensical, mixing
+booleans and numbers in a way that we don't even _want_ to have a
+meaning.  We can easily exclude such ill-typed terms by defining a
+_typing relation_ that relates terms to the types (either numeric
+or boolean) of their final results.
 
-Inductive ty : Type :=
-  | TBool : ty
-  | TNat : ty.
+> data Ty : Type where
+>   TBool : Ty
+>   TNat  : Ty
 
-(** In informal notation, the typing relation is often written
-    `|- t \in T` and pronounced "`t` has type `T`."  The `|-` symbol
-    is called a "turnstile."  Below, we're going to see richer typing
-    relations where one or more additional "context" arguments are
-    written to the left of the turnstile.  For the moment, the context
-    is always empty. *)
-(**
-                           ----------------                            (T_True)
-                           |- true \in Bool
+In informal notation, the typing relation is often written
+  `|- t \in T` and pronounced "`t` has type `T`."  The `|-` symbol
+  is called a "turnstile."  Below, we're going to see richer typing
+  relations where one or more additional "context" arguments are
+  written to the left of the turnstile.  For the moment, the context
+  is always empty.
 
-                          -----------------                           (T_False)
-                          |- false \in Bool
+\[
+  \begin{prooftree}
+    \infer0[\idr{T_True}]{\idr{|- true \\in Bool}}
+  \end{prooftree}
+  \newline
+\]
 
-             |- t1 \in Bool    |- t2 \in T    |- t3 \in T
-             --------------------------------------------                (T_If)
-                    |- if t1 then t2 else t3 \in T
+\[
+  \begin{prooftree}
+    \infer0[\idr{T_False}]{\idr{|- false \\in Bool}}
+  \end{prooftree}
+  \newline
+\]
 
-                             ------------                              (T_Zero)
-                             |- 0 \in Nat
+\[
+  \begin{prooftree}
+    \hypo{\idr{|- t1 \\in Bool}}
+    \hypo{\idr{|- t2 \\in T}}
+    \hypo{\idr{|- t3 \\in T}}
+    \infer3[\idr{T_If}]{\idr{|- if t1 then t2 else t3 \\in T}}
+  \end{prooftree}
+  \newline
+\]
 
-                            |- t1 \in Nat
-                          ------------------                           (T_Succ)
-                          |- succ t1 \in Nat
+\[
+  \begin{prooftree}
+    \infer0[\idr{T_Zero}]{\idr{|- 0 \\in Nat}}
+  \end{prooftree}
+  \newline
+\]
 
-                            |- t1 \in Nat
-                          ------------------                           (T_Pred)
-                          |- pred t1 \in Nat
+\[
+  \begin{prooftree}
+    \hypo{\idr{|- t1 \\in Nat}}
+    \infer1[\idr{T_Succ}]{\idr{|- succ t1 \\in Nat}}
+  \end{prooftree}
+  \newline
+\]
 
-                            |- t1 \in Nat
-                        ---------------------                        (T_IsZero)
-                        |- iszero t1 \in Bool
-*)
+\[
+  \begin{prooftree}
+    \hypo{\idr{|- t1 \\in Nat}}
+    \infer1[\idr{T_Pred}]{\idr{|- pred t1 \\in Nat}}
+  \end{prooftree}
+  \newline
+\]
 
-Reserved Notation "'|-' t '\in' T" (at level 40).
+\[
+  \begin{prooftree}
+    \hypo{\idr{|- t1 \\in Nat}}
+    \infer1[\idr{T_IsZero}]{\idr{|- iszero t1 \\in Bool}}
+  \end{prooftree}
+  \newline
+\]
 
-Inductive has_type : tm -> ty -> Prop :=
-  | T_True :
-       |- ttrue \in TBool
-  | T_False :
-       |- tfalse \in TBool
-  | T_If : forall t1 t2 t3 T,
-       |- t1 \in TBool ->
-       |- t2 \in T ->
-       |- t3 \in T ->
-       |- tif t1 t2 t3 \in T
-  | T_Zero :
-       |- tzero \in TNat
-  | T_Succ : forall t1,
-       |- t1 \in TNat ->
-       |- tsucc t1 \in TNat
-  | T_Pred : forall t1,
-       |- t1 \in TNat ->
-       |- tpred t1 \in TNat
-  | T_Iszero : forall t1,
-       |- t1 \in TNat ->
-       |- tiszero t1 \in TBool
+> syntax "|-" [p] "::" [q] = Has_type p q
 
-where "'|-' t '\in' T" := (has_type t T).
+> data Has_type : Tm -> Ty -> Type where
+>   T_True : |- Ttrue :: TBool
+>   T_False : |- Tfalse :: TBool
+>   T_If : {t1, t2, t3: Tm} -> {T: Ty} ->
+>       Has_type t1 TBool ->
+>       Has_type t2 T ->
+>       Has_type t3 T ->
+>       |- (Tif t1 t2 t3) :: T
+>   T_Zero : |- Tzero :: TNat
+>   T_Succ : {t1 : Tm} ->
+>       Has_type t1 TNat ->
+>       |- (Tsucc t1) :: TNat
+>   T_Pred : {t1 : Tm} ->
+>       Has_type t1 TNat ->
+>       |- (Tpred t1) :: TNat
+>   T_Iszero : {t1 : Tm} ->
+>       Has_type t1 TNat ->
+>       |- (Tiszero t1) :: TBool
 
-Hint Constructors has_type.
+> has_type_1 : |- (Tif Tfalse Tzero (Tsucc Tzero)) :: TNat
+> has_type_1 = T_If (T_False) (T_Zero) (T_Succ T_Zero)
 
-Example has_type_1 :
-  |- tif tfalse tzero (tsucc tzero) \in TNat.
-Proof.
-  apply T_If.
-    - apply T_False.
-    - apply T_Zero.
-    - apply T_Succ.
-       + apply T_Zero.
-Qed.
+It's important to realize that the typing relation is a
+_conservative_ (or _static_) approximation: it does not consider
+what happens when the term is reduced -- in particular, it does
+not calculate the type of its normal form.
 
-(** (Since we've included all the constructors of the typing relation
-    in the hint database, the `auto` tactic can actually find this
-    proof automatically.) *)
+> has_type_not : Not (Has_type (Tif Tfalse Tzero Ttrue) TBool)
+> has_type_not (T_If (T_False) (T_Zero) (T_True)) impossible
 
-(** It's important to realize that the typing relation is a
-    _conservative_ (or _static_) approximation: it does not consider
-    what happens when the term is reduced -- in particular, it does
-    not calculate the type of its normal form. *)
+==== Exercise: 1 star, optional (succ_hastype_nat__hastype_nat)
 
-Example has_type_not :
-  ~ (|- tif tfalse tzero ttrue \in TBool).
-Proof.
-  intros Contra. solve_by_inverts 2.  Qed.
+> succ_hastype_nat__hastype_nat : {t : Tm} ->
+>   Has_type (Tsucc t) TNat -> |- t :: TNat
+> succ_hastype_nat__hastype_nat = ?succ_hastype_nat__hastype_nat_rhs
 
-(** **** Exercise: 1 star, optional (succ_hastype_nat__hastype_nat)  *)
-Example succ_hastype_nat__hastype_nat : forall t,
-  |- tsucc t \in TNat ->
-  |- t \in TNat.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+=== Canonical forms
 
-(* ----------------------------------------------------------------- *)
-(** *** Canonical forms *)
+The following two lemmas capture the fundamental property that the
+definitions of boolean and numeric values agree with the typing
+relation.
 
-(** The following two lemmas capture the fundamental property that the
-    definitions of boolean and numeric values agree with the typing
-    relation. *)
+> bool_canonical : {t: Tm} -> Has_type t TBool -> Value t -> Bvalue t
+> bool_canonical {t} ht v =
+>   case v of
+>     V_bool b => b
+>     V_nat n => void (lemma n ht)
+>   where lemma : {t:Tm} -> Nvalue t -> Not (Has_type t TBool)
+>         lemma {t=Tzero} n T_Zero impossible
+>         lemma {t=Tsucc n'} n (T_Succ n') impossible
 
-Lemma bool_canonical : forall t,
-  |- t \in TBool -> value t -> bvalue t.
-Proof.
-  intros t HT HV.
-  inversion HV; auto.
-  induction H; inversion HT; auto.
-Qed.
+> nat_canonical : {t: Tm} -> Has_type t TNat -> Value t -> Nvalue t
+> nat_canonical {t} ht v =
+>   case v of
+>     V_nat n => n
+>     V_bool b => void (lemma b ht)
+>   where lemma : {t:Tm} -> Bvalue t -> Not (Has_type t TNat)
+>         lemma {t=Ttrue} n T_True impossible
+>         lemma {t=Tfalse} n T_False impossible
 
-Lemma nat_canonical : forall t,
-  |- t \in TNat -> value t -> nvalue t.
-Proof.
-  intros t HT HV.
-  inversion HV.
-  inversion H; subst; inversion HT.
-  auto.
-Qed.
+=== Progress
 
-(* ================================================================= *)
-(** ** Progress *)
+The typing relation enjoys two critical properties.  The first is
+that well-typed normal forms are not stuck -- or conversely, if a
+term is well typed, then either it is a value or it can take at
+least one step.  We call this _progress_.
 
-(** The typing relation enjoys two critical properties.  The first is
-    that well-typed normal forms are not stuck -- or conversely, if a
-    term is well typed, then either it is a value or it can take at
-    least one step.  We call this _progress_. *)
+> progress : {t: Tm} -> {T: Ty} ->
+>   Either (Value t) (t' ** t ->> t')
+
 
 (** **** Exercise: 3 stars (finish_progress)  *)
-Theorem progress : forall t T,
-  |- t \in T ->
-  value t \/ exists t', t ==> t'.
 
 (** Complete the formal proof of the `progress` property.  (Make sure
     you understand the parts we've given of the informal proof in the
@@ -431,6 +427,8 @@ Proof with auto.
     that we saw in the `Smallstep` chapter, where _all_ normal forms
     were values.  Here a term can be stuck, but only if it is ill
     typed. *)
+
+    <!--
 
 (* ================================================================= *)
 (** ** Type Preservation *)
