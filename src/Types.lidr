@@ -28,13 +28,13 @@ Idris!).
 == Typed Arithmetic Expressions
 
 To motivate the discussion of type systems, let's begin as
-    usual with a tiny toy language.  We want it to have the potential
-    for programs to go wrong because of runtime type errors, so we
-    need something a tiny bit more complex than the language of
-    constants and addition that we used in chapter `Smallstep`: a
-    single kind of data (e.g., numbers) is too simple, but just two
-    kinds (numbers and booleans) gives us enough material to tell an
-    interesting story.
+usual with a tiny toy language.  We want it to have the potential
+for programs to go wrong because of runtime type errors, so we
+need something a tiny bit more complex than the language of
+constants and addition that we used in chapter `Smallstep`: a
+single kind of data (e.g., numbers) is too simple, but just two
+kinds (numbers and booleans) gives us enough material to tell an
+interesting story.
 
 The language definition is completely routine.
 
@@ -237,11 +237,11 @@ or boolean) of their final results.
 >   TNat  : Ty
 
 In informal notation, the typing relation is often written
-  `|- t \in T` and pronounced "`t` has type `T`."  The `|-` symbol
-  is called a "turnstile."  Below, we're going to see richer typing
-  relations where one or more additional "context" arguments are
-  written to the left of the turnstile.  For the moment, the context
-  is always empty.
+`|- t \in T` and pronounced "`t` has type `T`."  The `|-` symbol
+is called a "turnstile."  Below, we're going to see richer typing
+relations where one or more additional "context" arguments are
+written to the left of the turnstile.  For the moment, the context
+is always empty.
 
 \[
   \begin{prooftree}
@@ -367,66 +367,57 @@ that well-typed normal forms are not stuck -- or conversely, if a
 term is well typed, then either it is a value or it can take at
 least one step.  We call this _progress_.
 
-> progress : {t: Tm} -> {T: Ty} ->
->   Either (Value t) (t' ** t ->> t')
+> progress : {t: Tm} -> {ty: Ty} -> Has_type t ty -> Either (Value t) (t' ** t ->> t')
 
+==== Exercise: 3 stars (finish_progress)
 
-(** **** Exercise: 3 stars (finish_progress)  *)
-
-(** Complete the formal proof of the `progress` property.  (Make sure
+Complete the formal proof of the `progress` property.  (Make sure
     you understand the parts we've given of the informal proof in the
     following exercise before starting -- this will save you a lot of
-    time.) *)
-Proof with auto.
-  intros t T HT.
-  induction HT...
-  (* The cases that were obviously values, like T_True and
-     T_False, were eliminated immediately by auto *)
-  - (* T_If *)
-    right. inversion IHHT1; clear IHHT1.
-    + (* t1 is a value *)
-    apply (bool_canonical t1 HT1) in H.
-    inversion H; subst; clear H.
-      exists t2...
-      exists t3...
-    + (* t1 can take a step *)
-      inversion H as `t1' H1`.
-      exists (tif t1' t2 t3)...
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+    time.)
 
-(** **** Exercise: 3 stars, advanced (finish_progress_informal)  *)
-(** Complete the corresponding informal proof: *)
+> progress {t=Tif t1 t2 t3} (T_If h1 h2 h3) =
+>   case progress h1 of
+>     Left hypL => Right (
+>        let h1 = bool_canonical h1 hypL
+>        in case t1 of
+>           Ttrue => (t2 ** ST_IfTrue)
+>           Tfalse => (t3 ** ST_IfFalse)
+>     )
+>     Right (t' ** hr) => Right ((Tif t' t2 t3) ** ST_If hr)
+> progress t = ?progress_rhs
 
-(** _Theorem_: If `|- t \in T`, then either `t` is a value or else
-    `t ==> t'` for some `t'`. *)
+==== Exercise: 3 stars, advanced (finish_progress_informal)
 
-(** _Proof_: By induction on a derivation of `|- t \in T`.
+Complete the corresponding informal proof:
 
-      - If the last rule in the derivation is `T_If`, then `t = if t1
-        then t2 else t3`, with `|- t1 \in Bool`, `|- t2 \in T` and `|- t3
-        \in T`.  By the IH, either `t1` is a value or else `t1` can step
-        to some `t1'`.
+_Theorem_: If `|- t \in T`, then either `t` is a value or else
+    `t ==> t'` for some `t'`.
 
-            - If `t1` is a value, then by the canonical forms lemmas
-              and the fact that `|- t1 \in Bool` we have that `t1`
-              is a `bvalue` -- i.e., it is either `true` or `false`.
-              If `t1 = true`, then `t` steps to `t2` by `ST_IfTrue`,
-              while if `t1 = false`, then `t` steps to `t3` by
-              `ST_IfFalse`.  Either way, `t` can step, which is what
-              we wanted to show.
+_Proof_: By induction on a derivation of `|- t \in T`.
 
-            - If `t1` itself can take a step, then, by `ST_If`, so can
-              `t`.
+- If the last rule in the derivation is `T_If`, then `t = if t1
+  then t2 else t3`, with `|- t1 \in Bool`, `|- t2 \in T` and `|- t3
+  \in T`.  By the IH, either `t1` is a value or else `t1` can step
+  to some `t1'`.
+
+      - If `t1` is a value, then by the canonical forms lemmas
+        and the fact that `|- t1 \in Bool` we have that `t1`
+        is a `bvalue` -- i.e., it is either `true` or `false`.
+        If `t1 = true`, then `t` steps to `t2` by `ST_IfTrue`,
+        while if `t1 = false`, then `t` steps to `t3` by
+        `ST_IfFalse`.  Either way, `t` can step, which is what
+        we wanted to show.
+
+      - If `t1` itself can take a step, then, by `ST_If`, so can
+        `t`.
 
       - (* FILL IN HERE *)
- *)
-(** `` *)
 
-(** This theorem is more interesting than the strong progress theorem
-    that we saw in the `Smallstep` chapter, where _all_ normal forms
-    were values.  Here a term can be stuck, but only if it is ill
-    typed. *)
+This theorem is more interesting than the strong progress theorem
+that we saw in the `Smallstep` chapter, where _all_ normal forms
+were values.  Here a term can be stuck, but only if it is ill
+typed.
 
     <!--
 
