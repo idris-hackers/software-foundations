@@ -298,28 +298,28 @@ is always empty.
   \newline
 \]
 
-> syntax "|-" [p] "::" [q] = Has_type p q
+> syntax "|-" [p] "." [q] = Has_type p q
 
 > data Has_type : Tm -> Ty -> Type where
->   T_True : |- Ttrue :: TBool
->   T_False : |- Tfalse :: TBool
+>   T_True : |- Ttrue . TBool
+>   T_False : |- Tfalse . TBool
 >   T_If : {t1, t2, t3: Tm} -> {T: Ty} ->
 >       Has_type t1 TBool ->
 >       Has_type t2 T ->
 >       Has_type t3 T ->
->       |- (Tif t1 t2 t3) :: T
->   T_Zero : |- Tzero :: TNat
+>       |- (Tif t1 t2 t3) . T
+>   T_Zero : |- Tzero . TNat
 >   T_Succ : {t1 : Tm} ->
 >       Has_type t1 TNat ->
->       |- (Tsucc t1) :: TNat
+>       |- (Tsucc t1) . TNat
 >   T_Pred : {t1 : Tm} ->
 >       Has_type t1 TNat ->
->       |- (Tpred t1) :: TNat
+>       |- (Tpred t1) . TNat
 >   T_Iszero : {t1 : Tm} ->
 >       Has_type t1 TNat ->
->       |- (Tiszero t1) :: TBool
+>       |- (Tiszero t1) . TBool
 
-> has_type_1 : |- (Tif Tfalse Tzero (Tsucc Tzero)) :: TNat
+> has_type_1 : |- (Tif Tfalse Tzero (Tsucc Tzero)) . TNat
 > has_type_1 = T_If (T_False) (T_Zero) (T_Succ T_Zero)
 
 It's important to realize that the typing relation is a
@@ -333,7 +333,7 @@ not calculate the type of its normal form.
 ==== Exercise: 1 star, optional (succ_hastype_nat__hastype_nat)
 
 > succ_hastype_nat__hastype_nat : {t : Tm} ->
->   Has_type (Tsucc t) TNat -> |- t :: TNat
+>   Has_type (Tsucc t) TNat -> |- t . TNat
 > succ_hastype_nat__hastype_nat = ?succ_hastype_nat__hastype_nat_rhs
 
 === Canonical forms
@@ -419,112 +419,114 @@ that we saw in the `Smallstep` chapter, where _all_ normal forms
 were values.  Here a term can be stuck, but only if it is ill
 typed.
 
-    <!--
 
-(* ================================================================= *)
-(** ** Type Preservation *)
+=== Type Preservation
 
-(** The second critical property of typing is that, when a well-typed
-    term takes a step, the result is also a well-typed term. *)
+The second critical property of typing is that, when a well-typed
+term takes a step, the result is also a well-typed term.
 
-(** **** Exercise: 2 stars (finish_preservation)  *)
-Theorem preservation : forall t t' T,
-  |- t \in T ->
-  t ==> t' ->
-  |- t' \in T.
+> preservation : {t, t': Tm} -> {T: Ty} ->
+>  Has_type t T -> t ->> t' -> |- t' . T
 
-(** Complete the formal proof of the `preservation` property.  (Again,
+==== Exercise: 2 stars (finish_preservation)
+
+> preservation {t=Tif t1 t2 t3} {t'} (T_If h1 h2 h3) he =
+>   case he of
+>     ST_IfTrue => h2
+>     ST_IfFalse => h3
+>     ST_If hyp =>
+>       let indHyp = preservation h1 hyp
+>       in T_If indHyp h2 h3
+>     ST_Succ hyp impossible
+>     ST_PredZero impossible
+>     ST_PredSucc hyp impossible
+>     ST_Pred hyp impossible
+>     ST_IszeroZero impossible
+>     ST_IszeroSucc hyp impossible
+>     ST_Iszero hyp impossible
+> preservation t he = ?preservation_rhs
+
+Complete the formal proof of the `preservation` property.  (Again,
     make sure you understand the informal proof fragment in the
-    following exercise first.) *)
+    following exercise first.)
 
-Proof with auto.
-  intros t t' T HT HE.
-  generalize dependent t'.
-  induction HT;
-         (* every case needs to introduce a couple of things *)
-         intros t' HE;
-         (* and we can deal with several impossible
-            cases all at once *)
-         try solve_by_invert.
-    - (* T_If *) inversion HE; subst; clear HE.
-      + (* ST_IFTrue *) assumption.
-      + (* ST_IfFalse *) assumption.
-      + (* ST_If *) apply T_If; try assumption.
-        apply IHHT1; assumption.
-    (* FILL IN HERE *) Admitted.
-(** `` *)
+==== Exercise: 3 stars, advanced (finish_preservation_informal)
 
-(** **** Exercise: 3 stars, advanced (finish_preservation_informal)  *)
-(** Complete the following informal proof: *)
+Complete the following informal proof:
 
-(** _Theorem_: If `|- t \in T` and `t ==> t'`, then `|- t' \in T`. *)
+_Theorem_: If `|- t \in T` and `t ==> t'`, then `|- t' \in T`.
 
-(** _Proof_: By induction on a derivation of `|- t \in T`.
+_Proof_: By induction on a derivation of `|- t \in T`.
 
-      - If the last rule in the derivation is `T_If`, then `t = if t1
-        then t2 else t3`, with `|- t1 \in Bool`, `|- t2 \in T` and `|- t3
-        \in T`.
+- If the last rule in the derivation is `T_If`, then `t = if t1
+  then t2 else t3`, with `|- t1 \in Bool`, `|- t2 \in T` and `|- t3
+  \in T`.
 
-        Inspecting the rules for the small-step reduction relation and
-        remembering that `t` has the form `if ...`, we see that the
-        only ones that could have been used to prove `t ==> t'` are
-        `ST_IfTrue`, `ST_IfFalse`, or `ST_If`.
+  Inspecting the rules for the small-step reduction relation and
+  remembering that `t` has the form `if ...`, we see that the
+  only ones that could have been used to prove `t ==> t'` are
+  `ST_IfTrue`, `ST_IfFalse`, or `ST_If`.
 
-           - If the last rule was `ST_IfTrue`, then `t' = t2`.  But we
-             know that `|- t2 \in T`, so we are done.
+     - If the last rule was `ST_IfTrue`, then `t' = t2`.  But we
+       know that `|- t2 \in T`, so we are done.
 
-           - If the last rule was `ST_IfFalse`, then `t' = t3`.  But we
-             know that `|- t3 \in T`, so we are done.
+     - If the last rule was `ST_IfFalse`, then `t' = t3`.  But we
+       know that `|- t3 \in T`, so we are done.
 
-           - If the last rule was `ST_If`, then `t' = if t1' then t2
-             else t3`, where `t1 ==> t1'`.  We know `|- t1 \in Bool` so,
-             by the IH, `|- t1' \in Bool`.  The `T_If` rule then gives us
-             `|- if t1' then t2 else t3 \in T`, as required.
+     - If the last rule was `ST_If`, then `t' = if t1' then t2
+       else t3`, where `t1 ==> t1'`.  We know `|- t1 \in Bool` so,
+       by the IH, `|- t1' \in Bool`.  The `T_If` rule then gives us
+       `|- if t1' then t2 else t3 \in T`, as required.
 
-      - (* FILL IN HERE *)
-*)
-(** `` *)
+- (* FILL IN HERE *)
 
-(** **** Exercise: 3 stars (preservation_alternate_proof)  *)
-(** Now prove the same property again by induction on the
-    _evaluation_ derivation instead of on the typing derivation.
-    Begin by carefully reading and thinking about the first few
-    lines of the above proofs to make sure you understand what
-    each one is doing.  The set-up for this proof is similar, but
-    not exactly the same. *)
+==== Exercise: 3 stars (preservation_alternate_proof)
 
-Theorem preservation' : forall t t' T,
-  |- t \in T ->
-  t ==> t' ->
-  |- t' \in T.
-Proof with eauto.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+Now prove the same property again by induction on the
+_evaluation_ derivation instead of on the typing derivation.
+Begin by carefully reading and thinking about the first few
+lines of the above proofs to make sure you understand what
+each one is doing.  The set-up for this proof is similar, but
+not exactly the same.
 
-(** The preservation theorem is often called _subject reduction_,
-    because it tells us what happens when the "subject" of the typing
-    relation is reduced.  This terminology comes from thinking of
-    typing statements as sentences, where the term is the subject and
-    the type is the predicate. *)
+> preservation' : {t, t': Tm} -> {T: Ty} ->
+>  Has_type t T -> t ->> t' -> |- t' . T
+> preservation' h1 h2 = ?preservation'_rhs
 
-(* ================================================================= *)
-(** ** Type Soundness *)
+The preservation theorem is often called _subject reduction_,
+because it tells us what happens when the "subject" of the typing
+relation is reduced.  This terminology comes from thinking of
+typing statements as sentences, where the term is the subject and
+the type is the predicate.
 
-(** Putting progress and preservation together, we see that a
-    well-typed term can never reach a stuck state.  *)
 
-Definition multistep := (multi step).
-Notation "t1 '==>*' t2" := (multistep t1 t2) (at level 40).
+=== Type Soundness
 
-Corollary soundness : forall t t' T,
-  |- t \in T ->
-  t ==>* t' ->
-  ~(stuck t').
+Putting progress and preservation together, we see that a
+well-typed term can never reach a stuck state.
+
+> mutual
+>   infixl 6 ->>*
+>   (->>*) : Tm -> Tm -> Type
+>   (->>*) = multistep
+
+>   multistep : Tm -> Tm -> Type
+>   multistep = Multi Step
+
+
+> soundness : {t, t': Tm} -> {T: Ty} ->
+>   Has_type t T ->
+>   t ->>* t' ->
+>   Not (stuck t')
+> soundness {t} {t'} {T=ty} ht p = ?hole
+
 Proof.
   intros t t' T HT P. induction P; intros `R S`.
   destruct (progress x T HT); auto.
   apply IHP.  apply (preservation x y T HT H).
   unfold stuck. split; auto.   Qed.
+
+  <!--
 
 (* ################################################################# *)
 (** * Aside: the `normalize` Tactic *)
