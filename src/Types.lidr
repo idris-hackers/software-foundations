@@ -513,18 +513,18 @@ well-typed term can never reach a stuck state.
 >   multistep : Tm -> Tm -> Type
 >   multistep = Multi Step
 
-
 > soundness : {t, t': Tm} -> {T: Ty} ->
 >   Has_type t T ->
 >   t ->>* t' ->
 >   Not (stuck t')
-> soundness {t} {t'} {T=ty} ht p = ?hole
-
-Proof.
-  intros t t' T HT P. induction P; intros `R S`.
-  destruct (progress x T HT); auto.
-  apply IHP.  apply (preservation x y T HT H).
-  unfold stuck. split; auto.   Qed.
+> soundness ht Multi_refl (sl,sr) =
+>   case progress ht of
+>     Left hl => sr hl
+>     Right hr => sl hr
+> soundness ht (Multi_step single multi) stuck =
+>   let ht'    = preservation ht single
+>       indHyp = soundness ht' multi
+>   in indHyp stuck
 
   <!--
 
@@ -638,6 +638,8 @@ Tactic Notation "normalize" :=
   repeat (print_goal; eapply multi_step ;
             ` (eauto 10; fail) | (instantiate; simpl)`);
   apply multi_refl.
+
+ -->
 
 (* ================================================================= *)
 (** ** Additional Exercises *)
