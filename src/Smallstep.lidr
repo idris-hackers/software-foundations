@@ -483,10 +483,13 @@ We can use this terminology to generalize the observation we made
 >     Left va => va
 >     Right pa => void (prf pa)
 
-> iff : {p,q : Type} -> Type
-> iff {p} {q} = (p -> q, q -> p)
+> iff : (p,q : Type) -> Type
+> iff p q = (p -> q, q -> p)
 
-> syntax [p] "<->" [q] = iff {p} {q}
+> infixl 6 <->
+> (<->) : (p: Type) -> (q:Type) -> Type
+> (<->) = iff
+
 
 > nf_same_as_value : (normal_form Step t) <-> (Value t)
 > nf_same_as_value {t} = (nf_is_value t,value_is_nf t)
