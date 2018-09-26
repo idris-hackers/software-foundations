@@ -302,28 +302,28 @@ is always empty.
   \newline
 \]
 
-> syntax "|-" [p] "." [q] = Has_type p q
+> syntax "|-" [p] ":" [q] "."= Has_type p q
 
 > data Has_type : Tm -> Ty -> Type where
->   T_True : |- Ttrue . TBool
->   T_False : |- Tfalse . TBool
+>   T_True : |- Ttrue : TBool .
+>   T_False : |- Tfalse : TBool .
 >   T_If : {t1, t2, t3: Tm} -> {T: Ty} ->
->       Has_type t1 TBool ->
->       Has_type t2 T ->
->       Has_type t3 T ->
->       |- (Tif t1 t2 t3) . T
->   T_Zero : |- Tzero . TNat
+>       |- t1 : TBool . ->
+>       |- t2 : T . ->
+>       |- t3 : T . ->
+>       |- (Tif t1 t2 t3) : T .
+>   T_Zero : |- Tzero : TNat .
 >   T_Succ : {t1 : Tm} ->
->       Has_type t1 TNat ->
->       |- (Tsucc t1) . TNat
+>       |- t1 : TNat . ->
+>       |- (Tsucc t1) : TNat .
 >   T_Pred : {t1 : Tm} ->
->       Has_type t1 TNat ->
->       |- (Tpred t1) . TNat
+>       |- t1 : TNat . ->
+>       |- (Tpred t1) : TNat .
 >   T_Iszero : {t1 : Tm} ->
->       Has_type t1 TNat ->
->       |- (Tiszero t1) . TBool
+>       |- t1 : TNat . ->
+>       |- (Tiszero t1) : TBool .
 
-> has_type_1 : |- (Tif Tfalse Tzero (Tsucc Tzero)) . TNat
+> has_type_1 : |- (Tif Tfalse Tzero (Tsucc Tzero)) : TNat .
 > has_type_1 = T_If (T_False) (T_Zero) (T_Succ T_Zero)
 
 It's important to realize that the typing relation is a
@@ -331,13 +331,13 @@ _conservative_ (or _static_) approximation: it does not consider
 what happens when the term is reduced -- in particular, it does
 not calculate the type of its normal form.
 
-> has_type_not : Not (Has_type (Tif Tfalse Tzero Ttrue) TBool)
+> has_type_not : Not ( |- (Tif Tfalse Tzero Ttrue) : TBool . )
 > has_type_not (T_If (T_False) (T_Zero) (T_True)) impossible
 
 ==== Exercise: 1 star, optional (succ_hastype_nat__hastype_nat)
 
 > succ_hastype_nat__hastype_nat : {t : Tm} ->
->   Has_type (Tsucc t) TNat -> |- t . TNat
+>   |- (Tsucc t) : TNat . -> |- t : TNat .
 > succ_hastype_nat__hastype_nat = ?succ_hastype_nat__hastype_nat_rhs
 
 $\square$
@@ -348,21 +348,21 @@ The following two lemmas capture the fundamental property that the
 definitions of boolean and numeric values agree with the typing
 relation.
 
-> bool_canonical : {t: Tm} -> Has_type t TBool -> Value t -> Bvalue t
+> bool_canonical : {t: Tm} -> |- t : TBool . -> Value t -> Bvalue t
 > bool_canonical {t} ht v =
 >   case v of
 >     V_bool b => b
 >     V_nat n => void (lemma n ht)
->   where lemma : {t:Tm} -> Nvalue t -> Not (Has_type t TBool)
+>   where lemma : {t:Tm} -> Nvalue t -> Not ( |- t : TBool . )
 >         lemma {t=Tzero} n T_Zero impossible
 >         lemma {t=Tsucc n'} n (T_Succ n') impossible
 
-> nat_canonical : {t: Tm} -> Has_type t TNat -> Value t -> Nvalue t
+> nat_canonical : {t: Tm} -> |- t : TNat . -> Value t -> Nvalue t
 > nat_canonical {t} ht v =
 >   case v of
 >     V_nat n => n
 >     V_bool b => void (lemma b ht)
->   where lemma : {t:Tm} -> Bvalue t -> Not (Has_type t TNat)
+>   where lemma : {t:Tm} -> Bvalue t -> Not ( |- t : TNat . )
 >         lemma {t=Ttrue} n T_True impossible
 >         lemma {t=Tfalse} n T_False impossible
 
@@ -373,7 +373,7 @@ that well-typed normal forms are not stuck -- or conversely, if a
 term is well typed, then either it is a value or it can take at
 least one step.  We call this _progress_.
 
-> progress : {t: Tm} -> {ty: Ty} -> Has_type t ty -> Either (Value t) (t' ** t ->> t')
+> progress : {t: Tm} -> {ty: Ty} -> |- t : ty . -> Either (Value t) (t' ** t ->> t')
 
 ==== Exercise: 3 stars (finish_progress)
 
@@ -434,7 +434,7 @@ The second critical property of typing is that, when a well-typed
 term takes a step, the result is also a well-typed term.
 
 > preservation : {t, t': Tm} -> {T: Ty} ->
->  Has_type t T -> t ->> t' -> |- t' . T
+>  |- t : T . -> t ->> t' -> |- t' : T .
 
 ==== Exercise: 2 stars (finish_preservation)
 
@@ -500,16 +500,16 @@ each one is doing.  The set-up for this proof is similar, but
 not exactly the same.
 
 > preservation' : {t, t': Tm} -> {T: Ty} ->
->  Has_type t T -> t ->> t' -> |- t' . T
+>  |- t : T . -> t ->> t' -> |- t' : T .
 > preservation' h1 h2 = ?preservation'_rhs
+
+$\square$
 
 The preservation theorem is often called _subject reduction_,
 because it tells us what happens when the "subject" of the typing
 relation is reduced.  This terminology comes from thinking of
 typing statements as sentences, where the term is the subject and
 the type is the predicate.
-
-$\square$
 
 === Type Soundness
 
@@ -525,7 +525,7 @@ well-typed term can never reach a stuck state.
 >   multistep = Multi Step
 
 > soundness : {t, t': Tm} -> {T: Ty} ->
->   Has_type t T ->
+>   |- t : T . ->
 >   t ->>* t' ->
 >   Not (stuck t')
 > soundness ht Multi_refl (sl,sr) =
