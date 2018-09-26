@@ -200,9 +200,10 @@ terms are _stuck_.
 
 ==== Exercise: 2 stars (some_term_is_stuck)
 
-
 > some_term_is_stuck : (t ** stuck t)
 > some_term_is_stuck = ?some_term_is_stuck_rhs
+
+$\square$
 
 However, although values and normal forms are _not_ the same in this
 language, the set of values is included in the set of normal
@@ -214,6 +215,8 @@ define things so that some value could still take a step.
 > value_is_nf : {t: Tm} -> Value t -> step_normal_form t
 > value_is_nf = ?value_is_nf_rhs
 
+$\square$
+
 ==== Exercise: 3 stars, optional (step_deterministic)
 
 Use `value_is_nf` to show that the `step` relation is also
@@ -222,6 +225,7 @@ Use `value_is_nf` to show that the `step` relation is also
 > step_deterministic : deterministic step
 > step_deterministic = ?step_deterministic_rhs
 
+$\square$
 
 == Typing
 
@@ -336,6 +340,8 @@ not calculate the type of its normal form.
 >   Has_type (Tsucc t) TNat -> |- t . TNat
 > succ_hastype_nat__hastype_nat = ?succ_hastype_nat__hastype_nat_rhs
 
+$\square$
+
 === Canonical forms
 
 The following two lemmas capture the fundamental property that the
@@ -387,6 +393,8 @@ Complete the formal proof of the `progress` property.  (Make sure
 >     Right (t' ** hr) => Right ((Tif t' t2 t3) ** ST_If hr)
 > progress t = ?progress_rhs
 
+$\square$
+
 ==== Exercise: 3 stars, advanced (finish_progress_informal)
 
 Complete the corresponding informal proof:
@@ -412,7 +420,7 @@ _Proof_: By induction on a derivation of `|- t \in T`.
       - If `t1` itself can take a step, then, by `ST_If`, so can
         `t`.
 
-      - (* FILL IN HERE *)
+$\square$
 
 This theorem is more interesting than the strong progress theorem
 that we saw in the `Smallstep` chapter, where _all_ normal forms
@@ -450,6 +458,8 @@ Complete the formal proof of the `preservation` property.  (Again,
     make sure you understand the informal proof fragment in the
     following exercise first.)
 
+$\square$
+
 ==== Exercise: 3 stars, advanced (finish_preservation_informal)
 
 Complete the following informal proof:
@@ -478,7 +488,7 @@ _Proof_: By induction on a derivation of `|- t \in T`.
        by the IH, `|- t1' \in Bool`.  The `T_If` rule then gives us
        `|- if t1' then t2 else t3 \in T`, as required.
 
-- (* FILL IN HERE *)
+$\square$
 
 ==== Exercise: 3 stars (preservation_alternate_proof)
 
@@ -499,6 +509,7 @@ relation is reduced.  This terminology comes from thinking of
 typing statements as sentences, where the term is the subject and
 the type is the predicate.
 
+$\square$
 
 === Type Soundness
 
@@ -641,133 +652,140 @@ Tactic Notation "normalize" :=
 
  -->
 
-(* ================================================================= *)
-(** ** Additional Exercises *)
+=== Additional Exercises
 
-(** **** Exercise: 2 stars, recommended (subject_expansion)  *)
-(** Having seen the subject reduction property, one might
-    wonder whether the opposity property -- subject _expansion_ --
-    also holds.  That is, is it always the case that, if `t ==> t'`
-    and `|- t' \in T`, then `|- t \in T`?  If so, prove it.  If
-    not, give a counter-example.  (You do not need to prove your
-    counter-example in Coq, but feel free to do so.)
+==== Exercise: 2 stars, recommended (subject_expansion)
 
-    (* FILL IN HERE *)
-*)
-(** `` *)
+Having seen the subject reduction property, one might
+wonder whether the opposity property -- subject _expansion_ --
+also holds.  That is, is it always the case that, if `t ==> t'`
+and `|- t' \in T`, then `|- t \in T`?  If so, prove it.  If
+not, give a counter-example.  (You do not need to prove your
+counter-example in Idris, but feel free to do so.)
 
-(** **** Exercise: 2 stars (variation1)  *)
-(** Suppose, that we add this new rule to the typing relation:
+$\square$
 
-      | T_SuccBool : forall t,
-           |- t \in TBool ->
-           |- tsucc t \in TBool
+==== Exercise: 2 stars (variation1)
 
-   Which of the following properties remain true in the presence of
-   this rule?  For each one, write either "remains true" or
-   else "becomes false." If a property becomes false, give a
-   counterexample.
-      - Determinism of `step`
+Suppose, that we add this new rule to the typing relation:
 
-      - Progress
+```idris
+       T_SuccBool : {t: Tm} ->
+           HasType t TBool ->
+           |- Tsucc t . TBool
+```
 
-      - Preservation
+Which of the following properties remain true in the presence of
+this rule?  For each one, write either "remains true" or
+else "becomes false." If a property becomes false, give a
+counterexample.
+  - Determinism of `step`
 
+  - Progress
 
-    `` *)
+  - Preservation
 
-(** **** Exercise: 2 stars (variation2)  *)
-(** Suppose, instead, that we add this new rule to the `step` relation:
+$\square$
 
-      | ST_Funny1 : forall t2 t3,
-           (tif ttrue t2 t3) ==> t3
+==== Exercise: 2 stars (variation2)
 
-   Which of the above properties become false in the presence of
-   this rule?  For each one that does, give a counter-example.
+Suppose, instead, that we add this new rule to the `step` relation:
 
+```idris
+      ST_Funny1 : {t2, t3: Tm} ->
+           (tif ttrue t2 t3) ->>* t3
+```
 
-    `` *)
+Which of the above properties become false in the presence of
+this rule?  For each one that does, give a counter-example.
 
-(** **** Exercise: 2 stars, optional (variation3)  *)
-(** Suppose instead that we add this rule:
+$\square$
 
-      | ST_Funny2 : forall t1 t2 t2' t3,
-           t2 ==> t2' ->
-           (tif t1 t2 t3) ==> (tif t1 t2' t3)
+==== Exercise: 2 stars, optional (variation3)
 
-   Which of the above properties become false in the presence of
-   this rule?  For each one that does, give a counter-example.
+Suppose instead that we add this rule:
 
+```idris
+      ST_Funny2 : {t1, t2, t2', t3: Tm} ->
+           t2 ->>* t2' ->
+           (tif t1 t2 t3) ->>* (tif t1 t2' t3)
+```
 
-    `` *)
+Which of the above properties become false in the presence of
+this rule?  For each one that does, give a counter-example.
 
-(** **** Exercise: 2 stars, optional (variation4)  *)
-(** Suppose instead that we add this rule:
+$\square$
 
-      | ST_Funny3 :
-          (tpred tfalse) ==> (tpred (tpred tfalse))
+==== Exercise: 2 stars, optional (variation4)
 
-   Which of the above properties become false in the presence of
-   this rule?  For each one that does, give a counter-example.
+Suppose instead that we add this rule:
 
+```idris
+      ST_Funny3 :
+          (tpred tfalse) ->>* (tpred (tpred tfalse))
+```
 
-    `` *)
+Which of the above properties become false in the presence of
+this rule?  For each one that does, give a counter-example.
 
-(** **** Exercise: 2 stars, optional (variation5)  *)
-(** Suppose instead that we add this rule:
+$\square$
 
-      | T_Funny4 :
-            |- tzero \in TBool
+==== Exercise: 2 stars, optional (variation5)
 
-   Which of the above properties become false in the presence of
-   this rule?  For each one that does, give a counter-example.
+Suppose instead that we add this rule:
 
+```idris
+      T_Funny4 :
+            |- Tzero . TBool
+```
 
-    `` *)
+Which of the above properties become false in the presence of
+this rule?  For each one that does, give a counter-example.
 
-(** **** Exercise: 2 stars, optional (variation6)  *)
-(** Suppose instead that we add this rule:
+$\square$
 
-      | T_Funny5 :
-            |- tpred tzero \in TBool
+==== Exercise: 2 stars, optional (variation6)
 
-   Which of the above properties become false in the presence of
-   this rule?  For each one that does, give a counter-example.
+Suppose instead that we add this rule:
 
+```idris
+      T_Funny5 :
+            |- Tpred Tzero . TBool
+```
 
-    `` *)
+Which of the above properties become false in the presence of
+this rule?  For each one that does, give a counter-example.
 
-(** **** Exercise: 3 stars, optional (more_variations)  *)
-(** Make up some exercises of your own along the same lines as
-    the ones above.  Try to find ways of selectively breaking
-    properties -- i.e., ways of changing the definitions that
-    break just one of the properties and leave the others alone.
-*)
-(** `` *)
+$\square$
 
-(** **** Exercise: 1 star (remove_predzero)  *)
-(** The reduction rule `ST_PredZero` is a bit counter-intuitive: we
-    might feel that it makes more sense for the predecessor of zero to
-    be undefined, rather than being defined to be zero.  Can we
-    achieve this simply by removing the rule from the definition of
-    `step`?  Would doing so create any problems elsewhere?
+==== Exercise: 3 stars, optional (more_variations)
 
-(* FILL IN HERE *)
-*)
-(** `` *)
+Make up some exercises of your own along the same lines as
+the ones above.  Try to find ways of selectively breaking
+properties -- i.e., ways of changing the definitions that
+break just one of the properties and leave the others alone.
 
-(** **** Exercise: 4 stars, advanced (prog_pres_bigstep)  *)
-(** Suppose our evaluation relation is defined in the big-step style.
-    State appropriate analogs of the progress and preservation
-    properties. (You do not need to prove them.)
+$\square$
 
-    Can you see any limitations of either of your properties?
-    Do they allow for nonterminating commands?
-    Why might we prefer the small-step semantics for stating
-    preservation and progress?
+==== Exercise: 1 star (remove_predzero)
 
-(* FILL IN HERE *)
-*)
-(** `` *)
+The reduction rule `ST_PredZero` is a bit counter-intuitive: we
+might feel that it makes more sense for the predecessor of zero to
+be undefined, rather than being defined to be zero.  Can we
+achieve this simply by removing the rule from the definition of
+`step`?  Would doing so create any problems elsewhere?
 
--->
+$\square$
+
+==== Exercise: 4 stars, advanced (prog_pres_bigstep)
+
+Suppose our evaluation relation is defined in the big-step style.
+State appropriate analogs of the progress and preservation
+properties. (You do not need to prove them.)
+
+Can you see any limitations of either of your properties?
+Do they allow for nonterminating commands?
+Why might we prefer the small-step semantics for stating
+preservation and progress?
+
+$\square$

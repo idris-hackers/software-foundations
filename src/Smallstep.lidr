@@ -201,6 +201,8 @@ Right-hand sides of sums can take a step only when the
 >          (C (0 + 3)))
 >   test_step_2 = ?test_step_2_rhs
 
+$\square$
+
 == Relations
 
 We will be working with several different single-step relations,
@@ -391,6 +393,7 @@ Most of this proof is the same as the one above.  But to get
 > step_deterministic' = ?step_deterministic_rhs
 >
 
+$\square$
 
 === Strong Progress and Normal Forms
 
@@ -529,6 +532,8 @@ We might, for example, mistakenly define `value` so that it
 > value_not_same_as_normal_form : (v : Tm ** (Value' v, Not (normal_form Step'' v)))
 > value_not_same_as_normal_form = ?value_not_same_as_normal_form_rhs
 
+$\square$
+
 ==== Exercise: 2 stars, optional (value_not_same_as_normal_form2)
 
 Alternatively, we might mistakenly define `step` so that it
@@ -552,6 +557,8 @@ Alternatively, we might mistakenly define `step` so that it
 
 > value_not_same_as_normal_form''' : (v : Tm ** (Value v, Not (normal_form Step''' v)))
 > value_not_same_as_normal_form''' = ?value_not_same_as_normal_form_rhs'''
+
+$\square$
 
 ==== Exercise: 3 stars, optional (value_not_same_as_normal_form3)
 
@@ -577,6 +584,8 @@ Finally, we might define `value` and `step` so that there is some
 
 > value_not_same_as_normal_form'''' : (t : Tm ** (Not (Value t), normal_form Step'''' t))
 > value_not_same_as_normal_form'''' = ?value_not_same_as_normal_form_rhs''''
+
+$\square$
 
 
 === Additional Exercises
@@ -636,6 +645,8 @@ Which of the following propositions are provable?  (This is just a
 >       Tfalse
 > bool_step_prop3 = ?bool_step_prop3_rhs
 
+$\square$
+
 
 ==== Exercise: 3 stars, optional (progress_bool)
 
@@ -693,6 +704,8 @@ Write an extra clause for the step relation that achieves this
 > bool_step_prop4_holds : bool_step_prop4
 > bool_step_prop4_holds = ?bool_step_prop4_holds_rhs
 
+$\square$
+
 
 ==== Exercise: 3 stars, optional (properties_of_altered_step)
 It can be shown that the determinism and strong progress theorems
@@ -711,9 +724,11 @@ Optional: prove your answer correct in Idris.
  Optional: prove your answer correct in Idris.
 
 In general, is there any way we could cause strong progress to
-     fail if we took away one or more constructors from the original
-     step relation? Write yes or no and briefly (1 sentence) explain
-     your answer.
+fail if we took away one or more constructors from the original
+step relation? Write yes or no and briefly (1 sentence) explain
+your answer.
+
+$\square$
 
 == Multi-Step Reduction
 
@@ -823,6 +838,8 @@ Here's a specific instance of the `multi step` relation:
 > test_multistep_2: C 3 ->>* C 3
 > test_multistep_2 = ?test_multistep_2_rhs
 
+$\square$
+
 ==== Exercise: 1 star, optional (test_multistep_3)
 
 > test_multistep_3:
@@ -830,6 +847,8 @@ Here's a specific instance of the `multi step` relation:
 >   ->>*
 >      P (C 0) (C 3)
 > test_multistep_3 = ?test_multistep_3_rhs
+
+$\square$
 
 ==== Exercise: 2 stars (test_multistep_4)
 
@@ -844,6 +863,8 @@ Here's a specific instance of the `multi step` relation:
 >        (C 0)
 >        (C (2 + (0 + 3)))
 > test_multistep_4 = ?test_multistep_4_rhs
+
+$\square$
 
 === Normal Forms Again
 
@@ -868,6 +889,7 @@ We have already seen that, for our language, single-step reduction is
 > normal_forms_unique : deterministic Smallstep.normal_form_of
 > normal_forms_unique (l,r) (l2,r2) = ?normal_forms_unique_rhs
 
+$\square$
 
 Indeed, something stronger is true for this language (though not
     for all languages): the reduction of _any_ term `t` will
@@ -899,6 +921,8 @@ node whose left-hand child is a value.
 
 > multistep_congr_2 : {v:Value t1} -> (t2 ->>* t2') -> ((P t1 t2) ->>* P t1 t2')
 > multistep_congr_2 {v=V_const i} mult = ?multistep_congr_2_rhs
+
+$\square$
 
 With these lemmas in hand, the main proof is a straightforward
     induction.
@@ -978,6 +1002,8 @@ Having defined the operational semantics of our tiny programming
 > eval__multistep: {t: Tm} -> {n: Nat} -> t >>> n -> t ->>* C n
 > eval__multistep hyp = ?eval__multistep_rhs
 
+$\square$
+
 The key ideas in the proof can be seen in the following picture:
 
 ```
@@ -1016,7 +1042,7 @@ To formalize this intuition, you'll need to use the congruence
 
 Write a detailed informal version of the proof of `eval__multistep`
 
-(* FILL IN HERE *)
+$\square$
 
 For the other direction, we need one lemma, which establishes a
     relation between single-step reduction and big-step evaluation.
@@ -1029,14 +1055,16 @@ For the other direction, we need one lemma, which establishes a
 >     t >>> n
 > step__eval h1 h2 = ?step__eval_rhs
 
+$\square$
+
 The fact that small-step reduction implies big-step evaluation is
-    now straightforward to prove, once it is stated correctly.
+now straightforward to prove, once it is stated correctly.
 
 The proof proceeds by induction on the multi-step reduction
-    sequence that is buried in the hypothesis `normal_form_of t t'`.
+sequence that is buried in the hypothesis `normal_form_of t t'`.
 
 Make sure you understand the statement before you start to
-    work on the proof.
+work on the proof.
 
 ==== Exercise: 3 stars (multistep__eval)
 
@@ -1044,24 +1072,27 @@ Make sure you understand the statement before you start to
 >   normal_form_of t t' -> (n : Nat ** (t' = C n, t >>> n))
 > multistep__eval hyp = ?multistep__eval_rhs
 
+$\square$
 
 === Additional Exercises
 
 ==== Exercise: 3 stars, optional (interp_tm)
 
 Remember that we also defined big-step evaluation of terms as a
-    function `evalF`.  Prove that it is equivalent to the existing
-    semantics.  (Hint: we just proved that `eval` and `multistep` are
-    equivalent, so logically it doesn't matter which you choose.
-    One will be easier than the other, though!)
+function `evalF`.  Prove that it is equivalent to the existing
+semantics.  (Hint: we just proved that `eval` and `multistep` are
+equivalent, so logically it doesn't matter which you choose.
+One will be easier than the other, though!)
 
 > evalF_eval : {t: Tm} -> {n: Nat} -> ((evalF t = n) <-> (t >>> n))
+> evalF_eval = ?evalF_eval_rhs
+
+$\square$
 
 ==== Exercise: 4 stars (combined_properties)
 
 We've considered arithmetic and conditional expressions
-    separately.  This exercise explores how the two interact.
-
+separately.  This exercise explores how the two interact.
 
 > data TmC : Type where
 >   CC : Nat -> TmC
@@ -1074,7 +1105,6 @@ We've considered arithmetic and conditional expressions
 >   V_constC : {n: Nat} -> ValueC (CC n)
 >   V_trueC : ValueC TtrueC
 >   V_falseC : ValueC TfalseC
-
 
 > mutual
 >   infixl 6 >>->
@@ -1101,7 +1131,7 @@ Formally prove or disprove these two properties for the combined
 language.  (That is, state a theorem saying that the property
 holds or does not hold, and prove your theorem.)
 
-(* FILL IN HERE *)
+$\square$
 
   <!--
 
@@ -1509,7 +1539,5 @@ Theorem compiler_is_correct : compiler_is_correct_statement.
 Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
-
-(** $Date$ *)
 
 -->
