@@ -340,67 +340,71 @@ Here is the definition, informally...
 ... and formally:
 
 > mutual
+>
+> subst : String -> Tm -> Tm -> Tm
+> subst x s t =
+>   case t of
+>     Tvar x' => if x == x' then s else t
+>     Tabs x' ty t1 =>
+>       Tabs x' ty (if x == x' then t1 else subst x s t1)
+>     t1 # t2 => subst x s t1 # subst x s t2
+>     Ttrue => Ttrue
+>     Tfalse => Tfalse
+>     Tif t1 t2 t3 => Tif (subst x s t1) (subst x s t2) (subst x s t3)
 
-Fixpoint subst (x:string) (s:Tm) (t:Tm) : Tm :=
-  match t with
-  | tvar x' =>
-      if beq_string x x' then s else t
-  | tabs x' T t1 =>
-      tabs x' T (if beq_string x x' then t1 else (`x:=s` t1))
-  | tapp t1 t2 =>
-      tapp (`x:=s` t1) (`x:=s` t2)
-  | ttrue =>
-      ttrue
-  | tfalse =>
-      tfalse
-  | tif t1 t2 t3 =>
-      tif (`x:=s` t1) (`x:=s` t2) (`x:=s` t3)
-  end
+> infixl 5 :=
+> (:=) : String -> Tm -> Tm -> Tm
+> (:=) x s = subst x s
 
-where "'`' x ':=' s '`' t" := (subst x s t).
+_Technical note_: Substitution becomes trickier to define if we
+consider the case where `s`, the term being substituted for a
+variable in some other term, may itself contain free variables.
+Since we are only interested here in defining the `step` relation
+on _closed_ terms (i.e., terms like `\x:Bool. x` that include
+binders for all of the variables they mention), we can avoid this
+extra complexity here, but it must be dealt with when formalizing
+richer languages.
 
-(** _Technical note_: Substitution becomes trickier to define if we
-    consider the case where `s`, the term being substituted for a
-    variable in some other term, may itself contain free variables.
-    Since we are only interested here in defining the `step` relation
-    on _closed_ terms (i.e., terms like `\x:Bool. x` that include
-    binders for all of the variables they mention), we can avoid this
-    extra complexity here, but it must be dealt with when formalizing
-    richer languages. *)
+For example, using the definition of substitution above to
+substitute the _open_ term `s = \x:Bool. r`, where `r` is a _free_
+reference to some global resource, for the variable `z` in the
+term `t = \r:Bool. z`, where `r` is a bound variable, we would get
+`\r:Bool. \x:Bool. r`, where the free reference to `r` in `s` has
+been "captured" by the binder at the beginning of `t`.
 
-(** For example, using the definition of substitution above to
-    substitute the _open_ term `s = \x:Bool. r`, where `r` is a _free_
-    reference to some global resource, for the variable `z` in the
-    term `t = \r:Bool. z`, where `r` is a bound variable, we would get
-    `\r:Bool. \x:Bool. r`, where the free reference to `r` in `s` has
-    been "captured" by the binder at the beginning of `t`.
+Why would this be bad?  Because it violates the principle that the
+names of bound variables do not matter.  For example, if we rename
+the bound variable in `t`, e.g., let `t' = \w:Bool. z`, then
+``x:=s`t'` is `\w:Bool. \x:Bool. r`, which does not behave the
+same as ``x:=s`t = \r:Bool. \x:Bool. r`.  That is, renaming a
+bound variable changes how `t` behaves under substitution. *)
 
-    Why would this be bad?  Because it violates the principle that the
-    names of bound variables do not matter.  For example, if we rename
-    the bound variable in `t`, e.g., let `t' = \w:Bool. z`, then
-    ``x:=s`t'` is `\w:Bool. \x:Bool. r`, which does not behave the
-    same as ``x:=s`t = \r:Bool. \x:Bool. r`.  That is, renaming a
-    bound variable changes how `t` behaves under substitution. *)
+See, for example, `Aydemir 2008` for further discussion
+of this issue.
 
-(** See, for example, `Aydemir 2008` for further discussion
-    of this issue. *)
+==== Exercise: 3 stars (substi_correct)
 
-(** **** Exercise: 3 stars (substi_correct)  *)
-(** The definition that we gave above uses Coq's `Fixpoint` facility
-    to define substitution as a _function_.  Suppose, instead, we
-    wanted to define substitution as an inductive _relation_ `substi`.
-    We've begun the definition by providing the `Inductive` header and
-    one of the constructors; your job is to fill in the rest of the
-    constructors and prove that the relation you've defined coincides
-    with the function given above. *)
+The definition that we gave above uses Idris recursive facility
+to define substitution as a _function_.  Suppose, instead, we
+wanted to define substitution as an inductive _relation_ `substi`.
+We've begun the definition by providing the `Inductive` header and
+one of the constructors; your job is to fill in the rest of the
+constructors and prove that the relation you've defined coincides
+with the function given above.
 
-Inductive substi (s:Tm) (x:string) : Tm -> Tm -> Prop :=
-  | s_var1 :
-      substi s x (tvar x) s
-  (* FILL IN HERE *)
-.
+-- > data substi : Tm -> Tm -> Type where -- (s:Tm) (x:string) :  :=
+-- >   S_Var1 : (s:Tm) -> (x:string) -> substi s x (Tvar x) s
+-- >   S_Var1 : (s:Tm) -> (x:string) -> substi s x (Tvar x) s
+--
+--
+-- >     Tvar x' => if x == x' then s else t
+-- >     Tabs x' ty t1 =>
+-- >       Tabs x' ty (if x == x' then t1 else subst x s t1)
+-- >     t1 # t2 => subst x s t1 # subst x s t2
+-- >     Ttrue => Ttrue
+-- >     Tfalse => Tfalse
+-- >     Tif t1 t2 t3 => Tif (subst x s t1) (subst x s t2) (subst x s t3)
 
-Hint Constructors substi.
 
 Theorem substi_correct : forall s x t t',
   `x:=s`t = t' <-> substi s x t t'.
