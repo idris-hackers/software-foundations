@@ -327,34 +327,33 @@ spelled the same as some global name `x`.
 
 Here is the definition, informally...
 
-   `x:=s`x               = s
-   `x:=s`y               = y                      if x <> y
-   `x:=s`(\x:T11. t12)   = \x:T11. t12
-   `x:=s`(\y:T11. t12)   = \y:T11. `x:=s`t12      if x <> y
-   `x:=s`(t1 t2)         = (`x:=s`t1) (`x:=s`t2)
-   `x:=s`true            = true
-   `x:=s`false           = false
-   `x:=s`(if t1 then t2 else t3) =
-                   if `x:=s`t1 then `x:=s`t2 else `x:=s`t3
+   [x:=s]x               = s
+   [x:=s]y               = y                      if x <> y
+   [x:=s](\x:T11. t12)   = \x:T11. t12
+   [x:=s](\y:T11. t12)   = \y:T11. [x:=s]t12      if x <> y
+   [x:=s](t1 t2)         = ([x:=s]t1) ([x:=s]t2)
+   [x:=s]true            = true
+   [x:=s]false           = false
+   [x:=s](if t1 then t2 else t3) =
+                   if [x:=s]t1 then [x:=s]t2 else [x:=s]t3
 
 ... and formally:
 
-> mutual
->
 > subst : String -> Tm -> Tm -> Tm
-> subst x s t =
->   case t of
->     Tvar x' => if x == x' then s else t
->     Tabs x' ty t1 =>
->       Tabs x' ty (if x == x' then t1 else subst x s t1)
->     t1 # t2 => subst x s t1 # subst x s t2
->     Ttrue => Ttrue
->     Tfalse => Tfalse
->     Tif t1 t2 t3 => Tif (subst x s t1) (subst x s t2) (subst x s t3)
+> subst x s (Tvar x') =
+>   case decEq x x' of
+>     Yes _ => s
+>     No  _ => (Tvar x')
+> subst x s (Tabs x' ty t1) =
+>       Tabs x' ty (case decEq x x' of
+>                     Yes p => t1
+>                     No  p => subst x s t1)
+> subst x s (t1 # t2) = subst x s t1 # subst x s t2
+> subst x s Ttrue = Ttrue
+> subst x s Tfalse = Tfalse
+> subst x s (Tif t1 t2 t3) = Tif (subst x s t1) (subst x s t2) (subst x s t3)
 
-> infixl 5 :=
-> (:=) : String -> Tm -> Tm -> Tm
-> (:=) x s = subst x s
+> syntax "[" [p] ":=" [q] "]" [r] = subst p q r
 
 _Technical note_: Substitution becomes trickier to define if we
 consider the case where `s`, the term being substituted for a
@@ -375,9 +374,9 @@ been "captured" by the binder at the beginning of `t`.
 Why would this be bad?  Because it violates the principle that the
 names of bound variables do not matter.  For example, if we rename
 the bound variable in `t`, e.g., let `t' = \w:Bool. z`, then
-``x:=s`t'` is `\w:Bool. \x:Bool. r`, which does not behave the
-same as ``x:=s`t = \r:Bool. \x:Bool. r`.  That is, renaming a
-bound variable changes how `t` behaves under substitution. *)
+``x:=s[t'] is `\w:Bool. \x:Bool. r`, which does not behave the
+same as `[x:=s]t = \r:Bool. \x:Bool. r`.  That is, renaming a
+bound variable changes how `t` behaves under substitution.
 
 See, for example, `Aydemir 2008` for further discussion
 of this issue.
@@ -392,25 +391,22 @@ one of the constructors; your job is to fill in the rest of the
 constructors and prove that the relation you've defined coincides
 with the function given above.
 
--- > data substi : Tm -> Tm -> Type where -- (s:Tm) (x:string) :  :=
--- >   S_Var1 : (s:Tm) -> (x:string) -> substi s x (Tvar x) s
--- >   S_Var1 : (s:Tm) -> (x:string) -> substi s x (Tvar x) s
---
---
--- >     Tvar x' => if x == x' then s else t
--- >     Tabs x' ty t1 =>
--- >       Tabs x' ty (if x == x' then t1 else subst x s t1)
--- >     t1 # t2 => subst x s t1 # subst x s t2
--- >     Ttrue => Ttrue
--- >     Tfalse => Tfalse
--- >     Tif t1 t2 t3 => Tif (subst x s t1) (subst x s t2) (subst x s t3)
+> data Substi : (s:Tm) -> (x:String) -> Tm -> Tm -> Type where
+>   S_True  : Substi s x Ttrue Ttrue
+>   S_False : Substi s x Tfalse Tfalse
+>   S_App   : {l', r':Tm} -> Substi s x l l' -> Substi s x r r' -> Substi s x (l # r) (l' # r')
+>   S_If    : {b', p',n':Tm} -> Substi s x b b' -> Substi s x p p'
+>               -> Substi s x n n' -> Substi s x (Tif b p n) (Tif b' p' n')
+>   S_Var1  : Substi s x (Tvar x) s
+>   S_Var2  : Substi s x (Tvar y) (Tvar y)
+>   S_Abs1  : Substi s x t t' -> Substi s x (Tabs x' ty t) (Tabs x' ty t')
+>   S_Abs2  : Substi s x (Tabs y ty t) (Tabs y ty t)
 
 
-Theorem substi_correct : forall s x t t',
-  `x:=s`t = t' <-> substi s x t t'.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+> substi_correct : (s:Tm) -> (x: String) -> (t : Tm) -> (t' : Tm) ->
+>  (([ x := s ] t) = t') <-> Substi s x t t'
+> substi_correct s x t t' = ?substi_correct_rhs1
+
 
 (* ================================================================= *)
 (** ** Reduction *)

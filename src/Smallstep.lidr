@@ -486,7 +486,7 @@ We can use this terminology to generalize the observation we made
 > iff : (p,q : Type) -> Type
 > iff p q = (p -> q, q -> p)
 
-> infixl 6 <->
+> infixl 9 <->
 > (<->) : (p: Type) -> (q:Type) -> Type
 > (<->) = iff
 
