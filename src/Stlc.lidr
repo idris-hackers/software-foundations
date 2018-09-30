@@ -22,6 +22,9 @@ work to deal with these.
 > %default total
 > %hide Types.Tm
 > %hide Types.Ty
+> %hide Types.(->>)
+
+
 
 
 
@@ -162,7 +165,7 @@ We next formalize the syntax of the STLC.
 
 ==== Terms
 
-> infixl 1 #
+> infixl 7 #
 
 > data Tm : Type where
 >   Tvar    : String -> Tm
@@ -408,112 +411,122 @@ with the function given above.
 > substi_correct s x t t' = ?substi_correct_rhs1
 
 
-(* ================================================================= *)
-(** ** Reduction *)
+== Reduction
 
-(** The small-step reduction relation for STLC now follows the
-    same pattern as the ones we have seen before.  Intuitively, to
-    reduce a function application, we first reduce its left-hand
-    side (the function) until it becomes an abstraction; then we
-    reduce its right-hand side (the argument) until it is also a
-    value; and finally we substitute the argument for the bound
-    variable in the body of the abstraction.  This last rule, written
-    informally as
+The small-step reduction relation for STLC now follows the
+same pattern as the ones we have seen before.  Intuitively, to
+reduce a function application, we first reduce its left-hand
+side (the function) until it becomes an abstraction; then we
+reduce its right-hand side (the argument) until it is also a
+value; and finally we substitute the argument for the bound
+variable in the body of the abstraction.  This last rule, written
+informally as
 
-      (\x:T.t12) v2 ==> `x:=v2`t12
+      (\x:T.t12) v2 ->> [x:=v2] t12
 
-    is traditionally called "beta-reduction". *)
+is traditionally called "beta-reduction".
 
-(**
-                               value v2
-                     ----------------------------                   (ST_AppAbs)
-                     (\x:T.t12) v2 ==> `x:=v2`t12
 
-                              t1 ==> t1'
-                           ----------------                           (ST_App1)
-                           t1 t2 ==> t1' t2
+\[
+  \begin{prooftree}
+    \hypo{\idr{value v2}}
+    \infer1[\idr{ST_AppAbs}]{\idr{(\x:T.t12) v2 ->> [x:=v2] t12}}
+  \end{prooftree}
+\]
 
-                              value v1
-                              t2 ==> t2'
-                           ----------------                           (ST_App2)
-                           v1 t2 ==> v1 t2'
-*)
-(** ... plus the usual rules for conditionals:
+\[
+  \begin{prooftree}
+    \hypo{\idr{t1 ->> t1'}}
+    \infer1[\idr{ST_App1}]{\idr{t1 t2 ->> t1' t2}
+  \end{prooftree}
+\]
 
-                    --------------------------------                (ST_IfTrue)
-                    (if true then t1 else t2) ==> t1
+\[
+  \begin{prooftree}
+    \hypo{\idr{value v1}}
+    \hypo{\idr{t2 ->> t2'}}
+    \infer2[\idr{ST_App2}]{\idr{v1 t2 ->> v1 t2'}
+  \end{prooftree}
+\]
 
-                    ---------------------------------              (ST_IfFalse)
-                    (if false then t1 else t2) ==> t2
+... plus the usual rules for conditionals:
 
-                              t1 ==> t1'
-         ----------------------------------------------------           (ST_If)
-         (if t1 then t2 else t3) ==> (if t1' then t2 else t3)
-*)
+\[
+  \begin{prooftree}
+    \infer0[\idr{ST_IfTrue}]{\idr{(if true then t1 else t2) ->> t1}
+  \end{prooftree}
+\]
 
-(** Formally: *)
+\[
+  \begin{prooftree}
+    \infer0[\idr{ST_IfFalse}]{\idr{(if false then t1 else t2) ->> t2}
+  \end{prooftree}
+\]
 
-Reserved Notation "t1 '==>' t2" (at level 40).
+\[
+  \begin{prooftree}
+    \hypo{\idr{t1 ->> t1'}}
+    \infer1[\idr{ST_If}]{\idr{(if t1 then t2 else t3) ->> (if t1' then t2 else t3)}
+  \end{prooftree}
+\]
 
-Inductive step : Tm -> Tm -> Prop :=
-  | ST_AppAbs : forall x T t12 v2,
-         value v2 ->
-         (tapp (tabs x T t12) v2) ==> `x:=v2`t12
-  | ST_App1 : forall t1 t1' t2,
-         t1 ==> t1' ->
-         tapp t1 t2 ==> tapp t1' t2
-  | ST_App2 : forall v1 t2 t2',
-         value v1 ->
-         t2 ==> t2' ->
-         tapp v1 t2 ==> tapp v1  t2'
-  | ST_IfTrue : forall t1 t2,
-      (tif ttrue t1 t2) ==> t1
-  | ST_IfFalse : forall t1 t2,
-      (tif tfalse t1 t2) ==> t2
-  | ST_If : forall t1 t1' t2 t3,
-      t1 ==> t1' ->
-      (tif t1 t2 t3) ==> (tif t1' t2 t3)
+Formally:
 
-where "t1 '==>' t2" := (step t1 t2).
+> mutual
+>   infixl 6 ->>
+>   (->>) : Tm -> Tm -> Type
+>   (->>) = Step
+>
+>   data Step : Tm -> Tm -> Type where
+>     ST_AppAbs : {x: String} ->  {ty : Ty} -> {t12 : Tm} -> {v2 : Tm} ->
+>       Value v2 ->
+>       (Tabs x ty t12) # v2 ->> [ x := v2] t12
+>     ST_App1 : {t1, t1', t2: Tm} ->
+>       t1 ->> t1' ->
+>       t1 # t2 ->> t1' # t2
+>     ST_App2 : {v1, t2, t2' : Tm} ->
+>       Value v1 ->
+>       t2 ->> t2' ->
+>       v1 # t2 ->> v1 # t2'
+>     ST_IfTrue : {t1, t2: Tm} ->
+>       Tif Ttrue t1 t2 ->> t1
+>     ST_IfFalse : {t1, t2: Tm} ->
+>       Tif Tfalse t1 t2 ->> t2
+>     ST_If : {t1, t1', t2, t3: Tm} ->
+>       t1 ->> t1' ->
+>     Tif t1 t2 t3 ->> Tif t1' t2 t3
 
-Hint Constructors step.
+> infixl 6 ->>*
+> (->>*) : Tm -> Tm -> Type
+> (->>*) t t' = Multi Step t t'
 
-Notation multistep := (multi step).
-Notation "t1 '==>*' t2" := (multistep t1 t2) (at level 40).
+=== Examples
 
-(* ================================================================= *)
-(** ** Examples *)
+Example:
 
-(** Example:
-
-      (\x:Bool->Bool. x) (\x:Bool. x) ==>* \x:Bool. x
+      (\x:Bool->Bool. x) (\x:Bool. x) ->>* \x:Bool. x
 
     i.e.,
 
-      idBB idB ==>* idB
-*)
+      idBB idB ->>* idB
 
-Lemma step_example1 :
-  (tapp idBB idB) ==>* idB.
-Proof.
-  eapply multi_step.
-    apply ST_AppAbs.
-    apply v_abs.
-  simpl.
-  apply multi_refl.  Qed.
+> step_example1 : Stlc.idBB # Stlc.idB ->>* Stlc.idB
+> step_example1 =
+>   Multi_step (ST_AppAbs V_abs) Multi_refl
 
-(** Example:
+Example:
 
       (\x:Bool->Bool. x) ((\x:Bool->Bool. x) (\x:Bool. x))
-            ==>* \x:Bool. x
+            ->>* \x:Bool. x
 
     i.e.,
 
-      (idBB (idBB idB)) ==>* idB.
-*)
+      (idBB (idBB idB)) ->>* idB.
 
-Lemma step_example2 :
-  (tapp idBB (tapp idBB idB)) ==>* idB.
+> step_example2 : Stlc.idBB # (Stlc.idBB # Stlc.idB) ->>* Stlc.idB
+> step_example2 =
+>   Multi_step (ST_App2 V_abs ?hole1 ) (Multi_step (ST_AppAbs V_abs) ?hole3)
+
 Proof.
   eapply multi_step.
     apply ST_App2. auto.
@@ -527,15 +540,15 @@ Proof.
       (\x:Bool->Bool. x)
          (\x:Bool. if x then false else true)
          true
-            ==>* false
+            ->>* false
 
     i.e.,
 
-       (idBB notB) ttrue ==>* tfalse.
+       (idBB notB) ttrue ->>* tfalse.
 *)
 
 Lemma step_example3 :
-  tapp (tapp idBB notB) ttrue ==>* tfalse.
+  tapp (tapp idBB notB) ttrue ->>* tfalse.
 Proof.
   eapply multi_step.
     apply ST_App1. apply ST_AppAbs. auto. simpl.
@@ -548,18 +561,18 @@ Proof.
 
       (\x:Bool -> Bool. x)
          ((\x:Bool. if x then false else true) true)
-            ==>* false
+            ->>* false
 
     i.e.,
 
-      idBB (notB ttrue) ==>* tfalse.
+      idBB (notB ttrue) ->>* tfalse.
 
     (Note that this term doesn't actually typecheck; even so, we can
     ask how it reduces.)
 *)
 
 Lemma step_example4 :
-  tapp idBB (tapp notB ttrue) ==>* tfalse.
+  tapp idBB (tapp notB ttrue) ->>* tfalse.
 Proof.
   eapply multi_step.
     apply ST_App2. auto.
@@ -575,19 +588,19 @@ Proof.
     to simplify these proofs. *)
 
 Lemma step_example1' :
-  (tapp idBB idB) ==>* idB.
+  (tapp idBB idB) ->>* idB.
 Proof. normalize.  Qed.
 
 Lemma step_example2' :
-  (tapp idBB (tapp idBB idB)) ==>* idB.
+  (tapp idBB (tapp idBB idB)) ->>* idB.
 Proof. normalize. Qed.
 
 Lemma step_example3' :
-  tapp (tapp idBB notB) ttrue ==>* tfalse.
+  tapp (tapp idBB notB) ttrue ->>* tfalse.
 Proof. normalize.  Qed.
 
 Lemma step_example4' :
-  tapp idBB (tapp notB ttrue) ==>* tfalse.
+  tapp idBB (tapp notB ttrue) ->>* tfalse.
 Proof. normalize.  Qed.
 
 (** **** Exercise: 2 stars (step_example5)  *)
@@ -595,13 +608,13 @@ Proof. normalize.  Qed.
 
 Lemma step_example5 :
        tapp (tapp idBBBB idBB) idB
-  ==>* idB.
+  ->>* idB.
 Proof.
   (* FILL IN HERE *) Admitted.
 
 Lemma step_example5_with_normalize :
        tapp (tapp idBBBB idBB) idB
-  ==>* idB.
+  ->>* idB.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** `` *)
