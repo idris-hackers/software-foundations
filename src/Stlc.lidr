@@ -17,12 +17,19 @@ work to deal with these.
 > module Stlc
 > import Smallstep
 > import Types
+> import Maps
 
 > %access public export
 > %default total
 > %hide Types.Tm
 > %hide Types.Ty
 > %hide Types.(->>)
+> %hide Types.(->>*)
+> %hide Smallstep.(->>)
+> %hide Smallstep.(->>*)
+> %hide Types.Has_type
+
+
 
 
 
@@ -165,7 +172,7 @@ We next formalize the syntax of the STLC.
 
 ==== Terms
 
-> infixl 7 #
+> infixr 7 #
 
 > data Tm : Type where
 >   Tvar    : String -> Tm
@@ -201,8 +208,8 @@ Some examples...
 
 `idBBBB = \x:(Bool->Bool) -> (Bool->Bool). x`
 
-> idBBB : Tm
-> idBBB = (\x: ((TBool :=> TBool) :=> (TBool :=> TBool)). &x)
+> idBBBB : Tm
+> idBBBB = (\x: ((TBool :=> TBool) :=> (TBool :=> TBool)). &x)
 
 `k = \x:Bool. \y:Bool. x`
 
@@ -286,41 +293,41 @@ function application, where we will need to substitute the
 argument term for the function parameter in the function's body.
 For example, we reduce
 
-   (\x:Bool. if x then true else x) false
+    (\x:Bool. if x then true else x) false
 
 to
 
-   if false then true else false
+    if false then true else false
 
 by substituting `false` for the parameter `x` in the body of the
 function.
 
 In general, we need to be able to substitute some given term `s`
 for occurrences of some variable `x` in another term `t`.  In
-informal discussions, this is usually written ` `x:=s`t ` and
+informal discussions, this is usually written ` [x:=s]t ` and
 pronounced "substitute `x` with `s` in `t`."
 
 Here are some examples:
 
-  - ``x:=true` (if x then x else false)`
+  - `[x:=true] (if x then x else false)`
        yields `if true then true else false`
 
-  - ``x:=true` x` yields `true`
+  - `[x:=true] x` yields `true`
 
-  - ``x:=true` (if x then x else y)` yields `if true then true else y`
+  - `[x:=true] (if x then x else y)` yields `if true then true else y`
 
-  - ``x:=true` y` yields `y`
+  - `[x:=true] y` yields `y`
 
-  - ``x:=true` false` yields `false` (vacuous substitution)
+  - `[x:=true] false` yields `false` (vacuous substitution)
 
-  - ``x:=true` (\y:Bool. if y then x else false)`
+  - `[x:=true] (\y:Bool. if y then x else false)`
        yields `\y:Bool. if y then true else false`
 
-  - ``x:=true` (\y:Bool. x)` yields `\y:Bool. true`
+  - `[x:=true] (\y:Bool. x)` yields `\y:Bool. true`
 
-  - ``x:=true` (\y:Bool. y)` yields `\y:Bool. y`
+  - `[x:=true] (\y:Bool. y)` yields `\y:Bool. y`
 
-  - ``x:=true` (\x:Bool. x)` yields `\x:Bool. x`
+  - `[x:=true] (\x:Bool. x)` yields `\x:Bool. x`
 
 The last example is very important: substituting `x` with `true` in
 `\x:Bool. x` does _not_ yield `\x:Bool. true`!  The reason for
@@ -330,14 +337,15 @@ spelled the same as some global name `x`.
 
 Here is the definition, informally...
 
-   [x:=s]x               = s
-   [x:=s]y               = y                      if x <> y
-   [x:=s](\x:T11. t12)   = \x:T11. t12
-   [x:=s](\y:T11. t12)   = \y:T11. [x:=s]t12      if x <> y
-   [x:=s](t1 t2)         = ([x:=s]t1) ([x:=s]t2)
-   [x:=s]true            = true
-   [x:=s]false           = false
-   [x:=s](if t1 then t2 else t3) =
+
+    [x:=s]x               = s
+    [x:=s]y               = y                      if x <> y
+    [x:=s](\x:T11. t12)   = \x:T11. t12
+    [x:=s](\y:T11. t12)   = \y:T11. [x:=s]t12      if x <> y
+    [x:=s](t1 t2)         = ([x:=s]t1) ([x:=s]t2)
+    [x:=s]true            = true
+    [x:=s]false           = false
+    [x:=s](if t1 then t2 else t3) =
                    if [x:=s]t1 then [x:=s]t2 else [x:=s]t3
 
 ... and formally:
@@ -377,7 +385,7 @@ been "captured" by the binder at the beginning of `t`.
 Why would this be bad?  Because it violates the principle that the
 names of bound variables do not matter.  For example, if we rename
 the bound variable in `t`, e.g., let `t' = \w:Bool. z`, then
-``x:=s[t'] is `\w:Bool. \x:Bool. r`, which does not behave the
+`[x:=s]t` is `\w:Bool. \x:Bool. r`, which does not behave the
 same as `[x:=s]t = \r:Bool. \x:Bool. r`.  That is, renaming a
 bound variable changes how `t` behaves under substitution.
 
@@ -437,7 +445,7 @@ is traditionally called "beta-reduction".
 \[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1[\idr{ST_App1}]{\idr{t1 t2 ->> t1' t2}
+    \infer1[\idr{ST_App1}]{\idr{t1 t2 ->> t1' t2}}
   \end{prooftree}
 \]
 
@@ -445,7 +453,7 @@ is traditionally called "beta-reduction".
   \begin{prooftree}
     \hypo{\idr{value v1}}
     \hypo{\idr{t2 ->> t2'}}
-    \infer2[\idr{ST_App2}]{\idr{v1 t2 ->> v1 t2'}
+    \infer2[\idr{ST_App2}]{\idr{v1 t2 ->> v1 t2'}}
   \end{prooftree}
 \]
 
@@ -453,20 +461,20 @@ is traditionally called "beta-reduction".
 
 \[
   \begin{prooftree}
-    \infer0[\idr{ST_IfTrue}]{\idr{(if true then t1 else t2) ->> t1}
+    \infer0[\idr{ST_IfTrue}]{\idr{(if true then t1 else t2) ->> t1}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \infer0[\idr{ST_IfFalse}]{\idr{(if false then t1 else t2) ->> t2}
+    \infer0[\idr{ST_IfFalse}]{\idr{(if false then t1 else t2) ->> t2}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
     \hypo{\idr{t1 ->> t1'}}
-    \infer1[\idr{ST_If}]{\idr{(if t1 then t2 else t3) ->> (if t1' then t2 else t3)}
+    \infer1[\idr{ST_If}]{\idr{(if t1 then t2 else t3) ->> (if t1' then t2 else t3)}}
   \end{prooftree}
 \]
 
@@ -525,17 +533,10 @@ Example:
 
 > step_example2 : Stlc.idBB # (Stlc.idBB # Stlc.idB) ->>* Stlc.idB
 > step_example2 =
->   Multi_step (ST_App2 V_abs ?hole1 ) (Multi_step (ST_AppAbs V_abs) ?hole3)
+>   Multi_step (ST_App2 V_abs (ST_AppAbs V_abs))
+>     (Multi_step (ST_AppAbs V_abs) Multi_refl)
 
-Proof.
-  eapply multi_step.
-    apply ST_App2. auto.
-    apply ST_AppAbs. auto.
-  eapply multi_step.
-    apply ST_AppAbs. simpl. auto.
-  simpl. apply multi_refl.  Qed.
-
-(** Example:
+Example:
 
       (\x:Bool->Bool. x)
          (\x:Bool. if x then false else true)
@@ -545,44 +546,31 @@ Proof.
     i.e.,
 
        (idBB notB) ttrue ->>* tfalse.
-*)
 
-Lemma step_example3 :
-  tapp (tapp idBB notB) ttrue ->>* tfalse.
-Proof.
-  eapply multi_step.
-    apply ST_App1. apply ST_AppAbs. auto. simpl.
-  eapply multi_step.
-    apply ST_AppAbs. auto. simpl.
-  eapply multi_step.
-    apply ST_IfTrue. apply multi_refl.  Qed.
+> step_example3 : (Stlc.idBB # Stlc.notB) # Ttrue ->>* Tfalse
+> step_example3 = Multi_step (ST_App1 (ST_AppAbs V_abs))
+>                   (Multi_step (ST_AppAbs V_true)
+>                     (Multi_step ST_IfTrue Multi_refl))
 
-(** Example:
+Example:
 
-      (\x:Bool -> Bool. x)
-         ((\x:Bool. if x then false else true) true)
-            ->>* false
+    (\x:Bool -> Bool. x)
+       ((\x:Bool. if x then false else true) true)
+          ->>* false
 
-    i.e.,
+  i.e.,
 
-      idBB (notB ttrue) ->>* tfalse.
+    idBB (notB ttrue) ->>* tfalse.
 
-    (Note that this term doesn't actually typecheck; even so, we can
-    ask how it reduces.)
-*)
+(Note that this term doesn't actually typecheck; even so, we can
+ask how it reduces.)
 
-Lemma step_example4 :
-  tapp idBB (tapp notB ttrue) ->>* tfalse.
-Proof.
-  eapply multi_step.
-    apply ST_App2. auto.
-    apply ST_AppAbs. auto. simpl.
-  eapply multi_step.
-    apply ST_App2. auto.
-    apply ST_IfTrue.
-  eapply multi_step.
-    apply ST_AppAbs. auto. simpl.
-  apply multi_refl.  Qed.
+> step_example4 : Stlc.idBB # (Stlc.notB # Ttrue) ->>* Tfalse
+> step_example4 = Multi_step (ST_App2 V_abs (ST_AppAbs V_true))
+>                   (Multi_step (ST_App2 V_abs ST_IfTrue)
+>                     (Multi_step (ST_AppAbs V_false) Multi_refl))
+
+  <!--
 
 (** We can use the `normalize` tactic defined in the `Types` chapter
     to simplify these proofs. *)
@@ -603,182 +591,162 @@ Lemma step_example4' :
   tapp idBB (tapp notB ttrue) ->>* tfalse.
 Proof. normalize.  Qed.
 
-(** **** Exercise: 2 stars (step_example5)  *)
-(** Try to do this one both with and without `normalize`. *)
+-->
 
-Lemma step_example5 :
-       tapp (tapp idBBBB idBB) idB
-  ->>* idB.
-Proof.
-  (* FILL IN HERE *) Admitted.
+==== Exercise: 2 stars (step_example5)
 
-Lemma step_example5_with_normalize :
-       tapp (tapp idBBBB idBB) idB
-  ->>* idB.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+Try to do this one both with and without `normalize`.
 
-(* ################################################################# *)
-(** * Typing *)
-
-(** Next we consider the typing relation of the STLC. *)
-
-(* ================================================================= *)
-(** ** Contexts *)
-
-(** _Question_: What is the type of the term "`x y`"?
-
-    _Answer_: It depends on the types of `x` and `y`!
-
-    I.e., in order to assign a type to a term, we need to know
-    what assumptions we should make about the types of its free
-    variables.
-
-    This leads us to a three-place _typing judgment_, informally
-    written `Gamma |- t \in T`, where `Gamma` is a
-    "typing context" -- a mapping from variables to their types. *)
-
-(** Following the usual notation for partial maps, we could write `Gamma
-    & {{x:T}}` for "update the partial function `Gamma` to also map
-    `x` to `T`." *)
-
-Definition context := partial_map ty.
-
-(* ================================================================= *)
-(** ** Typing Relation *)
-
-(**
-                             Gamma x = T
-                            --------------                              (T_Var)
-                            Gamma |- x \in T
-
-                   Gamma & {{ x --> T11 }} |- t12 \in T12
-                   --------------------------------------               (T_Abs)
-                     Gamma |- \x:T11.t12 \in T11->T12
-
-                        Gamma |- t1 \in T11->T12
-                          Gamma |- t2 \in T11
-                        ----------------------                          (T_App)
-                         Gamma |- t1 t2 \in T12
-
-                         --------------------                          (T_True)
-                         Gamma |- true \in Bool
-
-                        ---------------------                         (T_False)
-                        Gamma |- false \in Bool
-
-       Gamma |- t1 \in Bool    Gamma |- t2 \in T    Gamma |- t3 \in T
-       --------------------------------------------------------          (T_If)
-                  Gamma |- if t1 then t2 else t3 \in T
+> step_example5 :
+>   (Stlc.idBBBB # Stlc.idBB) # Stlc.idB ->>* Stlc.idB
+> step_example5 = ?step_example5_rhs
 
 
-    We can read the three-place relation `Gamma |- t \in T` as:
-    "under the assumptions in Gamma, the term `t` has the type `T`." *)
+=== Typing
 
-Reserved Notation "Gamma '|-' t '\in' T" (at level 40).
+Next we consider the typing relation of the STLC.
 
-Inductive has_type : context -> tm -> ty -> Prop :=
-  | T_Var : forall Gamma x T,
-      Gamma x = Some T ->
-      Gamma |- tvar x \in T
-  | T_Abs : forall Gamma x T11 T12 t12,
-      Gamma & {{x --> T11}} |- t12 \in T12 ->
-      Gamma |- tabs x T11 t12 \in TArrow T11 T12
-  | T_App : forall T11 T12 Gamma t1 t2,
-      Gamma |- t1 \in TArrow T11 T12 ->
-      Gamma |- t2 \in T11 ->
-      Gamma |- tapp t1 t2 \in T12
-  | T_True : forall Gamma,
-       Gamma |- ttrue \in TBool
-  | T_False : forall Gamma,
-       Gamma |- tfalse \in TBool
-  | T_If : forall t1 t2 t3 T Gamma,
-       Gamma |- t1 \in TBool ->
-       Gamma |- t2 \in T ->
-       Gamma |- t3 \in T ->
-       Gamma |- tif t1 t2 t3 \in T
+==== Contexts
 
-where "Gamma '|-' t '\in' T" := (has_type Gamma t T).
+_Question_: What is the type of the term "`x y`"
 
-Hint Constructors has_type.
+_Answer_: It depends on the types of `x` and `y`!
 
-(* ================================================================= *)
-(** ** Examples *)
+I.e., in order to assign a type to a term, we need to know
+what assumptions we should make about the types of its free
+variables.
 
-Example typing_example_1 :
-  empty |- tabs x TBool (tvar x) \in TArrow TBool TBool.
-Proof.
-  apply T_Abs. apply T_Var. reflexivity.  Qed.
+This leads us to a three-place _typing judgment_, informally
+written `Gamma |- t \in T`, where `Gamma` is a
+"typing context" -- a mapping from variables to their types.
 
-(** Note that since we added the `has_type` constructors to the hints
-    database, auto can actually solve this one immediately. *)
+Following the usual notation for partial maps, we could write `Gamma
+& {{x:T}}` for "update the partial function `Gamma` to also map
+`x` to `T`."
 
-Example typing_example_1' :
-  empty |- tabs x TBool (tvar x) \in TArrow TBool TBool.
-Proof. auto.  Qed.
+> Context : Type
+> Context = PartialMap Ty
 
-(** Another example:
+> syntax [context] "&" "{{" [x] "==>" [y] "}}" = update x y context
 
+==== Typing Relation
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{Gamma x = T}}
+    \infer1[\idr{T_Var}]{\idr{Gamma |- x \in T}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{Gamma & {{ x --> T11 }} |- t12 \in T12}}
+    \infer1[\idr{T_Abs}]{\idr{Gamma |- \x:T11.t12 \in T11->T12}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{Gamma |- t1 \in T11->T12}}
+    \hypo{\idr{Gamma |- t2 \in T11}}
+    \infer2[\idr{T_App}]{\idr{Gamma |- t1 t2 \in T12}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \infer0[\idr{T_True}]{\idr{Gamma |- true \in Bool}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \infer0[\idr{T_False}]{\idr{Gamma |- false \in Bool}}
+  \end{prooftree}
+\]
+
+\[
+  \begin{prooftree}
+    \hypo{\idr{Gamma |- t1 \in Bool}}
+    \hypo{\idr{Gamma |- t2 \in T}}
+    \hypo{\idr{Gamma |- t3 \in T}}
+    \infer3[\idr{T_If}]{\idr{Gamma |- if t1 then t2 else t3 \in T}}
+  \end{prooftree}
+\]
+
+We can read the three-place relation `Gamma |- t \in T` as:
+"under the assumptions in Gamma, the term `t` has the type `T`." *)
+
+> syntax  [context] "|-" [t] "::" [T] "." = Has_type context t T
+
+> data Has_type : Context -> Tm -> Ty -> Type where
+>   T_Var : {Gamma: Context} -> {x: String} -> {T: Ty} ->
+>      Gamma (MkId x) = Just T ->
+>      Gamma |- (Tvar x) :: T .
+>   T_Abs : {Gamma: Context} -> {x: String} -> {T11, T12: Ty} -> {t12 : Tm} ->
+>      (Gamma & {{ (MkId x) ==> T11 }}) |- t12 :: T12 . ->
+>      Gamma |- (Tabs x T11 t12) :: (T11 :=> T12) .
+>   T_App : {Gamma: Context} -> {T11, T12: Ty} -> {t1, t2 : Tm} ->
+>      Gamma |- t1 :: (T11 :=> T12) . ->
+>      Gamma |- t2 :: T11 . ->
+>      Gamma |- (t1 # t2) :: T12 .
+>   T_True : {Gamma: Context} ->
+>      Gamma |- Ttrue :: TBool .
+>   T_False : {Gamma: Context} ->
+>      Gamma |- Tfalse :: TBool .
+>   T_If : {Gamma: Context} -> {T : Ty} -> {t1, t2, t3 : Tm} ->
+>       Gamma |- t1 :: TBool . ->
+>       Gamma |- t2 :: T . ->
+>       Gamma |- t3 :: T . ->
+>       Gamma |- (Tif t1 t2 t3) :: T .
+
+==== Examples
+
+> typing_example_1 : empty |- (Tabs "x" TBool (Tvar "x")) :: (TBool :=> TBool) .
+> typing_example_1 = T_Abs (T_Var Refl)
+
+
+Another example:
+
+```
        empty |- \x:A. \y:A->A. y (y x)
              \in A -> (A->A) -> A.
-*)
+```
 
-Example typing_example_2 :
-  empty |-
-    (tabs x TBool
-       (tabs y (TArrow TBool TBool)
-          (tapp (tvar y) (tapp (tvar y) (tvar x))))) \in
-    (TArrow TBool (TArrow (TArrow TBool TBool) TBool)).
-Proof with auto using update_eq.
-  apply T_Abs.
-  apply T_Abs.
-  eapply T_App. apply T_Var...
-  eapply T_App. apply T_Var...
-  apply T_Var...
-Qed.
+> typing_example_2 : empty |-
+>    (Tabs "x" TBool
+>       (Tabs "y" (TBool :=> TBool)
+>          (Tvar "y" # Tvar "y" # Tvar "x"))) ::
+>    (TBool :=> (TBool :=> TBool) :=> TBool) .
+> typing_example_2 = T_Abs (T_Abs (T_App (T_Var Refl) (T_App (T_Var Refl) (T_Var Refl))))
 
-(** **** Exercise: 2 stars, optional (typing_example_2_full)  *)
-(** Prove the same result without using `auto`, `eauto`, or
-    `eapply` (or `...`). *)
 
-Example typing_example_2_full :
-  empty |-
-    (tabs x TBool
-       (tabs y (TArrow TBool TBool)
-          (tapp (tvar y) (tapp (tvar y) (tvar x))))) \in
-    (TArrow TBool (TArrow (TArrow TBool TBool) TBool)).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+==== Exercise: 2 stars (typing_example_3)
 
-(** **** Exercise: 2 stars (typing_example_3)  *)
-(** Formally prove the following typing derivation holds: *)
-(**
-       empty |- \x:Bool->B. \y:Bool->Bool. \z:Bool.
+Formally prove the following typing derivation holds:
+
+```
+          empty |- \x:Bool->B. \y:Bool->Bool. \z:Bool.
                    y (x z)
              \in T.
-*)
+```
 
-Example typing_example_3 :
-  exists T,
-    empty |-
-      (tabs x (TArrow TBool TBool)
-         (tabs y (TArrow TBool TBool)
-            (tabs z TBool
-               (tapp (tvar y) (tapp (tvar x) (tvar z)))))) \in
-      T.
-Proof with auto.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+> typing_example_3 : (T : Ty **
+>    empty |-
+>      (Tabs x (TBool :=> TBool)
+>         (Tabs y (TBool :=> TBool)
+>            (Tabs z TBool
+>               (Tvar y # (Tvar x # Tvar z))))) :: T . )
+> typing_example_3 = ?typing_example_3_rhs
 
-(** We can also show that terms are _not_ typable.  For example, let's
-    formally check that there is no typing derivation assigning a type
-    to the term `\x:Bool. \y:Bool, x y` -- i.e.,
+We can also show that terms are _not_ typable.  For example, let's
+formally check that there is no typing derivation assigning a type
+to the term `\x:Bool. \y:Bool, x y` -- i.e.,
 
+```
     ~ exists T,
         empty |- \x:Bool. \y:Bool, x y \in T.
-*)
+```
 
 Example typing_nonexample_1 :
   ~ exists T,
@@ -816,5 +784,3 @@ Proof.
 (** `` *)
 
 End STLC.
-
-(** $Date$ *)
