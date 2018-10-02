@@ -29,12 +29,6 @@ work to deal with these.
 > %hide Smallstep.(->>*)
 > %hide Types.Has_type
 
-
-
-
-
-
-
 === Overview
 
 The STLC is built on some collection of _base types_:
@@ -199,7 +193,7 @@ Some examples...
 `idB = \x:Bool. x`
 
 > idB : Tm
-> idB = (\ x : TBool . &x)
+> idB = (\x: TBool . &x)
 
 `idBB = \x:Bool->Bool. x`
 
@@ -418,6 +412,7 @@ with the function given above.
 >  (([ x := s ] t) = t') <-> Substi s x t t'
 > substi_correct s x t t' = ?substi_correct_rhs1
 
+$\square$
 
 == Reduction
 
@@ -595,12 +590,11 @@ Proof. normalize.  Qed.
 
 ==== Exercise: 2 stars (step_example5)
 
-Try to do this one both with and without `normalize`.
-
 > step_example5 :
 >   (Stlc.idBBBB # Stlc.idBB) # Stlc.idB ->>* Stlc.idB
 > step_example5 = ?step_example5_rhs
 
+$\square$
 
 === Typing
 
@@ -617,7 +611,7 @@ what assumptions we should make about the types of its free
 variables.
 
 This leads us to a three-place _typing judgment_, informally
-written `Gamma |- t \in T`, where `Gamma` is a
+written `Gamma |- t ::T`, where `Gamma` is a
 "typing context" -- a mapping from variables to their types.
 
 Following the usual notation for partial maps, we could write `Gamma
@@ -634,47 +628,47 @@ Following the usual notation for partial maps, we could write `Gamma
 \[
   \begin{prooftree}
     \hypo{\idr{Gamma x = T}}
-    \infer1[\idr{T_Var}]{\idr{Gamma |- x \in T}}
+    \infer1[\idr{T_Var}]{\idr{Gamma |- x ::T}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{Gamma & {{ x --> T11 }} |- t12 \in T12}}
-    \infer1[\idr{T_Abs}]{\idr{Gamma |- \x:T11.t12 \in T11->T12}}
+    \hypo{\idr{Gamma & {{ x --> T11 }} |- t12 :: T12}}
+    \infer1[\idr{T_Abs}]{\idr{Gamma |- \x:T11.t12 ::T11->T12}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{Gamma |- t1 \in T11->T12}}
-    \hypo{\idr{Gamma |- t2 \in T11}}
-    \infer2[\idr{T_App}]{\idr{Gamma |- t1 t2 \in T12}}
+    \hypo{\idr{Gamma |- t1 ::T11->T12}}
+    \hypo{\idr{Gamma |- t2 ::T11}}
+    \infer2[\idr{T_App}]{\idr{Gamma |- t1 t2 ::T12}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \infer0[\idr{T_True}]{\idr{Gamma |- true \in Bool}}
+    \infer0[\idr{T_True}]{\idr{Gamma |- true ::Bool}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \infer0[\idr{T_False}]{\idr{Gamma |- false \in Bool}}
+    \infer0[\idr{T_False}]{\idr{Gamma |- false ::Bool}}
   \end{prooftree}
 \]
 
 \[
   \begin{prooftree}
-    \hypo{\idr{Gamma |- t1 \in Bool}}
-    \hypo{\idr{Gamma |- t2 \in T}}
-    \hypo{\idr{Gamma |- t3 \in T}}
-    \infer3[\idr{T_If}]{\idr{Gamma |- if t1 then t2 else t3 \in T}}
+    \hypo{\idr{Gamma |- t1 ::Bool}}
+    \hypo{\idr{Gamma |- t2 ::T}}
+    \hypo{\idr{Gamma |- t3 ::T}}
+    \infer3[\idr{T_If}]{\idr{Gamma |- if t1 then t2 else t3 ::T}}
   \end{prooftree}
 \]
 
-We can read the three-place relation `Gamma |- t \in T` as:
+We can read the three-place relation `Gamma |- t ::T` as:
 "under the assumptions in Gamma, the term `t` has the type `T`." *)
 
 > syntax  [context] "|-" [t] "::" [T] "." = Has_type context t T
@@ -687,7 +681,7 @@ We can read the three-place relation `Gamma |- t \in T` as:
 >      (Gamma & {{ (MkId x) ==> T11 }}) |- t12 :: T12 . ->
 >      Gamma |- (Tabs x T11 t12) :: (T11 :=> T12) .
 >   T_App : {Gamma: Context} -> {T11, T12: Ty} -> {t1, t2 : Tm} ->
->      Gamma |- t1 :: (T11 :=> T12) . ->
+>      Gamma |- t1 :: (T11 :=> T12). ->
 >      Gamma |- t2 :: T11 . ->
 >      Gamma |- (t1 # t2) :: T12 .
 >   T_True : {Gamma: Context} ->
@@ -710,7 +704,7 @@ Another example:
 
 ```
        empty |- \x:A. \y:A->A. y (y x)
-             \in A -> (A->A) -> A.
+             ::A -> (A->A) -> A.
 ```
 
 > typing_example_2 : empty |-
@@ -718,7 +712,8 @@ Another example:
 >       (Tabs "y" (TBool :=> TBool)
 >          (Tvar "y" # Tvar "y" # Tvar "x"))) ::
 >    (TBool :=> (TBool :=> TBool) :=> TBool) .
-> typing_example_2 = T_Abs (T_Abs (T_App (T_Var Refl) (T_App (T_Var Refl) (T_Var Refl))))
+> typing_example_2 =
+>   T_Abs (T_Abs (T_App (T_Var Refl) (T_App (T_Var Refl) (T_Var Refl))))
 
 
 ==== Exercise: 2 stars (typing_example_3)
@@ -728,16 +723,18 @@ Formally prove the following typing derivation holds:
 ```
           empty |- \x:Bool->B. \y:Bool->Bool. \z:Bool.
                    y (x z)
-             \in T.
+             ::T.
 ```
 
-> typing_example_3 : (T : Ty **
->    empty |-
->      (Tabs x (TBool :=> TBool)
->         (Tabs y (TBool :=> TBool)
->            (Tabs z TBool
->               (Tvar y # (Tvar x # Tvar z))))) :: T . )
+> typing_example_3 :
+>    (T : Ty ** empty |-
+>      (Tabs "x" (TBool :=> TBool)
+>         (Tabs "y" (TBool :=> TBool)
+>            (Tabs "z" TBool
+>               (Tvar "y" # (Tvar "x" # Tvar "z"))))) :: T . )
 > typing_example_3 = ?typing_example_3_rhs
+
+$\square$
 
 We can also show that terms are _not_ typable.  For example, let's
 formally check that there is no typing derivation assigning a type
@@ -745,42 +742,35 @@ to the term `\x:Bool. \y:Bool, x y` -- i.e.,
 
 ```
     ~ exists T,
-        empty |- \x:Bool. \y:Bool, x y \in T.
+        empty |- \x:Bool. \y:Bool, x y ::T.
 ```
 
-Example typing_nonexample_1 :
-  ~ exists T,
-      empty |-
-        (tabs x TBool
-            (tabs y TBool
-               (tapp (tvar x) (tvar y)))) \in
-        T.
-Proof.
-  intros Hc. inversion Hc.
-  (* The `clear` tactic is useful here for tidying away bits of
-     the context that we're not going to need again. *)
-  inversion H. subst. clear H.
-  inversion H5. subst. clear H5.
-  inversion H4. subst. clear H4.
-  inversion H2. subst. clear H2.
-  inversion H5. subst. clear H5.
-  inversion H1.  Qed.
+> forallToExistence : {X : Type} -> {P: X -> Type} ->
+>   ((a : X) -> Not (P a)) -> Not (a : X ** P a)
+> forallToExistence hyp (b ** p2) = hyp b p2
 
-(** **** Exercise: 3 stars, optional (typing_nonexample_3)  *)
-(** Another nonexample:
+> typing_nonexample_1 :
+>   Not (T : Ty **
+>     empty |-
+>        (Tabs "x" TBool
+>            (Tabs "y" TBool
+>               (Tvar "x" # Tvar y))) :: T . )
+> typing_nonexample_1 = forallToExistence
+>   (\ a , (T_Abs (T_Abs (T_App (T_Var Refl)(T_Var Refl)))) impossible)
 
-    ~ (exists S, exists T,
-          empty |- \x:S. x x \in T).
-*)
+==== Exercise: 3 stars, optional (typing_nonexample_3)
 
-Example typing_nonexample_3 :
-  ~ (exists S, exists T,
-        empty |-
-          (tabs x S
-             (tapp (tvar x) (tvar x))) \in
-          T).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+Another nonexample:
 
-End STLC.
+```    ~ (exists S, exists T,
+          empty |- \x:S. x x ::T).
+```
+
+> typing_nonexample_3 :
+>  Not (s : Ty ** t : Ty **
+>        empty |-
+>          (Tabs "x" s
+>             (Tvar "x" # Tvar "x")) :: t . )
+> typing_nonexample_3 = ?typing_nonexample_3_rhs
+
+$\square$
