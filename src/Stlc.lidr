@@ -21,6 +21,7 @@ work to deal with these.
 
 > %access public export
 > %default total
+
 > %hide Types.Tm
 > %hide Types.Ty
 > %hide Types.(->>)
@@ -497,7 +498,7 @@ Formally:
 >       Tif Tfalse t1 t2 ->> t2
 >     ST_If : {t1, t1', t2, t3: Tm} ->
 >       t1 ->> t1' ->
->     Tif t1 t2 t3 ->> Tif t1' t2 t3
+>       Tif t1 t2 t3 ->> Tif t1' t2 t3
 
 > infixl 6 ->>*
 > (->>*) : Tm -> Tm -> Type
@@ -747,7 +748,7 @@ to the term `\x:Bool. \y:Bool, x y` -- i.e.,
 
 > forallToExistence : {X : Type} -> {P: X -> Type} ->
 >   ((a : X) -> Not (P a)) -> Not (a : X ** P a)
-> forallToExistence hyp (b ** p2) = hyp b p2
+> forallToExistence hyp (a ** p2) = hyp a p2
 
 > typing_nonexample_1 :
 >   Not (T : Ty **
