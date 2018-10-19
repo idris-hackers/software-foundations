@@ -10,6 +10,10 @@
 
 > %access public export
 > %default total
+> %hide Smallstep.Tm
+> %hide Types.progress
+
+
 
 In this chapter, we develop the fundamental theory of the Simply
 Typed Lambda Calculus -- in particular, the type safety
@@ -36,7 +40,7 @@ lambda-abstractions.
 > canonical_forms_fun : {t: Tm} -> {ty1, ty2: Ty} ->
 >   empty |- t :: (ty1 :=> ty2) . ->
 >   Value t ->
->   (x : String ** u : Tm ** t = Tabs x ty1 u)
+>   (x : Id ** u : Tm ** t = Tabs x ty1 u)
 
 > canonical_forms_fun {t = Ttrue} T_True _ impossible
 > canonical_forms_fun {t = Tfalse} T_False _ impossible
@@ -103,194 +107,186 @@ _Proof_: By induction on the derivation of `|- t \in T`
 > progress {t=Tfalse} _ = Left V_false
 > progress {t=Tabs x ty t1} _ = Left V_abs
 > progress {t=tl # tr} (T_App hl hr) =
->   let indHypl = StlcProp.progress {t=tl} hl
+>   let indHypl = progress {t=tl} hl
 >   in  case indHypl of
->         Right (t' ** hyp) => Right (t' # tr ** ST_App1 hyp)
+>         Right (t' ** step) => Right (t' # tr ** ST_App1 step)
 >         Left vl =>
->           let indHypR = StlcProp.progress {t=tr} hr
+>           let indHypR = progress {t=tr} hr
 >           in  case indHypR of
->                 Right (t' ** hyp) => Right (tl # t' ** ST_App2 vl hyp)
+>                 Right (t' ** step) => Right (tl # t' ** ST_App2 vl step)
 >                 Left vr =>
 >                   case vl of
 >                     V_abs {x} {t=tl} => Right (subst x tr tl ** ST_AppAbs vr)
-> progress {t=Tif tb tp tn} {ty} _ = ?hole
+> progress {t=Tif tb tp tn} (T_If hb hp hr) =
+>   let indHyp = progress {t=tb} hb
+>   in  case indHyp of
+>         Left vl =>
+>           case vl of
+>             V_true => Right (tp ** ST_IfTrue)
+>             V_false => Right (tn ** ST_IfFalse)
+>         Right (t' ** step) => Right (Tif t' tp tn ** ST_If step)
+
+== Preservation
+
+The other half of the type soundness property is the
+preservation of types during reduction.  For this part, we'll need
+to develop some technical machinery for reasoning about variables
+and substitution.  Working from top to bottom (from the high-level
+property we are actually interested in to the lowest-level
+technical lemmas that are needed by various cases of the more
+interesting proofs), the story goes like this:
+
+  - The _preservation theorem_ is proved by induction on a typing
+    derivation, pretty much as we did in the `Types` chapter.
+    The one case that is significantly different is the one for
+    the `ST_AppAbs` rule, whose definition uses the substitution
+    operation.  To see that this step preserves typing, we need to
+    know that the substitution itself does.  So we prove a...
+
+  - _substitution lemma_, stating that substituting a (closed)
+    term `s` for a variable `x` in a term `t` preserves the type
+    of `t`.  The proof goes by induction on the form of `t` and
+    requires looking at all the different cases in the definition
+    of substitition.  This time, the tricky cases are the ones for
+    variables and for function abstractions.  In both, we discover
+    that we need to take a term `s` that has been shown to be
+    well-typed in some context `Gamma` and consider the same term
+    `s` in a slightly different context `Gamma'`.  For this we
+    prove a...
+
+  - _context invariance_ lemma, showing that typing is preserved
+    under "inessential changes" to the context `Gamma` -- in
+    particular, changes that do not affect any of the free
+    variables of the term.  And finally, for this, we need a
+    careful definition of...
+
+  - the _free variables_ in a term -- i.e., variables that are
+    used in the term and where these uses are _not_ in the scope of
+    an enclosing function abstraction binding a variable of the
+    same name.
+
+To make Idris happy, we need to formalize the story in the opposite
+order...
+
+=== Free Occurrences
+
+A variable `x` _appears free in_ a term _t_ if `t` contains some
+occurrence of `x` that is not under an abstraction labeled `x`.
+For example:
+  - `y` appears free, but `x` does not, in `\x:T->U. x y`
+  - both `x` and `y` appear free in `(\x:T->U. x y) x`
+  - no variables appear free in `\x:T->U. \y:T. x y`
+
+Formally:
+
+> data Appears_free_in : Id -> Tm -> Type where
+>   Afi_var : {x : Id} ->
+>      Appears_free_in x (Tvar x)
+>   Afi_app1 : {x : Id} -> {t1, t2: Tm} ->
+>      Appears_free_in x t1 ->
+>      Appears_free_in x (t1 # t2)
+>   Afi_app2 : {x : Id} -> {t1, t2: Tm} ->
+>      Appears_free_in x t2 ->
+>      Appears_free_in x (t1 # t2)
+>   Afi_abs : {x,y : Id} -> {t12: Tm} -> {T11: Ty} ->
+>      Not (y = x)  ->
+>      Appears_free_in x t12 ->
+>      Appears_free_in x (Tabs y T11 t12)
+>   Afi_if1 : {x : Id} -> {t1, t2, t3: Tm} ->
+>      Appears_free_in x t1 ->
+>      Appears_free_in x (Tif t1 t2 t3)
+>   Afi_if2 : {x : Id} -> {t1, t2, t3: Tm} ->
+>      Appears_free_in x t2 ->
+>      Appears_free_in x (Tif t1 t2 t3)
+>   Afi_if3 : {x : Id} -> {t1, t2, t3: Tm} ->
+>      Appears_free_in x t3 ->
+>      Appears_free_in x (Tif t1 t2 t3)
 
 
-(** **** Exercise: 3 stars, advanced (progress_from_term_ind)  *)
-(** Show that progress can also be proved by induction on terms
-    instead of induction on typing derivations. *)
+The _free variables_ of a term are just the variables that appear
+free in it.  A term with no free variables is said to be _closed_.
 
-Theorem progress' : forall t T,
-     empty |- t \in T ->
-     value t \/ exists t', t ==> t'.
-Proof.
-  intros t.
-  induction t; intros T Ht; auto.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+> closed: Tm -> Type
+> closed t = Not (x: Id ** Appears_free_in x t)
 
-(* ################################################################# *)
-(** * Preservation *)
+An _open_ term is one that may contain free variables.  (I.e., every
+term is an open term; the closed terms are a subset of the open ones.
+"Open" really means "possibly containing free variables.")
 
-(** The other half of the type soundness property is the
-    preservation of types during reduction.  For this part, we'll need
-    to develop some technical machinery for reasoning about variables
-    and substitution.  Working from top to bottom (from the high-level
-    property we are actually interested in to the lowest-level
-    technical lemmas that are needed by various cases of the more
-    interesting proofs), the story goes like this:
+==== Exercise: 1 star (afi)
 
-      - The _preservation theorem_ is proved by induction on a typing
-        derivation, pretty much as we did in the `Types` chapter.
-        The one case that is significantly different is the one for
-        the `ST_AppAbs` rule, whose definition uses the substitution
-        operation.  To see that this step preserves typing, we need to
-        know that the substitution itself does.  So we prove a...
-
-      - _substitution lemma_, stating that substituting a (closed)
-        term `s` for a variable `x` in a term `t` preserves the type
-        of `t`.  The proof goes by induction on the form of `t` and
-        requires looking at all the different cases in the definition
-        of substitition.  This time, the tricky cases are the ones for
-        variables and for function abstractions.  In both, we discover
-        that we need to take a term `s` that has been shown to be
-        well-typed in some context `Gamma` and consider the same term
-        `s` in a slightly different context `Gamma'`.  For this we
-        prove a...
-
-      - _context invariance_ lemma, showing that typing is preserved
-        under "inessential changes" to the context `Gamma` -- in
-        particular, changes that do not affect any of the free
-        variables of the term.  And finally, for this, we need a
-        careful definition of...
-
-      - the _free variables_ in a term -- i.e., variables that are
-        used in the term and where these uses are _not_ in the scope of
-        an enclosing function abstraction binding a variable of the
-        same name.
-
-   To make Coq happy, we need to formalize the story in the opposite
-   order... *)
-
-(* ================================================================= *)
-(** ** Free Occurrences *)
-
-(** A variable `x` _appears free in_ a term _t_ if `t` contains some
-    occurrence of `x` that is not under an abstraction labeled `x`.
-    For example:
-      - `y` appears free, but `x` does not, in `\x:T->U. x y`
-      - both `x` and `y` appear free in `(\x:T->U. x y) x`
-      - no variables appear free in `\x:T->U. \y:T. x y`
-
-    Formally: *)
-
-Inductive appears_free_in : string -> tm -> Prop :=
-  | afi_var : forall x,
-      appears_free_in x (tvar x)
-  | afi_app1 : forall x t1 t2,
-      appears_free_in x t1 ->
-      appears_free_in x (tapp t1 t2)
-  | afi_app2 : forall x t1 t2,
-      appears_free_in x t2 ->
-      appears_free_in x (tapp t1 t2)
-  | afi_abs : forall x y T11 t12,
-      y <> x  ->
-      appears_free_in x t12 ->
-      appears_free_in x (tabs y T11 t12)
-  | afi_if1 : forall x t1 t2 t3,
-      appears_free_in x t1 ->
-      appears_free_in x (tif t1 t2 t3)
-  | afi_if2 : forall x t1 t2 t3,
-      appears_free_in x t2 ->
-      appears_free_in x (tif t1 t2 t3)
-  | afi_if3 : forall x t1 t2 t3,
-      appears_free_in x t3 ->
-      appears_free_in x (tif t1 t2 t3).
-
-Hint Constructors appears_free_in.
-
-(** The _free variables_ of a term are just the variables that appear
-    free in it.  A term with no free variables is said to be
-    _closed_. *)
-
-Definition closed (t:tm) :=
-  forall x, ~ appears_free_in x t.
-
-(** An _open_ term is one that may contain free variables.  (I.e., every
-    term is an open term; the closed terms are a subset of the open ones.
-    "Open" really means "possibly containing free variables.") *)
-
-(** **** Exercise: 1 star (afi)  *)
-(** In the space below, write out the rules of the `appears_free_in`
-    relation in informal inference-rule notation.  (Use whatever
-    notational conventions you like -- the point of the exercise is
-    just for you to think a bit about the meaning of each rule.)
-    Although this is a rather low-level, technical definition,
-    understanding it is crucial to understanding substitution and its
-    properties, which are really the crux of the lambda-calculus. *)
+In the space below, write out the rules of the `appears_free_in`
+relation in informal inference-rule notation.  (Use whatever
+notational conventions you like -- the point of the exercise is
+just for you to think a bit about the meaning of each rule.)
+Although this is a rather low-level, technical definition,
+understanding it is crucial to understanding substitution and its
+properties, which are really the crux of the lambda-calculus.
 
 (* FILL IN HERE *)
-(** `` *)
 
-(* ================================================================= *)
-(** ** Substitution *)
+=== Substitution
 
-(** To prove that substitution preserves typing, we first need a
-    technical lemma connecting free variables and typing contexts: If
-    a variable `x` appears free in a term `t`, and if we know `t` is
-    well typed in context `Gamma`, then it must be the case that
-    `Gamma` assigns a type to `x`. *)
+To prove that substitution preserves typing, we first need a
+technical lemma connecting free variables and typing contexts: If
+a variable `x` appears free in a term `t`, and if we know `t` is
+well typed in context `Gamma`, then it must be the case that
+`Gamma` assigns a type to `x`. *)
 
-Lemma free_in_context : forall x t T Gamma,
-   appears_free_in x t ->
-   Gamma |- t \in T ->
-   exists T', Gamma x = Some T'.
+-- > free_in_context : {x : Id} -> {t: Tm} -> {ty: Ty} -> {gamma: Context} ->
+-- >   Appears_free_in x t ->
+-- >   gamma |- t :: T . ->
+-- >   (t' : Ty ** gamma x = Just t')
 
-(** _Proof_: We show, by induction on the proof that `x` appears free
-      in `t`, that, for all contexts `Gamma`, if `t` is well typed
-      under `Gamma`, then `Gamma` assigns some type to `x`.
+_Proof_: We show, by induction on the proof that `x` appears free
+in `t`, that, for all contexts `Gamma`, if `t` is well typed
+under `Gamma`, then `Gamma` assigns some type to `x`.
 
-      - If the last rule used is `afi_var`, then `t = x`, and from the
-        assumption that `t` is well typed under `Gamma` we have
-        immediately that `Gamma` assigns a type to `x`.
+  - If the last rule used is `afi_var`, then `t = x`, and from the
+    assumption that `t` is well typed under `Gamma` we have
+    immediately that `Gamma` assigns a type to `x`.
 
-      - If the last rule used is `afi_app1`, then `t = t1 t2` and `x`
-        appears free in `t1`.  Since `t` is well typed under `Gamma`,
-        we can see from the typing rules that `t1` must also be, and
-        the IH then tells us that `Gamma` assigns `x` a type.
+  - If the last rule used is `afi_app1`, then `t = t1 t2` and `x`
+    appears free in `t1`.  Since `t` is well typed under `Gamma`,
+    we can see from the typing rules that `t1` must also be, and
+    the IH then tells us that `Gamma` assigns `x` a type.
 
-      - Almost all the other cases are similar: `x` appears free in a
-        subterm of `t`, and since `t` is well typed under `Gamma`, we
-        know the subterm of `t` in which `x` appears is well typed
-        under `Gamma` as well, and the IH gives us exactly the
-        conclusion we want.
+  - Almost all the other cases are similar: `x` appears free in a
+    subterm of `t`, and since `t` is well typed under `Gamma`, we
+    know the subterm of `t` in which `x` appears is well typed
+    under `Gamma` as well, and the IH gives us exactly the
+    conclusion we want.
 
-      - The only remaining case is `afi_abs`.  In this case `t =
-        \y:T11.t12` and `x` appears free in `t12`, and we also know
-        that `x` is different from `y`.  The difference from the
-        previous cases is that, whereas `t` is well typed under
-        `Gamma`, its body `t12` is well typed under `(Gamma & {{y-->T11}}`,
-        so the IH allows us to conclude that `x` is assigned some type
-        by the extended context `(Gamma & {{y-->T11}}`.  To conclude that
-        `Gamma` assigns a type to `x`, we appeal to lemma
-        `update_neq`, noting that `x` and `y` are different
-        variables. *)
+  - The only remaining case is `afi_abs`.  In this case `t =
+    \y:T11.t12` and `x` appears free in `t12`, and we also know
+    that `x` is different from `y`.  The difference from the
+    previous cases is that, whereas `t` is well typed under
+    `Gamma`, its body `t12` is well typed under `(Gamma & {{y-->T11}}`,
+    so the IH allows us to conclude that `x` is assigned some type
+    by the extended context `(Gamma & {{y-->T11}}`.  To conclude that
+    `Gamma` assigns a type to `x`, we appeal to lemma
+    `update_neq`, noting that `x` and `y` are different
+    variables. *)
 
-Proof.
-  intros x t T Gamma H H0. generalize dependent Gamma.
-  generalize dependent T.
-  induction H;
-         intros; try solve `inversion H0; eauto`.
-  - (* afi_abs *)
-    inversion H1; subst.
-    apply IHappears_free_in in H7.
-    rewrite update_neq in H7; assumption.
-Qed.
+> free_in_context : {x : Id} -> {t: Tm} -> {ty: Ty} -> {gamma: Context} ->
+>   Appears_free_in x t ->
+>   gamma |- t :: ty . ->
+>   (t' : Ty ** gamma x = Just t')
+> free_in_context {ty} Afi_var (T_Var h1) = (ty ** h1)
+> free_in_context {t = t1 # t2} (Afi_app1 h) (T_App h1 h2) = free_in_context h h1
+> free_in_context {t = t1 # t2} (Afi_app2 h) (T_App h1 h2) = free_in_context h h2
+> free_in_context {t = Tif tb tp tn} (Afi_if1 h) (T_If h1 h2 h3) = free_in_context h h1
+> free_in_context {t = Tif tb tp tn} (Afi_if2 h) (T_If h1 h2 h3) = free_in_context h h2
+> free_in_context {t = Tif tb tp tn} (Afi_if3 h) (T_If h1 h2 h3) = free_in_context h h3
+> free_in_context {x} {gamma} {t = Tabs id ty tm} (Afi_abs h1 h2) (T_Abs h) =
+>   let (ty ** ih) = free_in_context h2 h
+>   in (ty ** rewrite (sym (update_neq {m=gamma} {v=ty} h1)) in ih)
 
-(** Next, we'll need the fact that any term `t` that is well typed in
-    the empty context is closed (it has no free variables). *)
+Next, we'll need the fact that any term `t` that is well typed in
+the empty context is closed (it has no free variables).
 
-(** **** Exercise: 2 stars, optional (typable_empty__closed)  *)
+==== Exercise: 2 stars, optional (typable_empty__closed)
+
 Corollary typable_empty__closed : forall t T,
     empty |- t \in T  ->
     closed t.
