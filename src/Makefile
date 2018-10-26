@@ -1,12 +1,11 @@
 .DEFAULT_GOAL := all.pdf
 
 
-# TODO: Find pandoc executable.
 PANDOC ?= pandoc
 
 
 PANDOC_FLAGS := \
-	--filter pandoc-minted.hs --latex-engine=xelatex \
+	--filter pandoc-minted.hs --pdf-engine=xelatex \
 	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
 	--top-level-division=chapter
 
@@ -16,7 +15,6 @@ LIDR_FILES := Preface.lidr \
 	Induction.lidr \
 	Lists.lidr \
 	Poly.lidr \
-	Tactics.lidr \
 	Logic.lidr \
 	IndProp.lidr \
 	Maps.lidr \
@@ -24,7 +22,6 @@ LIDR_FILES := Preface.lidr \
 	Rel.lidr \
 	Imp.lidr \
 	ImpParser.lidr
-  
 # TODO: Add more chapters, in order, here.
 
 
