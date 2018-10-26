@@ -23,11 +23,12 @@ classoption: twoside
 papersize: b5
 geometry: margin=1in
 header-includes:
-- \setmonofont{Monoid}
-- \makeatletter
-- \let\RequirePackage\original@RequirePackage
-- \let\usepackage\RequirePackage
-- \makeatother
+- \setmonofont{Iosevka}
+-
+- \usepackage[utf8]{inputenc}
+- \usepackage{newunicodechar}
+- \newunicodechar{∀}{$\forall$}
+
 -
 - \usepackage{minted}
 - \usemintedstyle{lovelace}

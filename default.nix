@@ -1,37 +1,85 @@
-{ nixpkgs ? import <nixpkgs> {}
-, compiler ? "ghc802"
-}:
-
 let
-  inherit (nixpkgs) pkgs;
 
-  haskellPackages = pkgs.haskell.packages."${compiler}";
-  ghc = haskellPackages.ghcWithPackages (ps: with ps; [
-    idris
-    pandoc
-  ]);
-  # FIXME: TeX Live is pretty much broken in Nix right now.
-  # xelatex = pkgs.texlive.combine {
-  #   inherit (pkgs.texlive) scheme-small xetex latexmk todonotes;
-  # };
+  fetchTarballFromGitHub =
+    { owner, repo, rev, sha256, ... }:
+    builtins.fetchTarball {
+      url = "https://github.com/${owner}/${repo}/tarball/${rev}";
+      inherit sha256;
+    };
+
+  fromJSONFile = f: builtins.fromJSON (builtins.readFile f);
+
 in
 
-pkgs.stdenv.mkDerivation rec {
-  name = "software-foundations-${version}-env";
-  version = "0.0.1.0";
+{ nixpkgs ? fetchTarballFromGitHub (fromJSONFile ./nixpkgs-src.json) }:
 
+with import nixpkgs {
+  overlays = [
+    (self: super: {
+      ghc-with-pandoc = super.haskellPackages.ghcWithPackages (ps: with ps; [
+        pandoc
+      ]);
+
+      idris = with super.idrisPackages; with-packages [
+        base
+        prelude
+        pruviloj
+      ];
+
+      xelatex = super.texlive.combine {
+        inherit (super.texlive) scheme-small
+          amsmath
+          datatool
+          dirtytalk
+          ebproof
+          fontspec
+          framed
+          fvextra
+          glossaries
+          ifplatform
+          latexmk
+          lm-math
+          mfirstuc
+          minted
+          newunicodechar
+          substr
+          todonotes
+          xetex
+          xfor
+          xindy
+          xstring;
+      };
+    })
+  ];
+};
+
+stdenv.mkDerivation rec {
+  name = "software-foundations-${version}-env";
+  version = builtins.readFile ./VERSION;
   src = ./.;
 
-  # TODO: xelatex
-  buildInputs = [ ghc ] ++
-    (with pkgs; [ python3 ]) ++
-    (with pkgs.python35Packages; [ pygments ]);
+  FONTCONFIG_FILE = makeFontsConf {
+    fontDirectories = [
+      iosevka
+    ];
+  };
 
-  meta = with pkgs.stdenv.lib; {
+  buildInputs = [
+    ghc-with-pandoc
+    idris
+    python3Packages.pygments
+    xelatex
+    which
+  ];
+
+ installFlags = [
+    "PREFIX=$(out)"
+  ];
+
+  meta = with stdenv.lib; {
     description = "Software Foundations in Idris";
-    # TODO: longDescription
-    homepage = http://idris-hackers.github.io/software-foundations;
-    # TODO: license
+    homepage = https://idris-hackers.github.io/software-foundations;
+    license = licenses.mit;
     maintainers = with maintainers; [ yurrriq ];
     inherit (ghc.meta) platforms;
   };

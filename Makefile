@@ -1,8 +1,7 @@
-PKG   := software_foundations
-
-
-# TODO: Find idris executable.
-IDRIS ?= idris
+PKG    := software_foundations
+PREFIX ?= docs
+IDRIS  ?= idris
+PDF    ?= sf-idris-2018.pdf
 
 
 .PHONY: pdf site
@@ -21,7 +20,7 @@ check:
 
 pdf:
 	$(MAKE) -C src
-	mv src/all.pdf docs/pdf/sf-idris-2016.pdf
+	mv src/all.pdf docs/pdf/${PDF}
 
 
 clean-all: clean clean-docs
@@ -40,6 +39,10 @@ site: docs/index.html
 
 
 docs/index.html: README.md CONTRIBUTING.md
-	pandoc -f markdown_github -t markdown_github \
-	-A CONTRIBUTING.md $< \
-		| pandoc -f markdown_github -t html -s -o $@
+	pandoc -f gfm -t gfm -A CONTRIBUTING.md $< | \
+		pandoc -M title='Software Foundations in Idris' \
+			-f gfm -t html -s -o $@
+
+
+install:
+	install -m644 -Dt "${PREFIX}" docs/pdf/${PDF}

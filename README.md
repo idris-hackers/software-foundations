@@ -37,7 +37,7 @@ Others may work, but here are the versions I'm using.
 <!-- Named Links -->
 
 [SF]: http://www.cis.upenn.edu/%7Ebcpierce/sf/current/index.html
-[PDF]: https://idris-hackers.github.io/software-foundations/pdf/sf-idris-2016.pdf
+[PDF]: https://idris-hackers.github.io/software-foundations/pdf/sf-idris-2018.pdf
 [prereqs]: #prerequisites
 [GHC]: https://www.haskell.org/ghc/
 [Idris]: https://www.idris-lang.org

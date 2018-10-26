@@ -358,43 +358,6 @@ locally extended version of the files, which you should use instead of the
 release version.
 
 
-== Note for Instructors
-
-If you intend to use these materials in your own course, you will undoubtedly
-find things you'd like to change, improve, or add. Your contributions are
-welcome!
-
-To keep the legalities of the situation clean and to have a single point of
-responsibility in case the need should ever arise to adjust the license terms,
-sublicense, etc., we ask all contributors (i.e., everyone with access to the
-developers' repository) to assign copyright in their contributions to the
-appropriate "author of record," as follows:
-
-    I hereby assign copyright in my past and future contributions
-    to the Software Foundations project to the Author of Record of
-    each volume or component, to be licensed under the same terms
-    as the rest of Software Foundations.  I understand that, at
-    present, the Authors of Record are as follows: For Volumes 1
-    and 2, known until 2016 as "Software Foundations" and from
-    2016 as (respectively) "Logical Foundations" and "Programming
-    Foundations," the Author of Record is Benjamin Pierce.  For
-    Volume 3, "Verified Functional Algorithms", the Author of
-    Record is Andrew W. Appel. For components outside of
-    designated Volumes (e.g., typesetting and grading tools and
-    other software infrastructure), the Author of Record is
-    Benjamin Pierce.
-
-To get started, please send an email to Benjamin Pierce, describing yourself and
-how you plan to use the materials and including
-  1. the above copyright transfer text and
-  2. the result of doing "htpasswd -s -n NAME"
-where NAME is your preferred user name.
-
-We'll set you up with access to the subversion repository and developers'
-mailing lists. In the repository you'll find a file [INSTRUCTORS] with further
-instructions.
-
-
 == Translations
 
 Thanks to the efforts of a team of volunteer translators, _Software Foundations_
