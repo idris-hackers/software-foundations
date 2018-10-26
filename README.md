@@ -25,7 +25,7 @@ Others may work, but here are the versions I'm using.
 | [latexmk][]      |                                  4.52c |
 | [Make][]         |                                  4.2.1 |
 | [minted][]       |                                  2.4.1 |
-| [Monoid][]       |                                   0.61 |
+| [Iosevka][]      |                                 1.14.3 |
 | [Pandoc][]       |                               1.19.2.1 |
 | [pandoc-types][] |                               1.17.0.5 |
 | [Python][]       |                                  3.6.1 |
@@ -46,7 +46,7 @@ Others may work, but here are the versions I'm using.
 [latexmk]: https://www.ctan.org/pkg/latexmk/
 [Make]: https://www.gnu.org/software/make/
 [minted]: http://www.ctan.org/pkg/minted
-[Monoid]: http://larsenwork.com/monoid/
+[Iosevka]: https://be5invis.github.io/Iosevka/
 [Pandoc]: http://pandoc.org
 [pandoc-types]: https://github.com/jgm/pandoc-types
 [Python]: https://www.python.org

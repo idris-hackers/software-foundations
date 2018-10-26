@@ -36,7 +36,7 @@ You might want to add cabal to your `PATH` permanently.
 pip install --user Pygments
 ```
 
-## Install Monoid font
+## Install Iosevka font
 
-Download the [Monoid font](http://larsenwork.com/monoid/) and put the `ttf`-files into `/Library/Fonts` directory.
+Download the [Iosevka font](https://be5invis.github.io/Iosevka/) and put the `ttf`-files into `/Library/Fonts` directory.
 Reboot to let macOS find the font.
