@@ -1,5 +1,7 @@
 # _[Software Foundations][SF] in Idris_
 
+[![Build Status](https://travis-ci.org/idris-hackers/software-foundations.svg?branch=develop)](https://travis-ci.org/idris-hackers/software-foundations)
+
 :book: [Download the PDF][PDF]
 
 
