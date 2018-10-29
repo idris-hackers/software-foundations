@@ -1540,7 +1540,7 @@ $\square$
 
 ==== Exercise: 3 stars, optional (short_circuit)
 
-\ \todo[inline]{This already happens since Idris' && short-circuits}
+\ \todo[inline]{This already happens since Idris's \idr{&&} short-circuits}
 
 Most modern programming languages use a "short-circuit" evaluation rule for
 boolean \idr{and}: to evaluate \idr{BAnd b1 b2}, first evaluate \idr{b1}. If it
