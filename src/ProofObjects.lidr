@@ -489,18 +489,6 @@ evidence for each member of this family: applying the constructor \idr{EqRefl}
 to a type \idr{t} and a value \idr{x : t} yields evidence that \idr{x} is equal
 to \idr{x}.
 
-
-==== Exercise: 2 stars (leibniz_equality)
-
-The inductive definition of equality corresponds to _Leibniz equality_: what we
-mean when we say "\idr{x} and \idr{y} are equal" is that every property \idr{p}
-that is true of \idr{x} is also true of \idr{y}.
-
-> leibniz_equality : (x =' y) -> ((p : t -> Type) -> p x -> p y)
-> leibniz_equality eq p px = ?leibniz_equality_rhs
-
-$\square$
-
 \todo[inline]{Edit}
 
 We can use \idr{EqRefl} to construct evidence that, for example, \idr{2 = 2}.
@@ -534,6 +522,29 @@ Definition four' : 2 + 2 = 1 + 3 :=
 
 > quiz6 : Ex (\x => (x + 3) =' 4)
 > quiz6 = ExIntro 1 EqRefl
+
+
+==== Exercise: 2 stars (equality__leibniz_equality)
+
+The inductive definition of equality corresponds to _Leibniz equality_: what we
+mean when we say "\idr{x} and \idr{y} are equal" is that every property \idr{p}
+that is true of \idr{x} is also true of \idr{y}.
+
+> equality__leibniz_equality : (x =' y) -> ((p : t -> Type) -> p x -> p y)
+> equality__leibniz_equality eq p px = ?equality__leibniz_equality_rhs
+
+$\square$
+
+
+==== Exercise: 5 stars, optional (leibniz_equality__equality)
+
+Show that, in fact, the inductive definition of equality is _equivalent_ to 
+Leibniz equality: 
+
+> leibniz_equality__equality : ((p : t -> Type) -> p x -> p y) -> (x =' y)
+> leibniz_equality__equality pxy = ?leibniz_equality__equality_rhs
+
+$\square$
 
 
 === Inversion, Again

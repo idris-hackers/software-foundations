@@ -21,7 +21,8 @@ LIDR_FILES := Preface.lidr \
 	ProofObjects.lidr \
 	Rel.lidr \
 	Imp.lidr \
-	ImpParser.lidr
+	ImpParser.lidr \
+	ImpCEvalFun.lidr
 # TODO: Add more chapters, in order, here.
 
 
