@@ -18,19 +18,20 @@ make pdf
 
 Others may work, but here are the versions I'm using.
 
-| Dependency       |                                Version |
-|------------------|----------------------------------------|
-| [(run)ghc][GHC]  |                                  8.0.2 |
-| [Idris][]        |                                  1.1.1 |
-| [latexmk][]      |                                  4.52c |
-| [Make][]         |                                  4.2.1 |
-| [minted][]       |                                  2.4.1 |
-| [Iosevka][]      |                                 1.14.3 |
-| [Pandoc][]       |                               1.19.2.1 |
-| [pandoc-types][] |                               1.17.0.5 |
-| [Python][]       |                                  3.6.1 |
-| [Pygments][]     |                                  2.2.0 |
-| [XeLaTeX][]      | 3.14159265-2.6-0.99998 (TeX Live 2017) |
+| Dependency       |                                       Version |
+|------------------|-----------------------------------------------|
+| [(run)ghc][GHC]  |                                         8.4.3 |
+| [Idris][]        |                                         1.3.0 |
+| [latexmk][]      |                                          4.59 |
+| [GNU Make][]     |                                         4.2.1 |
+| [minted][]       |                                           2.5 |
+| [Iosevka][]      |                                        1.14.3 |
+| [Pandoc][]       |                                         2.2.1 |
+| [pandoc-types][] |                                      1.17.5.1 |
+| [Python][]       |                                         3.6.6 |
+| [Pygments][]     |                                         2.2.0 |
+| [XeLaTeX][]      | 3.14159265-2.6-0.99999 (Web2C 2018/NixOS.org) |
+
 
 ### Installing prerequisites
 

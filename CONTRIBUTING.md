@@ -9,11 +9,11 @@ _TBD_ (see [issue #4] for discussion)
 1. Check out a new branch based on `develop`.
 1. Push some commits to your fork.
    - The general workflow here is as follows:
-     - Copy/paste the original text, [reformatting](#formatting) as
-       appropriate.
-     - Translate Coq code into (idiomatic) Idris.
-     - Edit, augment and delete text as appropriate.
-       _N.B. This can be done in subsequent pull requests._
+       - Copy/paste the original text, [reformatting](#formatting) as
+         appropriate.
+       - Translate Coq code into (idiomatic) Idris.
+       - Edit, augment and delete text as appropriate.
+         _N.B. This can be done in subsequent pull requests._
 1. Open a pull request (as soon as possible).
    - If it's not ready to be merged, but you want to _claim_ a particular task,
      prefix the pull request with `WIP:`.
@@ -168,7 +168,7 @@ the `all.pdf`, `all.tex` and `%.tex` rules in [`src/Makefile`].
 [gfm code blocks]: https://help.github.com/articles/creating-and-highlighting-code-blocks/
 [glossaries package]: https://www.ctan.org/pkg/glossaries
 [glossary.tex]: https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex
-[`src/Makefile`]: https://github.com/idris-hackers/software-foundations/blob/master/src/glossary.tex
+[`src/Makefile`]: https://github.com/idris-hackers/software-foundations/blob/master/src/Makefile
 [PDF]: https://idris-hackers.github.io/software-foundations/pdf/sf-idris-2018.pdf
 [Pandoc]: http://pandoc.org
 [latexmk]: https://www.ctan.org/pkg/latexmk/
