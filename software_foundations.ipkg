@@ -14,7 +14,7 @@ modules    = Basics
            , ImpCEvalFun
 
 brief      = "Software Foundations in Idris"
-version    = 0.0.2.0
+version    = 0.0.2.1
 readme     = README.md
 -- NOTE: For license information see the file LICENSE.
 

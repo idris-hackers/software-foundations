@@ -5,9 +5,11 @@ PANDOC ?= pandoc
 
 
 PANDOC_FLAGS := \
-	--filter pandoc-minted.hs --pdf-engine=xelatex \
-	-f markdown+lhs+tex_math_single_backslash -t latex+lhs \
-	--top-level-division=chapter
+	--filter=pandoc-minted.hs \
+	--pdf-engine=xelatex \
+	--top-level-division=chapter \
+	-f markdown+lhs+tex_math_single_backslash \
+	-t latex+lhs
 
 
 LIDR_FILES := Preface.lidr \

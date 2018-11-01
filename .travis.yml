@@ -1,3 +1,1 @@
 language: nix
-# FIXME: Why does pandoc fail in nix-build?
-script: nix-shell --pure --run make

@@ -7,7 +7,7 @@ PDF    ?= sf-idris-2018.pdf
 .PHONY: pdf site
 
 
-all: check pdf site
+all: pdf site
 
 
 build:
@@ -20,7 +20,8 @@ check:
 
 pdf:
 	$(MAKE) -C src
-	mv src/all.pdf docs/pdf/${PDF}
+	mkdir -p ${PREFIX}/pdf
+	mv src/all.pdf ${PREFIX}/pdf/${PDF}
 
 
 clean-all: clean clean-docs
@@ -32,17 +33,13 @@ clean:
 
 clean-docs:
 	$(MAKE) -C src clean
-	@$(RM) docs/index.html >/dev/null
+	@$(RM) ${PREFIX}/index.html >/dev/null
 
 
-site: docs/index.html
+site: ${PREFIX}/index.html
 
 
-docs/index.html: README.md CONTRIBUTING.md
+${PREFIX}/index.html: README.md CONTRIBUTING.md
 	pandoc -f gfm -t gfm -A CONTRIBUTING.md $< | \
 		pandoc -M title='Software Foundations in Idris' \
 			-f gfm -t html -s -o $@
-
-
-install:
-	install -m644 -Dt "${PREFIX}" docs/pdf/${PDF}
