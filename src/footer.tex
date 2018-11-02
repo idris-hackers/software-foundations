@@ -1,1 +1,78 @@
+\chapter{Postscript}
+\label{postscript}
+
+Congratulations: We've made it to the end!
+
+\section{Looking Back}
+
+We've covered quite a bit of ground so far. Here's a quick review...
+
+\begin{outline}
+\1 \Gls{functional programming}:
+  \2 ``declarative'' programming style (recursion over immutable data
+  structures, rather than looping over mutable arrays or pointer structures)
+  \2 higher-order functions
+  \2 polymorphism
+\1 \textit{Logic}, the mathematical basis for software engineering:
+  \[
+    \frac{\text{logic}}{\text{software engineering}} \sim
+    \frac{\text{calculus}}{\text{mechanical/civil engineering}}
+  \]
+  \2 inductively defined sets and relations
+  \2 inductive proofs
+  \2 proof objects
+\1 \textit{Idris}, a dependently-typed programming language
+  \2 functional core language
+  \2 full \glspl{dependent type}
+  \2 \gls{dependent pattern matching}
+  \2 powerful \glspl{elaboration reflection}
+\end{outline}
+
+
+\section{Looking Forward}
+
+If what you've seen so far has whetted your interest, you have two choices for
+further reading in the \citefieldlink{sf}{title} series:
+
+\begin{outline}
+\1 \citefieldlink{plf}{title} (volume 2, by a set of authors similar to this
+  book's) covers material that might be found in a graduate course on the theory
+  of programming languages, including Hoare logic, operational semantics, and
+  type systems.
+\1 \citefieldlink{vfa}{title} (volume 3, by Andrew Appel) builds on the themes
+  of functional programming and program verification in Coq, addressing a range
+  of topics that might be found in a standard data structures course, with an
+  eye to formal verification.
+\end{outline}
+
+
+\section{Other sources}
+
+Here are some other good places to learn more...
+
+\begin{outline}
+\1 This book includes some optional chapters covering topics that you may
+  find useful. Take a look at the table of contents and the chapter dependency
+  diagram to find them.
+\1 \todo[inline]{Mention Idris on StackOverflow}
+\todo{Bibliography entries}
+\1 Here are some great books on functional programming
+  \2 Learn You a Haskell for Great Good, by Miran Lipovaca [Lipovaca
+    2011].
+  \2 Real World Haskell, by Bryan O'Sullivan, John Goerzen, and Don
+  Stewart [O'Sullivan 2008]
+  \2 ...and many other excellent books on Haskell, OCaml, Scheme, Racket,
+  Scala, F$^\sharp$, etc., etc.
+  \todo[inline]{And some further resources for Idris}
+\1 If you're interested in real-world applications of formal verification to
+  critical software, see the Postscript chapter of \citefieldlink{plf}{title}.
+\1 For applications of Coq in building verified systems, the lectures and
+  course materials for the 2017 DeepSpec Summer School are a great
+  resource. \url{https://deepspec.org/event/dsss17/index.html}
+\end{outline}
+
+\phantomsection
 \printglossaries
+
+\phantomsection
+\printbibliography

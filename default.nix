@@ -51,6 +51,8 @@ with import nixpkgs {
       xelatex = super.texlive.combine {
         inherit (super.texlive) scheme-small
           amsmath
+          biber
+          biblatex
           datatool
           dirtytalk
           ebproof
@@ -61,11 +63,14 @@ with import nixpkgs {
           ifplatform
           latexmk
           lm-math
+          logreq
           mfirstuc
           minted
           newunicodechar
+          outlines
           substr
           todonotes
+          tracklang
           xetex
           xfor
           xindy

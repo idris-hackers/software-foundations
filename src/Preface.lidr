@@ -3,9 +3,9 @@
 == Welcome
 
 This is the entry point in a series of electronic textbooks on various aspects
-of _Software Foundations_ --- the mathematical underpinnings of reliable
+of \citefieldlink{sf}{title} --- the mathematical underpinnings of reliable
 software. Topics in the series include basic concepts of logic,
-computer-assisted theorem proving, the Coq proof assistant, functional
+computer-assisted theorem proving, the Idris programming language, functional
 programming, operational semantics, logics for reasoning about programs, and
 static type systems. The exposition is intended for a broad range of readers,
 from advanced undergraduates to PhD students and researchers. No specific
@@ -41,20 +41,12 @@ the cost of bugs and insecurities.
 Computer scientists and software engineers have responded to these challenges by
 developing a whole host of techniques for improving software reliability,
 ranging from recommendations about managing software projects teams (e.g.,
-extreme programming) to design philosophies for libraries (e.g.,
-model-view-controller, publish-subscribe, etc.) and programming languages (e.g.,
-object-oriented programming, aspect-oriented programming, functional
-programming, ...) to mathematical techniques for specifying and reasoning about
-properties of software and tools for helping validate these properties. The
-_Software Foundations_ series is focused on this last set of techniques.
-developing a whole host of techniques for improving software reliability,
-ranging from recommendations about managing software projects and organizing
-programming teams (e.g., extreme programming) to design philosophies for
-libraries (e.g., model-view-controller, publish-subscribe, etc.) and programming
-languages (e.g., object-oriented programming, aspect-oriented programming,
-functional programming, ...) to mathematical techniques for specifying and
-reasoning about properties of software and tools for helping validate these
-properties.
+\gls{extreme programming}) to design philosophies for libraries (e.g.,
+\acrlong{mvc}, \gls{pub-sub}, etc.) and programming languages (e.g.,
+\acrlong{oop}, \acrlong{aop}, \gls{functional programming}, ...) to mathematical
+techniques for specifying and reasoning about properties of software and tools
+for helping validate these properties. The \citefieldlink{sf}{title} series is
+focused on this last set of techniques.
 
 The text is constructed around three conceptual threads:
 
@@ -64,13 +56,13 @@ The text is constructed around three conceptual threads:
 2. the use of \glspl{proof assistant} to construct rigorous logical arguments;
 
 3. \gls{functional programming}, both as a method of programming that simplifies
-   reasoning about programs and as a bridge between programming and logic;
+   reasoning about programs and as a bridge between programming and \gls{logic};
 
-Some suggestions for further reading can be found in the
-\todo{nameref}Postscript chapter.
+Some suggestions for further reading can be found in the \nameref{postscript}
+chapter.
 
-<!-- Bibliographic information for all cited works can be found in the file Bib. -->
-\todo[inline]{write a bibliography}
+Bibliographic information for all cited works can be found in the
+\nameref{bibliography}.
 
 
 === Logic
@@ -101,10 +93,10 @@ of logical propositions. These tools fall into two broad categories:
 
   - \Glspl{automated theorem prover} provide "push-button" operation: you give
     them a proposition and they return either _true_, _false_, (or sometimes,
-    _don't know:_ran out of time_). Although their capabilities are still
+    _don't know: ran out of time_). Although their capabilities are still
     limited to specific domains, they have matured tremendously in recent years
     and are used now in a multitude of settings. Examples of such tools include
-    SAT solvers, SMT solvers, and model checkers.
+    \acrshort{sat} solvers, \acrshort{smt} solvers, and model checkers.
 
   - \Glspl{proof assistant} are hybrid tools that automate the more routine
     aspects of building \glspl{proof} while depending on human guidance for more
@@ -112,17 +104,18 @@ of logical propositions. These tools fall into two broad categories:
     Agda, Twelf, ACL2, PVS, Coq, and Idris, among many others.
 
 This course is based around Idris, a general purpose pure \gls{functional
-programming} language with glspl{dependent type} that has been under development
-since 2006 and that in recent years has attracted a community of users in both
-research and hobby. Idris provides a rich environment for interactive
-development of machine-checked formal reasoning. The kernel of the Idris system
-is full \glspl{dependent type} with \gls{dependent pattern matching}, which
-allows \glspl{type} to be predicated on \glspl{value}, enabling some aspects of
-a program's behavior to be specified precisely in the \gls{type}. On top of this
-kernel, the Idris environment provides high-level facilities for \gls{proof}
-development, including powerful \glspl{elaboration reflection} for constructing
-complex \glspl{proof} semi-automatically, and special-purpose programming
-language for defining new proof-automation tactics for specific situations.
+programming} language with \glspl{dependent type} that has been under
+development since 2006 and that in recent years has attracted a community of
+users in both research and hobby. Idris provides a rich environment for
+interactive development of machine-checked formal reasoning. The kernel of the
+Idris system is full \glspl{dependent type} with \gls{dependent pattern
+matching}, which allows \glspl{type} to be predicated on \glspl{value}, enabling
+some aspects of a program's behavior to be specified precisely in the
+\gls{type}. On top of this kernel, the Idris environment provides high-level
+facilities for \gls{proof} development, including powerful \glspl{elaboration
+reflection} for constructing complex \glspl{proof} semi-automatically, and a
+special-purpose programming language for defining new proof-automation tactics
+for specific situations.
 
 By the way, in case you're wondering about the name, here's what
 \href{http://docs.idris-lang.org/en/latest/faq/faq.html}{the official Idris FAQ}
@@ -189,18 +182,18 @@ machinery --- i.e., _\glspl{proof} are programs_.
 
 This text is intended to be self contained, but readers looking for a deeper
 treatment of particular topics will find some suggestions for further reading in
-the \todo{nameref}Postscript chapter.
+the \nameref{postscript} chapter.
 
 
 == Practicalities
 
 === Chapter Dependencies
 
-\todo[inline]{Copy/recreate deps.html}
+-- TODO: Copy/recreate deps.html
 
-A diagram of the dependencies between chapters and some suggested
-paths through the material can be found in the file `deps.html`.
-\todo{Link deps.html}
+A diagram of the dependencies between chapters and some suggested paths through
+the material can be found in the file
+\href{https://softwarefoundations.cis.upenn.edu/lf-current/deps.html}{\txt{deps.html}}.
 
 
 === System Requirements
@@ -229,8 +222,7 @@ Idris runs on Windows, Linux, and macOS.  You will need:
         Idris mode for vim
 
       - \href{https://github.com/zjhmale/vscode-idris}{idris-vscode}:
-        Idris for Visual Studio Code
-        \url{https://marketplace.visualstudio.com/items?itemName=zjhmale.Idris}
+        \href{https://marketplace.visualstudio.com/items?itemName=zjhmale.Idris}{Idris for Visual Studio Code}
 
 
 === Exercises
@@ -256,8 +248,8 @@ concepts and introduce secondary themes that may be of interest to some
 readers. Advanced exercises are for readers who want an extra challenge and a
 deeper cut at the material.
 
-*Please do not post solutions to the exercises in a public place.* Software
-Foundations is widely used both for self-study and for university
+*Please do not post solutions to the exercises in a public place.*
+\citefieldlink{sf}{title} is widely used both for self-study and for university
 courses. Having solutions easily available makes it much less useful for
 courses, which typically have graded homework assignments. We especially request
 that readers not post solutions to the exercises anyplace where they can be
@@ -265,13 +257,6 @@ found by search engines.
 
 
 === Downloading the Idris Files
-
-\todo[inline]{See
-\href{https://github.com/idris-hackers/software-foundations/issues/25}{\#25} and
-\href{https://github.com/idris-hackers/software-foundations/issues/30}{\#30}}
-
-\todo[inline]{Generate a "release" after the Rel chapter and update this
-subsection accordingly.}
 
 A tar file containing the full sources for the "release version" of these notes
 (as a collection of Literate Idris files) is available here:

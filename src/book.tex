@@ -23,6 +23,8 @@ classoption: twoside
 papersize: b5
 geometry: margin=1in
 header-includes:
+- \usepackage[american]{babel}
+-
 - \setmonofont{Iosevka}
 -
 - \usepackage[utf8]{inputenc}
@@ -34,6 +36,7 @@ header-includes:
 - \usemintedstyle{lovelace}
 - \newmintinline[el]{elisp}{}
 - \newmintinline[idr]{idris}{}
+- \newmintinline[txt]{text}{}
 -
 - \usepackage[xindy]{glossaries}
 - \makeglossaries
@@ -44,6 +47,12 @@ header-includes:
 -
 - \usepackage{ebproof}
 - \usepackage{dirtytalk}
+-
+- \usepackage{outlines}
+-
+- \usepackage[backend=biber, dateabbrev=false, hyperref=true, style=numeric]{biblatex}
+- \newcommand{\citefieldlink}[2]{\hyperlink{cite.\therefsection @#1}{\textit{\citefield{#1}{#2}}}}
+- \addbibresource{book.bib}
 include-before: \frontmatter
 ---
 
