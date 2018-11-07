@@ -63,6 +63,14 @@ equality comparison function for \idr{Id} and its fundamental property.
 > beq_id (MkId n1) (MkId n2) = decAsBool $ decEq n1 n2
 >
 
+> idInjective : {x,y : String} -> (MkId x = MkId y) -> x = y
+> idInjective Refl = Refl
+
+> implementation DecEq Id where
+>   decEq (MkId s1) (MkId s2) with (decEq s1 s2)
+>     | Yes prf = Yes (cong prf)
+>     | No contra = No (\h : MkId s1 = MkId s2 => contra (idInjective h))
+
 \todo[inline]{Edit}
 
 (The function \idr{decEq} comes from Idris's string library. If you check its
