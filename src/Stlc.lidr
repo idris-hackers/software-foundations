@@ -21,6 +21,7 @@ work to deal with these.
 
 > %access public export
 > %default total
+
 > %hide Types.Tm
 > %hide Types.Ty
 > %hide Types.(->>)
@@ -169,18 +170,19 @@ We next formalize the syntax of the STLC.
 > infixr 7 #
 
 > data Tm : Type where
->   Tvar    : String -> Tm
+>   Tvar    : Id -> Tm
 >   (#)     : Tm -> Tm -> Tm
->   Tabs    : String -> Ty -> Tm -> Tm
+>   Tabs    : Id -> Ty -> Tm -> Tm
 >   Ttrue   : Tm
 >   Tfalse  : Tm
 >   Tif     : Tm -> Tm -> Tm -> Tm
 
-> syntax "(" "\\" [p] ":" [q] "." [r] ")" = Tabs "p" q r
+> syntax "(" "\\" [p] ":" [q] "." [r] ")" = Tabs (MkId "p") q r
 
 > syntax "lif" [c] "then" [p] "else" [n] = Tif c p n
 
-> syntax "&" [p] = Tvar "p"
+> var : String -> Tm
+> var s = Tvar (MkId s)
 
 Note that an abstraction `\x:T.t` (formally, `tabs x T t`) is
 always annotated with the type `T` of its :parameter, in contrast
@@ -193,27 +195,27 @@ Some examples...
 `idB = \x:Bool. x`
 
 > idB : Tm
-> idB = (\x: TBool . &x)
+> idB = (\x: TBool . var "x")
 
 `idBB = \x:Bool->Bool. x`
 
 > idBB : Tm
-> idBB = (\x: (TBool :=> TBool) . &x)
+> idBB = (\x: (TBool :=> TBool) . var "x")
 
 `idBBBB = \x:(Bool->Bool) -> (Bool->Bool). x`
 
 > idBBBB : Tm
-> idBBBB = (\x: ((TBool :=> TBool) :=> (TBool :=> TBool)). &x)
+> idBBBB = (\x: ((TBool :=> TBool) :=> (TBool :=> TBool)). var "x")
 
 `k = \x:Bool. \y:Bool. x`
 
 > k : Tm
-> k = (\x : TBool . (\y : TBool . &x))
+> k = (\x : TBool . (\y : TBool . var "x"))
 
 `notB = \x:Bool. if x then false else true`
 
 > notB : Tm
-> notB = (\x : TBool . (lif &x then Tfalse else Ttrue))
+> notB = (\x : TBool . (lif (var "x") then Tfalse else Ttrue))
 
 === Operational Semantics
 
@@ -259,7 +261,7 @@ function is actually applied to an argument.  We also make the
 second choice here.
 
 > data Value : Tm -> Type where
->   V_abs : {x: String} -> {T: Ty} -> {t: Tm} -> Value (Tabs x T t)
+>   V_abs : {x: Id} -> {T: Ty} -> {t: Tm} -> Value (Tabs x T t)
 >   V_true : Value Ttrue
 >   V_false : Value Tfalse
 
@@ -344,15 +346,15 @@ Here is the definition, informally...
 
 ... and formally:
 
-> subst : String -> Tm -> Tm -> Tm
+> subst : Id -> Tm -> Tm -> Tm
 > subst x s (Tvar x') =
 >   case decEq x x' of
->     Yes _ => s
->     No  _ => (Tvar x')
+>     Yes => s
+>     No _ => Tvar x'
 > subst x s (Tabs x' ty t1) =
->       Tabs x' ty (case decEq x x' of
->                     Yes p => t1
->                     No  p => subst x s t1)
+>       case decEq x x' of
+>         Yes => t1
+>         No _ => subst x s t1
 > subst x s (t1 # t2) = subst x s t1 # subst x s t2
 > subst x s Ttrue = Ttrue
 > subst x s Tfalse = Tfalse
@@ -396,7 +398,7 @@ one of the constructors; your job is to fill in the rest of the
 constructors and prove that the relation you've defined coincides
 with the function given above.
 
-> data Substi : (s:Tm) -> (x:String) -> Tm -> Tm -> Type where
+> data Substi : (s:Tm) -> (x:Id) -> Tm -> Tm -> Type where
 >   S_True  : Substi s x Ttrue Ttrue
 >   S_False : Substi s x Tfalse Tfalse
 >   S_App   : {l', r':Tm} -> Substi s x l l' -> Substi s x r r' -> Substi s x (l # r) (l' # r')
@@ -408,7 +410,7 @@ with the function given above.
 >   S_Abs2  : Substi s x (Tabs y ty t) (Tabs y ty t)
 
 
-> substi_correct : (s:Tm) -> (x: String) -> (t : Tm) -> (t' : Tm) ->
+> substi_correct : (s:Tm) -> (x: Id) -> (t : Tm) -> (t' : Tm) ->
 >  (([ x := s ] t) = t') <-> Substi s x t t'
 > substi_correct s x t t' = ?substi_correct_rhs1
 
@@ -481,9 +483,9 @@ Formally:
 >   (->>) = Step
 >
 >   data Step : Tm -> Tm -> Type where
->     ST_AppAbs : {x: String} ->  {ty : Ty} -> {t12 : Tm} -> {v2 : Tm} ->
+>     ST_AppAbs : {x: Id} ->  {ty : Ty} -> {t12 : Tm} -> {v2 : Tm} ->
 >       Value v2 ->
->       (Tabs x ty t12) # v2 ->> [ x := v2] t12
+>       (Tabs x ty t12) # v2 ->> subst x v2 t12
 >     ST_App1 : {t1, t1', t2: Tm} ->
 >       t1 ->> t1' ->
 >       t1 # t2 ->> t1' # t2
@@ -497,7 +499,7 @@ Formally:
 >       Tif Tfalse t1 t2 ->> t2
 >     ST_If : {t1, t1', t2, t3: Tm} ->
 >       t1 ->> t1' ->
->     Tif t1 t2 t3 ->> Tif t1' t2 t3
+>       Tif t1 t2 t3 ->> Tif t1' t2 t3
 
 > infixl 6 ->>*
 > (->>*) : Tm -> Tm -> Type
@@ -514,8 +516,7 @@ Example:
       idBB idB ->>* idB
 
 > step_example1 : Stlc.idBB # Stlc.idB ->>* Stlc.idB
-> step_example1 =
->   Multi_step (ST_AppAbs V_abs) Multi_refl
+> step_example1 = Multi_step (ST_AppAbs V_abs) Multi_refl -- (ST_AppAbs V_abs) Multi_refl
 
 Example:
 
@@ -674,11 +675,11 @@ We can read the three-place relation `Gamma |- t ::T` as:
 > syntax  [context] "|-" [t] "::" [T] "." = Has_type context t T
 
 > data Has_type : Context -> Tm -> Ty -> Type where
->   T_Var : {Gamma: Context} -> {x: String} -> {T: Ty} ->
->      Gamma (MkId x) = Just T ->
+>   T_Var : {Gamma: Context} -> {x: Id} -> {T: Ty} ->
+>      Gamma x = Just T ->
 >      Gamma |- (Tvar x) :: T .
->   T_Abs : {Gamma: Context} -> {x: String} -> {T11, T12: Ty} -> {t12 : Tm} ->
->      (Gamma & {{ (MkId x) ==> T11 }}) |- t12 :: T12 . ->
+>   T_Abs : {Gamma: Context} -> {x: Id} -> {T11, T12: Ty} -> {t12 : Tm} ->
+>      (Gamma & {{ x ==> T11 }}) |- t12 :: T12 . ->
 >      Gamma |- (Tabs x T11 t12) :: (T11 :=> T12) .
 >   T_App : {Gamma: Context} -> {T11, T12: Ty} -> {t1, t2 : Tm} ->
 >      Gamma |- t1 :: (T11 :=> T12). ->
@@ -696,7 +697,7 @@ We can read the three-place relation `Gamma |- t ::T` as:
 
 ==== Examples
 
-> typing_example_1 : empty |- (Tabs "x" TBool (Tvar "x")) :: (TBool :=> TBool) .
+> typing_example_1 : empty |- (Tabs (MkId "x") TBool (var "x")) :: (TBool :=> TBool) .
 > typing_example_1 = T_Abs (T_Var Refl)
 
 
@@ -708,9 +709,9 @@ Another example:
 ```
 
 > typing_example_2 : empty |-
->    (Tabs "x" TBool
->       (Tabs "y" (TBool :=> TBool)
->          (Tvar "y" # Tvar "y" # Tvar "x"))) ::
+>    (Tabs (MkId "x") TBool
+>       (Tabs (MkId "y") (TBool :=> TBool)
+>          (var "y" # var "y" # var "x"))) ::
 >    (TBool :=> (TBool :=> TBool) :=> TBool) .
 > typing_example_2 =
 >   T_Abs (T_Abs (T_App (T_Var Refl) (T_App (T_Var Refl) (T_Var Refl))))
@@ -728,10 +729,10 @@ Formally prove the following typing derivation holds:
 
 > typing_example_3 :
 >    (T : Ty ** empty |-
->      (Tabs "x" (TBool :=> TBool)
->         (Tabs "y" (TBool :=> TBool)
->            (Tabs "z" TBool
->               (Tvar "y" # (Tvar "x" # Tvar "z"))))) :: T . )
+>      (Tabs (MkId "x") (TBool :=> TBool)
+>         (Tabs (MkId "y") (TBool :=> TBool)
+>            (Tabs (MkId "z") TBool
+>               (Tvar (MkId "y") # (Tvar (MkId "x") # Tvar (MkId "z")))))) :: T . )
 > typing_example_3 = ?typing_example_3_rhs
 
 $\square$
@@ -747,14 +748,14 @@ to the term `\x:Bool. \y:Bool, x y` -- i.e.,
 
 > forallToExistence : {X : Type} -> {P: X -> Type} ->
 >   ((a : X) -> Not (P a)) -> Not (a : X ** P a)
-> forallToExistence hyp (b ** p2) = hyp b p2
+> forallToExistence hyp (a ** p2) = hyp a p2
 
 > typing_nonexample_1 :
 >   Not (T : Ty **
 >     empty |-
->        (Tabs "x" TBool
->            (Tabs "y" TBool
->               (Tvar "x" # Tvar y))) :: T . )
+>        (Tabs (MkId "x") TBool
+>            (Tabs (MkId "y") TBool
+>               (Tvar (MkId "x") # Tvar (MkId y)))) :: T . )
 > typing_nonexample_1 = forallToExistence
 >   (\ a , (T_Abs (T_Abs (T_App (T_Var Refl)(T_Var Refl)))) impossible)
 
@@ -769,8 +770,8 @@ Another nonexample:
 > typing_nonexample_3 :
 >  Not (s : Ty ** t : Ty **
 >        empty |-
->          (Tabs "x" s
->             (Tvar "x" # Tvar "x")) :: t . )
+>          (Tabs (MkId "x") s
+>             (Tvar (MkId "x") # Tvar (MkId "x"))) :: t . )
 > typing_nonexample_3 = ?typing_nonexample_3_rhs
 
 $\square$
