@@ -12,6 +12,7 @@ modules    = Basics
            , Rel
            , Imp
            , ImpParser
+           , Smallstep
 
 brief      = "Software Foundations in Idris"
 version    = 0.0.1.0
