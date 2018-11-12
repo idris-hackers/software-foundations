@@ -1,4 +1,4 @@
-= Induction: Proof by Induction
+= Induction : Proof by Induction
 
 > module Induction
 
@@ -6,19 +6,19 @@ First, we import all of our definitions from the previous chapter.
 
 > import Basics
 
-Next, we import the following `Prelude` modules, since we'll be dealing with
+Next, we import the following \idr{Prelude} modules, since we'll be dealing with
 natural numbers.
 
 > import Prelude.Interfaces
 > import Prelude.Nat
 
-For `import Basics` to work, you first need to use `idris` to compile
+For \idr{import Basics} to work, you first need to use `idris` to compile
 `Basics.lidr` into `Basics.ibc`. This is like making a .class file from a .java
 file, or a .o file from a .c file. There are at least two ways to do it:
 
   - In your editor with an Idris plugin, e.g. [Emacs][idris-mode]:
 
-    Open `Basics.lidr`. Evaluate `idris-load-file`.
+    Open `Basics.lidr`. Evaluate \idr{idris-load-file}.
 
     There exists similar support for [Vim][idris-vim], [Sublime
     Text][idris-sublime] and [Visual Studio Code][idris-vscode] as well.
@@ -35,12 +35,16 @@ file, or a .o file from a .c file. There are at least two ways to do it:
     Refer to the Idris man page (or \mintinline[]{sh}{idris --help} for
     descriptions of the flags.
 
+> %access public export
+
+> %default total
+
 
 == Proof by Induction
 
-We proved in the last chapter that `0` is a neutral element for `+` on the left
-using an easy argument based on simplification. The fact that it is also a
-neutral element on the _right_...
+We proved in the last chapter that \idr{0} is a neutral element for \idr{+} on
+the left using an easy argument based on simplification. The fact that it is
+also a neutral element on the _right_...
 
 ```coq
 Theorem plus_n_O_firsttry : forall n:nat,
@@ -48,19 +52,19 @@ Theorem plus_n_O_firsttry : forall n:nat,
 ```
 
 ... cannot be proved in the same simple way in Coq, but as we saw in `Basics`,
-Idris's `Refl` just works.
+Idris's \idr{Refl} just works.
 
 To prove interesting facts about numbers, lists, and other inductively defined
 sets, we usually need a more powerful reasoning principle: _induction_.
 
 Recall (from high school, a discrete math course, etc.) the principle of
-induction over natural numbers: If `p n` is some proposition involving a natural
-number `n` and we want to show that `p` holds for _all_ numbers `n`, we can
-reason like this:
+induction over natural numbers: If \idr{p n} is some proposition involving a
+natural number \idr{n} and we want to show that \idr{p} holds for _all_ numbers
+\idr{n}, we can reason like this:
 
-  - show that `p Z` holds;
-  - show that, for any `k`, if `p k` holds, then so does `p (S k)`;
-  - conclude that `p n` holds for all `n`.
+  - show that \idr{p Z} holds;
+  - show that, for any \idr{k}, if \idr{p k} holds, then so does \idr{p (S k)};
+  - conclude that \idr{p n} holds for all \idr{n}.
 
 In Idris, the steps are the same and can often be written as function clauses by
 case splitting. Here's how this works for the theorem at hand.
@@ -71,17 +75,18 @@ case splitting. Here's how this works for the theorem at hand.
 >   let inductiveHypothesis = plus_n_Z k in
 >     rewrite inductiveHypothesis in Refl
 
-In the first clause, `n` is replaced by `Z` and the goal becomes `0 = 0`, which
-follows by `Refl`exivity. In the second, `n` is replaced by `S k` and the goal
-becomes `S k = S (plus k 0)`. Then we define the inductive hypothesis, `k =
-k + 0`, which can be written as `plus_n_Z k`, and the goal follows from it.
+In the first clause, \idr{n} is replaced by \idr{Z} and the goal becomes \idr{0
+= 0}, which follows by \idr{Refl}exivity. In the second, \idr{n} is replaced by
+\idr{S k} and the goal becomes \idr{S k = S (plus k 0)}. Then we define the
+inductive hypothesis, \idr{k = k + 0}, which can be written as \idr{plus_n_Z k},
+and the goal follows from it.
 
 > minus_diag : (n : Nat) -> minus n n = 0
 > minus_diag  Z    = Refl
 > minus_diag (S k) = minus_diag k
 
 
-=== Exercise: 2 stars, recommended (basic_induction)
+==== Exercise: 2 stars, recommended (basic_induction)
 
 Prove the following using induction. You might need previously proven results.
 
@@ -100,7 +105,7 @@ Prove the following using induction. You might need previously proven results.
 $\square$
 
 
-=== Exercise: 2 stars (double_plus)
+==== Exercise: 2 stars (double_plus)
 
 Consider the following function, which doubles its argument:
 
@@ -108,7 +113,7 @@ Consider the following function, which doubles its argument:
 > double  Z    = Z
 > double (S k) = S (S (double k))
 
-Use induction to prove this simple fact about `double`:
+Use induction to prove this simple fact about \idr{double}:
 
 > double_plus : (n : Nat) -> double n = n + n
 > double_plus n = ?double_plus_rhs
@@ -116,14 +121,15 @@ Use induction to prove this simple fact about `double`:
 $\square$
 
 
-=== Exercise: 2 stars, optional (evenb_S)
+==== Exercise: 2 stars, optional (evenb_S)
 
-One inconvenient aspect of our definition of `evenb n` is that it may need to
-perform a recursive call on `n - 2`. This makes proofs about `evenb n` harder
-when done by induction on `n`, since we may need an induction hypothesis about
-`n - 2`. The following lemma gives a better characterization of `evenb (S n)`:
+One inconvenient aspect of our definition of \idr{evenb n} is that it may need
+to perform a recursive call on \idr{n - 2}. This makes proofs about \idr{evenb
+n} harder when done by induction on \idr{n}, since we may need an induction
+hypothesis about \idr{n - 2}. The following lemma gives a better
+characterization of \idr{evenb (S n)}:
 
-> evenb_S : (n : Nat) -> evenb (S n) = negb (evenb n)
+> evenb_S : (n : Nat) -> evenb (S n) = not (evenb n)
 > evenb_S n = ?evenb_S_rhs
 
 $\square$
@@ -131,15 +137,17 @@ $\square$
 
 == Proofs Within Proofs
 
+\ \todo[inline]{Edit the section}
+
 In Coq, as in informal mathematics, large proofs are often broken into a
 sequence of theorems, with later proofs referring to earlier theorems. But
 sometimes a proof will require some miscellaneous fact that is too trivial and
 of too little general interest to bother giving it its own top-level name. In
 such cases, it is convenient to be able to simply state and prove the needed
 "sub-theorem" right at the point where it is used. The `assert` tactic allows us
-to do this. For example, our earlier proof of the `mult_0_plus` theorem referred
-to a previous theorem named `plus_Z_n`. We could instead use `assert` to state
-and prove `plus_Z_n` in-line:
+to do this. For example, our earlier proof of the \idr{mult_0_plus} theorem
+referred to a previous theorem named \idr{plus_Z_n}. We could instead use
+`assert` to state and prove \idr{plus_Z_n} in-line:
 
 > mult_0_plus' : (n, m : Nat) -> (0 + n) * m = n * m
 > mult_0_plus' n m = Refl
@@ -178,10 +186,11 @@ _ does not have an equality type ((n1 : Nat) ->
 (n1 : Nat) -> plus n1 m1 = plus m1 n1)
 ```
 
-To get `plus_comm` to apply at the point where we want it to, we can introduce a
-local lemma using the `where` keyword stating that `n + m = m + n` (for the
-particular `m` and `n` that we are talking about here), prove this lemma using
-`plus_comm`, and then use it to do the desired rewrite.
+To get \idr{plus_comm} to apply at the point where we want it to, we can
+introduce a local lemma using the \idr{where} keyword stating that \idr{n + m =
+m + n} (for the particular \idr{m} and \idr{n} that we are talking about here),
+prove this lemma using \idr{plus_comm}, and then use it to do the desired
+rewrite.
 
 > plus_rearrange : (n, m, p, q : Nat) ->
 >                  (n + m) + (p + q) = (m + n) + (p + q)
@@ -192,17 +201,18 @@ particular `m` and `n` that we are talking about here), prove this lemma using
 
 == More Exercises
 
-=== Exercise: 3 stars, recommended (mult_comm)
 
-Use `rewrite` to help prove this theorem. You shouldn't need to use induction on
-`plus_swap`.
+==== Exercise: 3 stars, recommended (mult_comm)
+
+Use \idr{rewrite} to help prove this theorem. You shouldn't need to use
+induction on \idr{plus_swap}.
 
 > plus_swap : (n, m, p : Nat) -> n + (m + p) = m + (n + p)
 > plus_swap n m p = ?plus_swap_rhs
 
 Now prove commutativity of multiplication. (You will probably need to define and
 prove a separate subsidiary theorem to be used in the proof of this one. You may
-find that `plus_swap` comes in handy.)
+find that \idr{plus_swap} comes in handy.)
 
 > mult_comm : (m, n : Nat) -> m * n = n * m
 > mult_comm m n = ?mult_comm_rhs
@@ -210,7 +220,9 @@ find that `plus_swap` comes in handy.)
 $\square$
 
 
-=== Exercise: 3 stars, optional (more_exercises)
+==== Exercise: 3 stars, optional (more_exercises)
+
+\ \todo[inline]{Edit}
 
 Take a piece of paper. For each of the following theorems, first _think_ about
 whether (a) it can be proved using only simplification and rewriting, (b) it
@@ -218,30 +230,27 @@ also requires case analysis (`destruct`), or (c) it also requires induction.
 Write down your prediction. Then fill in the proof. (There is no need to turn in
 your piece of paper; this is just to encourage you to reflect before you hack!)
 
-> leb_refl : (n : Nat) -> True = leb n n
-> leb_refl n = ?leb_refl_rhs
+> lte_refl : (n : Nat) -> True = lte n n
+> lte_refl n = ?lte_refl_rhs
 
-> zero_nbeq_S : (n : Nat) -> beq_nat 0 (S n) = False
+> zero_nbeq_S : (n : Nat) -> 0 == (S n) = False
 > zero_nbeq_S n = ?zero_nbeq_S_rhs
 
-> andb_false_r : (b : Bool) -> andb b False = False
+> andb_false_r : (b : Bool) -> b && False = False
 > andb_false_r b = ?andb_false_r_rhs
 
 > plus_ble_compat_l : (n, m, p : Nat) ->
->                     leb n m = True -> leb (p + n) (p + m) = True
+>                     lte n m = True -> lte (p + n) (p + m) = True
 > plus_ble_compat_l n m p prf = ?plus_ble_compat_l_rhs
 
-> S_nbeq_0 : (n : Nat) -> beq_nat (S n) 0 = False
+> S_nbeq_0 : (n : Nat) -> (S n) == 0 = False
 > S_nbeq_0 n = ?S_nbeq_0_rhs
 
 > mult_1_l : (n : Nat) -> 1 * n = n
 > mult_1_l n = ?mult_1_l_rhs
 
 > all3_spec : (b, c : Bool) ->
->             orb (andb b c)
->                 (orb (negb b)
->                      (negb c))
->             = True
+>             (b && c) || ((not b) || (not c)) = True
 > all3_spec b c = ?all3_spec_rhs
 
 > mult_plus_distr_r : (n, m, p : Nat) -> (n + m) * p = (n * p) + (m * p)
@@ -253,40 +262,46 @@ your piece of paper; this is just to encourage you to reflect before you hack!)
 $\square$
 
 
-=== Exercise: 2 stars, optional (beq_nat_refl)
+==== Exercise: 2 stars, optional (beq_nat_refl)
 
-Prove the following theorem. (Putting the `True` on the left-hand side of the
-equality may look odd, but this is how the theorem is stated in the Coq standard
-library, so we follow suit. Rewriting works equally well in either direction, so
-we will have no problem using the theorem no matter which way we state it.)
+\ \todo[inline]{Edit}
 
-> beq_nat_refl : (n : Nat) -> True = beq_nat n n
+Prove the following theorem. (Putting the \idr{True} on the left-hand side of
+the equality may look odd, but this is how the theorem is stated in the Coq
+standard library, so we follow suit. Rewriting works equally well in either
+direction, so we will have no problem using the theorem no matter which way we
+state it.)
+
+> beq_nat_refl : (n : Nat) -> True = n == n
 > beq_nat_refl n = ?beq_nat_refl_rhs
 
 $\square$
 
 
-=== Exercise: 2 stars, optional (plus_swap')
+==== Exercise: 2 stars, optional (plus_swap')
+
+\ \todo[inline]{Edit}
 
 The `replace` tactic allows you to specify a particular subterm to rewrite and
 what you want it rewritten to: `replace (t) with (u)` replaces (all copies of)
 expression `t` in the goal by expression `u`, and generates `t = u` as an
-additional subgoal. This is often useful when a plain `rewrite` acts on the
+additional subgoal. This is often useful when a plain \idr{rewrite} acts on the
 wrong part of the goal.
 
-Use the `replace` tactic to do a proof of `plus_swap'`, just like `plus_swap`
-but without needing `assert (n + m = m + n)`.
+Use the `replace` tactic to do a proof of \idr{plus_swap'}, just like
+\idr{plus_swap} but without needing `assert (n + m = m + n)`.
 
 > plus_swap' : (n, m, p : Nat) -> n + (m + p) = m + (n + p)
-> plus_swap' n m p = ?plus_swap'_rhs
+> plus_swap' n m p = ?plus_swap__rhs
 
 $\square$
 
 
-=== Exercise: 3 stars, recommended (binary_commute)
+==== Exercise: 3 stars, recommended (binary_commute)
 
-Recall the `incr` and `bin_to_nat` functions that you wrote for the `binary`
-exercise in the `Basics` chapter. Prove that the following diagram commutes:
+Recall the \idr{incr} and \idr{bin_to_nat} functions that you wrote for the
+\idr{binary} exercise in the `Basics` chapter. Prove that the following diagram
+commutes:
 
            bin --------- incr -------> bin
             |                           |
@@ -297,18 +312,18 @@ exercise in the `Basics` chapter. Prove that the following diagram commutes:
 
 That is, incrementing a binary number and then converting it to a (unary)
 natural number yields the same result as first converting it to a natural number
-and then incrementing. Name your theorem `bin_to_nat_pres_incr` ("pres" for
+and then incrementing. Name your theorem \idr{bin_to_nat_pres_incr} ("pres" for
 "preserves").
 
 Before you start working on this exercise, please copy the definitions from your
-solution to the `binary` exercise here so that this file can be graded on its
-own. If you find yourself wanting to change your original definitions to make
-the property easier to prove, feel free to do so!
+solution to the \idr{binary} exercise here so that this file can be graded on
+its own. If you find yourself wanting to change your original definitions to
+make the property easier to prove, feel free to do so!
 
 $\square$
 
 
-=== Exercise: 5 stars, advanced (binary_inverse)
+==== Exercise: 5 stars, advanced (binary_inverse)
 
 This exercise is a continuation of the previous exercise about binary numbers.
 You will need your definitions and theorems from there to complete this one.
@@ -322,9 +337,9 @@ You will need your definitions and theorems from there to complete this one.
     to binary yields the same number we started with. However, this is not true!
     Explain what the problem is.
 
-(c) Define a "direct" normalization function -- i.e., a function `normalize`
+(c) Define a "direct" normalization function -- i.e., a function \idr{normalize}
     from binary numbers to binary numbers such that, for any binary number b,
-    converting to a natural and then back to binary yields `(normalize b)`.
+    converting to a natural and then back to binary yields \idr{(normalize b)}.
     Prove it. (Warning: This part is tricky!)
 
 Again, feel free to change your earlier definitions if this helps here.

@@ -189,3 +189,7 @@ TSWLatexianTemp*
 ## Generated LaTeX files:
 *.tex
 src/auto/
+
+
+## Nix
+/result*

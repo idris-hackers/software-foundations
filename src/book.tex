@@ -23,11 +23,12 @@ classoption: twoside
 papersize: b5
 geometry: margin=1in
 header-includes:
-- \setmonofont{Monoid}
-- \makeatletter
-- \let\RequirePackage\original@RequirePackage
-- \let\usepackage\RequirePackage
-- \makeatother
+- \setmonofont{Iosevka}
+-
+- \usepackage[utf8]{inputenc}
+- \usepackage{newunicodechar}
+- \newunicodechar{∀}{$\forall$}
+
 -
 - \usepackage{minted}
 - \usemintedstyle{lovelace}
@@ -40,6 +41,9 @@ header-includes:
 - \renewcommand*{\glstextformat}[1]{\textsl{#1}}
 -
 - \usepackage{todonotes}
+-
+- \usepackage{ebproof}
+- \usepackage{dirtytalk}
 include-before: \frontmatter
 ---
 

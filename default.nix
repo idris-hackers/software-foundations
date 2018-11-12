@@ -1,38 +1,108 @@
-{ nixpkgs ? import <nixpkgs> {}
-, compiler ? "ghc802"
-}:
-
 let
-  inherit (nixpkgs) pkgs;
 
-  haskellPackages = pkgs.haskell.packages."${compiler}";
-  ghc = haskellPackages.ghcWithPackages (ps: with ps; [
-    idris
-    pandoc
-  ]);
-  # FIXME: TeX Live is pretty much broken in Nix right now.
-  # xelatex = pkgs.texlive.combine {
-  #   inherit (pkgs.texlive) scheme-small xetex latexmk todonotes;
-  # };
-in
+  fetchTarballFromGitHub =
+    { owner, repo, rev, sha256, ... }:
+    builtins.fetchTarball {
+      url = "https://github.com/${owner}/${repo}/tarball/${rev}";
+      inherit sha256;
+    };
 
-pkgs.stdenv.mkDerivation rec {
-  name = "software-foundations-${version}-env";
-  version = "0.0.1.0";
+  fromJSONFile = f: builtins.fromJSON (builtins.readFile f);
 
-  src = ./.;
-
-  # TODO: xelatex
-  buildInputs = [ ghc ] ++
-    (with pkgs; [ python3 ]) ++
-    (with pkgs.python35Packages; [ pygments ]);
-
-  meta = with pkgs.stdenv.lib; {
+  genMeta = { ghc, stdenv, ...}: with stdenv.lib; {
     description = "Software Foundations in Idris";
-    # TODO: longDescription
-    homepage = http://idris-hackers.github.io/software-foundations;
-    # TODO: license
+    homepage = https://idris-hackers.github.io/software-foundations;
+    license = licenses.mit;
     maintainers = with maintainers; [ yurrriq ];
     inherit (ghc.meta) platforms;
+  };
+
+in
+
+{ nixpkgs ? fetchTarballFromGitHub (fromJSONFile ./nixpkgs-src.json) }:
+
+with import nixpkgs {
+  overlays = [
+    (self: super: {
+      idrisPackages = super.idrisPackages // {
+        software_foundations = with super.idrisPackages; build-idris-package {
+          name = "software_foundations";
+          version = builtins.readFile ./VERSION;
+          src = ./.;
+          idrisDeps = [ pruviloj ];
+          meta = genMeta super;
+        };
+      };
+    })
+    (self: super: {
+      idris = with super.idrisPackages; with-packages [
+        base
+        prelude
+        pruviloj
+        software_foundations
+      ];
+
+      pandoc = super.haskellPackages.ghcWithPackages (ps: with ps; [
+        pandoc
+      ]);
+
+      inherit (super.pythonPackages) pygments;
+
+      xelatex = super.texlive.combine {
+        inherit (super.texlive) scheme-small
+          amsmath
+          datatool
+          dirtytalk
+          ebproof
+          fontspec
+          framed
+          fvextra
+          glossaries
+          ifplatform
+          latexmk
+          lm-math
+          mfirstuc
+          minted
+          newunicodechar
+          substr
+          todonotes
+          xetex
+          xfor
+          xindy
+          xstring;
+      };
+    })
+  ];
+};
+
+
+stdenv.mkDerivation rec {
+  name = "sf-idris-${version}";
+  version = builtins.readFile ./VERSION;
+  src = ./.;
+
+  FONTCONFIG_FILE = makeFontsConf { fontDirectories = [ iosevka ]; };
+
+  patchPhase = lib.optionalString (! lib.inNixShell) ''
+    patchShebangs src/pandoc-minted.hs
+  '';
+
+  nativeBuildInputs = [
+    pandoc
+    pygments
+    xelatex
+    which
+  ];
+
+  buildInputs = [
+    idris
+  ];
+
+  makeFlags = [ "PREFIX=$(out)" ];
+
+  dontInstall = true;
+
+  meta = (genMeta pkgs) // {
+    platforms = lib.platforms.linux;
   };
 }

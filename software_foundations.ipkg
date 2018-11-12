@@ -4,20 +4,27 @@ modules    = Basics
            , Induction
            , Lists
            , Poly
-           , Tactics
+           , Logic
+           , IndProp
+           , Maps
+           , ProofObjects
+           , Rel
+           , Imp
+           , ImpParser
+           , ImpCEvalFun
 
 brief      = "Software Foundations in Idris"
-version    = 0.0.1.0
+version    = 0.0.2.1
 readme     = README.md
 -- NOTE: For license information see the file LICENSE.
 
 author     = "The Idris community"
 maintainer = "Eric Bailey <eric@ericb.me>"
 
-homepage   = http://idris-hackers.github.io/software-foundations
+homepage   = https://idris-hackers.github.io/software-foundations
 sourceloc  = git://git@github.com:idris-hackers/software-foundations.git
 bugtracker = https://github.com/idris-hackers/software-foundations/issues
 
 sourcedir  = src
-opts       = "--check --total"
+opts       = "--check --total -X ElabReflection"
 pkgs       = pruviloj
