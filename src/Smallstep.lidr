@@ -1162,39 +1162,63 @@ for the arithmetic and boolean step relations.
 
 > data AVal : AExp -> Type where
 >   Av_num : AVal (ANum n)
-> 
+>
 
 We are not actually going to bother to define boolean values, since they aren't
 needed in the definition of `->>b` below (why?), though they might be if our
 language were a bit larger (why?).
 
 > data AStep : AExp -> State -> AExp -> Type where
->   AS_Id     :                               AStep (AId i)                      st (ANum (st i))
->   AS_Plus   :                               AStep (APlus (ANum n1) (ANum n2))  st (ANum (n1 + n2))
->   AS_Plus1  :            AStep a1 st a1' -> AStep (APlus a1 a2)                st (APlus a1' a2)
->   AS_Plus2  : AVal v1 -> AStep a2 st a2' -> AStep (APlus v1 a2)                st (APlus v1 a2')
->   AS_Minus  :                               AStep (AMinus (ANum n1) (ANum n2)) st (ANum (minus n1 n2))
->   AS_Minus1 :            AStep a1 st a1' -> AStep (AMinus a1 a2)               st (AMinus a1' a2)
->   AS_Minus2 : AVal v1 -> AStep a2 st a2' -> AStep (AMinus v1 a2)               st (AMinus v1 a2')
->   AS_Mult   :                               AStep (AMult (ANum n1) (ANum n2))  st (ANum (mult n1 n2))
->   AS_Mult1  :            AStep a1 st a1' -> AStep (AMult a1 a2)                st (AMult a1' a2)
->   AS_Mult2  : AVal v1 -> AStep a2 st a2' -> AStep (AMult v1 a2)                st (AMult v1 a2')
+>   AS_Id     :                               AStep (AId i)                      
+>                                                st (ANum (st i))
+>   AS_Plus   :                               AStep (APlus (ANum n1) (ANum n2))  
+>                                                st (ANum (n1 + n2))
+>   AS_Plus1  :            AStep a1 st a1' -> AStep (APlus a1 a2)                
+>                                                st (APlus a1' a2)
+>   AS_Plus2  : AVal v1 -> AStep a2 st a2' -> AStep (APlus v1 a2)                
+>                                                st (APlus v1 a2')
+>   AS_Minus  :                               AStep (AMinus (ANum n1) (ANum n2)) 
+>                                                st (ANum (minus n1 n2))
+>   AS_Minus1 :            AStep a1 st a1' -> AStep (AMinus a1 a2)               
+>                                                st (AMinus a1' a2)
+>   AS_Minus2 : AVal v1 -> AStep a2 st a2' -> AStep (AMinus v1 a2)               
+>                                                st (AMinus v1 a2')
+>   AS_Mult   :                               AStep (AMult (ANum n1) (ANum n2))  
+>                                                st (ANum (mult n1 n2))
+>   AS_Mult1  :            AStep a1 st a1' -> AStep (AMult a1 a2)                
+>                                                st (AMult a1' a2)
+>   AS_Mult2  : AVal v1 -> AStep a2 st a2' -> AStep (AMult v1 a2)                
+>                                                st (AMult v1 a2')
 >
 > data BStep : BExp -> State -> BExp -> Type where
->   BS_Eq           :                               BStep (BEq (ANum n1) (ANum n2)) st (if (n1==n2) then BTrue else BFalse)
->   BS_Eq1          :            AStep a1 st a1' -> BStep (BEq a1 a2)               st (BEq a1' a2)
->   BS_Eq2          : AVal v1 -> AStep a2 st a2' -> BStep (BEq v1 a2)               st (BEq v1 a2')
->   BS_LtEq         :                               BStep (BLe (ANum n1) (ANum n2)) st (if (n1<=n2) then BTrue else BFalse)
->   BS_LtEq1        :            AStep a1 st a1' -> BStep (BLe a1 a2)               st (BLe a1' a2)
->   BS_LtEq2        : AVal v1 -> AStep a2 st a2' -> BStep (BLe v1 a2)               st (BLe v1 a2')
->   BS_NotTrue      :                               BStep (BNot BTrue)              st  BFalse
->   BS_NotFalse     :                               BStep (BNot BFalse)             st  BTrue
->   BS_NotStep      :            BStep b1 st b1' -> BStep (BNot b1)                 st (BNot b1')
->   BS_AndTrueTrue  :                               BStep (BAnd BTrue BTrue)        st  BTrue
->   BS_AndTrueFalse :                               BStep (BAnd BTrue BFalse)       st  BFalse
->   BS_AndFalse     :                               BStep (BAnd BFalse b2)          st  BFalse
->   BS_AndTrueStep  :            BStep b2 st b2' -> BStep (BAnd BTrue b2)           st (BAnd BTrue b2')
->   BS_AndStep      :            BStep b1 st b1' -> BStep (BAnd b1 b2)              st (BAnd b1' b2)  
+>   BS_Eq           :                               BStep (BEq (ANum n1) (ANum n2)) 
+>                                                      st (if (n1==n2) then BTrue else BFalse)
+>   BS_Eq1          :            AStep a1 st a1' -> BStep (BEq a1 a2)               
+>                                                      st (BEq a1' a2)
+>   BS_Eq2          : AVal v1 -> AStep a2 st a2' -> BStep (BEq v1 a2)               
+>                                                      st (BEq v1 a2')
+>   BS_LtEq         :                               BStep (BLe (ANum n1) (ANum n2)) 
+>                                                      st (if (n1<=n2) then BTrue else BFalse)
+>   BS_LtEq1        :            AStep a1 st a1' -> BStep (BLe a1 a2)               
+>                                                      st (BLe a1' a2)
+>   BS_LtEq2        : AVal v1 -> AStep a2 st a2' -> BStep (BLe v1 a2)               
+>                                                      st (BLe v1 a2')
+>   BS_NotTrue      :                               BStep (BNot BTrue)              
+>                                                      st  BFalse
+>   BS_NotFalse     :                               BStep (BNot BFalse)             
+>                                                      st  BTrue
+>   BS_NotStep      :            BStep b1 st b1' -> BStep (BNot b1)                 
+>                                                      st (BNot b1')
+>   BS_AndTrueTrue  :                               BStep (BAnd BTrue BTrue)        
+>                                                      st  BTrue
+>   BS_AndTrueFalse :                               BStep (BAnd BTrue BFalse)       
+>                                                      st  BFalse
+>   BS_AndFalse     :                               BStep (BAnd BFalse b2)          
+>                                                      st  BFalse
+>   BS_AndTrueStep  :            BStep b2 st b2' -> BStep (BAnd BTrue b2)           
+>                                                      st (BAnd BTrue b2')
+>   BS_AndStep      :            BStep b1 st b1' -> BStep (BAnd b1 b2)              
+>                                                      st (BAnd b1' b2)
 >
 
 The semantics of commands is the interesting part. We need two small tricks to
@@ -1217,23 +1241,23 @@ share the feature that the original `WHILE` command needs to be saved somewhere
 while a single copy of the loop body is being reduced.)
 
 > data CStep : (Com, State) -> (Com, State) -> Type where
->   CS_AssStep   :             AStep a st a' -> CStep (CAss i a , st) 
+>   CS_AssStep   :             AStep a st a' -> CStep (CAss i a , st)
 >                                                     (CAss i a', st)
->   CS_Ass       :                              CStep (CAss i (ANum n), st             ) 
+>   CS_Ass       :                              CStep (CAss i (ANum n), st             )
 >                                                     (CSkip          , t_update i n st)
->   CS_SeqStep   : CStep (c1, st) (c1', st') -> CStep (CSeq c1  c2, st ) 
+>   CS_SeqStep   : CStep (c1, st) (c1', st') -> CStep (CSeq c1  c2, st )
 >                                                     (CSeq c1' c2, st')
->   CS_SeqFinish :                              CStep (CSeq CSkip c2, st) 
+>   CS_SeqFinish :                              CStep (CSeq CSkip c2, st)
 >                                                     (c2           , st)
->   CS_IfTrue    :                              CStep (CIf BTrue c1 c2, st) 
+>   CS_IfTrue    :                              CStep (CIf BTrue c1 c2, st)
 >                                                     (c1             , st)
->   CS_IfFalse   :                              CStep (CIf BFalse c1 c2, st) 
+>   CS_IfFalse   :                              CStep (CIf BFalse c1 c2, st)
 >                                                     (c2              , st)
->   CS_IfStep    :             BStep b st b' -> CStep (CIf b  c1 c2, st) 
+>   CS_IfStep    :             BStep b st b' -> CStep (CIf b  c1 c2, st)
 >                                                     (CIf b' c1 c2, st)
->   CS_While     :                              CStep (CWhile b c1                        , st) 
+>   CS_While     :                              CStep (CWhile b c1                        , st)
 >                                                     (CIf b (CSeq c1 (CWhile b c1)) CSkip, st)
-> 
+>
 
 
 == Concurrent Imp
@@ -1252,36 +1276,36 @@ same memory and can communicate by reading and writing the same variables.
 >   CWhileC : BExp -> ComC -> ComC
 >  -- New:
 >   CParC   : ComC -> ComC -> ComC
-> 
+>
 
 \todo[inline]{Add syntax sugar}
 
 > data CStepC : (ComC, State) -> (ComC, State) -> Type where
->   -- Old part 
->   CS_AssStepC   :        AStep a st a'       -> CStepC (CAssC i a , st) 
+>   -- Old part
+>   CS_AssStepC   :        AStep a st a'       -> CStepC (CAssC i a , st)
 >                                                        (CAssC i a', st)
->   CS_AssC       :                               CStepC (CAssC i (ANum n), st) 
+>   CS_AssC       :                               CStepC (CAssC i (ANum n), st)
 >                                                        (CSkipC          , t_update i n st)
->   CS_SeqStepC   : CStepC (c1, st) (c1', st') -> CStepC (CSeqC c1  c2, st ) 
+>   CS_SeqStepC   : CStepC (c1, st) (c1', st') -> CStepC (CSeqC c1  c2, st )
 >                                                        (CSeqC c1' c2, st')
->   CS_SeqFinishC :                               CStepC (CSeqC CSkipC c2, st) 
+>   CS_SeqFinishC :                               CStepC (CSeqC CSkipC c2, st)
 >                                                        (c2             , st)
->   CS_IfTrueC    :                               CStepC (CIfC BTrue c1 c2, st) 
+>   CS_IfTrueC    :                               CStepC (CIfC BTrue c1 c2, st)
 >                                                        (c1              , st)
->   CS_IfFalseC   :                               CStepC (CIfC BFalse c1 c2, st) 
+>   CS_IfFalseC   :                               CStepC (CIfC BFalse c1 c2, st)
 >                                                        (c2               , st)
->   CS_IfStepC    :        BStep b st b'       -> CStepC (CIfC b  c1 c2, st) 
+>   CS_IfStepC    :        BStep b st b'       -> CStepC (CIfC b  c1 c2, st)
 >                                                        (CIfC b' c1 c2, st)
->   CS_WhileC     :                               CStepC (CWhileC b c1                           , st) 
+>   CS_WhileC     :                               CStepC (CWhileC b c1                           , st)
 >                                                        (CIfC b (CSeqC c1 (CWhileC b c1)) CSkipC, st)
->   -- New part: 
->   CS_Par1       : CStepC (c1, st) (c1', st') -> CStepC (CParC c1  c2, st ) 
+>   -- New part:
+>   CS_Par1       : CStepC (c1, st) (c1', st') -> CStepC (CParC c1  c2, st )
 >                                                        (CParC c1' c2, st')
->   CS_Par2       : CStepC (c2, st) (c2', st') -> CStepC (CParC c1 c2 , st ) 
+>   CS_Par2       : CStepC (c2, st) (c2', st') -> CStepC (CParC c1 c2 , st )
 >                                                        (CParC c1 c2', st')
->   CS_ParDone    :                               CStepC (CParC CSkipC CSkipC, st) 
+>   CS_ParDone    :                               CStepC (CParC CSkipC CSkipC, st)
 >                                                        (CSkipC             , st)
-> 
+>
 > MultiCStepC : (ComC, State) -> (ComC, State) -> Type
 > MultiCStepC = Multi CStepC
 >
@@ -1290,81 +1314,83 @@ Among the many interesting properties of this language is the fact that the
 following program can terminate with the variable `X` set to any value
 
 > par_loop : ComC
-> par_loop = CParC 
->             (CAssC Y (ANum 1)) 
->             (CWhileC 
->               (BEq (AId Y) (ANum 0)) 
+> par_loop = CParC
+>             (CAssC Y (ANum 1))
+>             (CWhileC
+>               (BEq (AId Y) (ANum 0))
 >               (CAssC X (APlus (AId X) (ANum 1)))
 >             )
-> 
+>
 
 In particular, it can terminate with `X` set to `0`:
 
-> par_loop_example_0 : (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) (CSkipC, st')
+> par_loop_example_0 : (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) 
+>                                            (CSkipC, st')
 >                              , st' X = 0
 >                              ))
-> par_loop_example_0 = 
->   (t_update Y 1 (t_empty 0) ** 
->     ( 
->       Multi_step (CS_Par1 CS_AssC)                     $ 
->       Multi_step (CS_Par2 CS_WhileC)                   $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id) $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)        $ 
->       Multi_step (CS_Par2 $ CS_IfFalseC)               $ 
->       Multi_step CS_ParDone                            $ 
+> par_loop_example_0 =
+>   (t_update Y 1 (t_empty 0) **
+>     (
+>       Multi_step (CS_Par1 CS_AssC)                     $
+>       Multi_step (CS_Par2 CS_WhileC)                   $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id) $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)        $
+>       Multi_step (CS_Par2 $ CS_IfFalseC)               $
+>       Multi_step CS_ParDone                            $
 >       Multi_refl
-> 
+>
 >     , Refl
 >     )
 >   )
-> 
+>
 
 It can also terminate with `X` set to `2`:
 
-> par_loop_example_2 : (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) (CSkipC, st')
+> par_loop_example_2 : (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) 
+>                                            (CSkipC, st')
 >                              , st' X = 2
 >                              ))
-> par_loop_example_2 = 
->   (t_update Y 1 (t_update X 2 (t_update X 1 (t_empty 0))) ** 
->     ( 
->       Multi_step (CS_Par2 CS_WhileC)                                    $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $ 
->       Multi_step (CS_Par2 $ CS_IfTrueC)                                 $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC $ AS_Plus1 AS_Id) $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC AS_Plus)          $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssC)                      $ 
->       Multi_step (CS_Par2 CS_SeqFinishC)                                $ 
-> 
->       Multi_step (CS_Par2 CS_WhileC)                                    $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $ 
->       Multi_step (CS_Par2 $ CS_IfTrueC)                                 $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC $ AS_Plus1 AS_Id) $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC AS_Plus)          $ 
->       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssC)                      $ 
->       Multi_step (CS_Par2 CS_SeqFinishC)                                $ 
-> 
->       Multi_step (CS_Par1 CS_AssC)                                      $ 
->       Multi_step (CS_Par2 CS_WhileC)                                    $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $ 
->       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $ 
->       Multi_step (CS_Par2 $ CS_IfFalseC)                                $ 
->       Multi_step CS_ParDone                                             $ 
+> par_loop_example_2 =
+>   (t_update Y 1 (t_update X 2 (t_update X 1 (t_empty 0))) **
+>     (
+>       Multi_step (CS_Par2 CS_WhileC)                                    $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $
+>       Multi_step (CS_Par2 $ CS_IfTrueC)                                 $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC $ AS_Plus1 AS_Id) $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC AS_Plus)          $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssC)                      $
+>       Multi_step (CS_Par2 CS_SeqFinishC)                                $
+>
+>       Multi_step (CS_Par2 CS_WhileC)                                    $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $
+>       Multi_step (CS_Par2 $ CS_IfTrueC)                                 $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC $ AS_Plus1 AS_Id) $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssStepC AS_Plus)          $
+>       Multi_step (CS_Par2 $ CS_SeqStepC $ CS_AssC)                      $
+>       Multi_step (CS_Par2 CS_SeqFinishC)                                $
+>
+>       Multi_step (CS_Par1 CS_AssC)                                      $
+>       Multi_step (CS_Par2 CS_WhileC)                                    $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id)                  $
+>       Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)                         $
+>       Multi_step (CS_Par2 $ CS_IfFalseC)                                $
+>       Multi_step CS_ParDone                                             $
 >       Multi_refl
-> 
+>
 >     , Refl
 >     )
 >   )
-> 
+>
 
 More generally...
 
 
 ==== Exercise: 3 stars, optional (par_body_n__Sn)
 
-> par_body_n_Sn : (n : Nat) -> st X = n -> st Y = 0 -> MultiCStepC (Smallstep.par_loop, st) 
->                                                                  (Smallstep.par_loop, t_update X (S n) st) 
+> par_body_n_Sn : (n : Nat) -> st X = n -> st Y = 0 -> MultiCStepC (Smallstep.par_loop, st)
+>                                                                  (Smallstep.par_loop, t_update X (S n) st)
 > par_body_n_Sn n stx sty = ?par_body_n_Sn_rhs
 >
 
@@ -1373,7 +1399,7 @@ $\square$
 
 ==== Exercise: 3 stars, optional (par_body_n)
 
-> par_body_n : (n : Nat) -> st X = 0 -> st Y = 0 -> (st' ** ( MultiCStepC (Smallstep.par_loop, st) 
+> par_body_n : (n : Nat) -> st X = 0 -> st Y = 0 -> (st' ** ( MultiCStepC (Smallstep.par_loop, st)
 >                                                                         (Smallstep.par_loop, st')
 >                                                           , st' X = n
 >                                                           , st' Y = 0
@@ -1385,22 +1411,23 @@ $\square$
 
 ... the above loop can exit with `X` having any value whatsoever.
 
-> par_loop_any_X : (n : Nat) -> (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) (CSkipC, st')
+> par_loop_any_X : (n : Nat) -> (st' ** ( MultiCStepC (Smallstep.par_loop, Imp.empty_state) 
+>                                                     (CSkipC, st')
 >                                       , st' X = n
 >                                       ))
-> par_loop_any_X n = 
->   let (st1 ** (ms, stx, sty)) = par_body_n n {st=Imp.empty_state} Refl Refl in 
->   (t_update Y 1 st1 ** ( multi_trans ms $ 
->                          Multi_step (CS_Par1 CS_AssC)                     $ 
->                          Multi_step (CS_Par2 CS_WhileC)                   $ 
->                          Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id) $ 
->                          Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)        $ 
->                          Multi_step (CS_Par2 $ CS_IfFalseC)               $ 
->                          Multi_step CS_ParDone                            $ 
+> par_loop_any_X n =
+>   let (st1 ** (ms, stx, sty)) = par_body_n n {st=Imp.empty_state} Refl Refl in
+>   (t_update Y 1 st1 ** ( multi_trans ms $
+>                          Multi_step (CS_Par1 CS_AssC)                     $
+>                          Multi_step (CS_Par2 CS_WhileC)                   $
+>                          Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq1 AS_Id) $
+>                          Multi_step (CS_Par2 $ CS_IfStepC $ BS_Eq)        $
+>                          Multi_step (CS_Par2 $ CS_IfFalseC)               $
+>                          Multi_step CS_ParDone                            $
 >                          Multi_refl
 >                        , stx
 >                        ))
-> 
+>
 
 
 == A Small-Step Stack Machine
@@ -1408,29 +1435,29 @@ $\square$
 Our last example is a small-step semantics for the stack machine example from
 the `Imp` chapter of _Logical Foundations_.
 
-Definition stack := list nat.
-Definition prog  := list sinstr.
-
-Inductive stack_step : state -> prog * stack -> prog * stack -> Prop :=
-  | SS_Push : forall st stk n p',
-    stack_step st (SPush n :: p', stk)      (p', n :: stk)
-  | SS_Load : forall st stk i p',
-    stack_step st (SLoad i :: p', stk)      (p', st i :: stk)
-  | SS_Plus : forall st stk n m p',
-    stack_step st (SPlus :: p', n::m::stk)  (p', (m+n)::stk)
-  | SS_Minus : forall st stk n m p',
-    stack_step st (SMinus :: p', n::m::stk) (p', (m-n)::stk)
-  | SS_Mult : forall st stk n m p',
-    stack_step st (SMult :: p', n::m::stk)  (p', (m*n)::stk).
-
-Theorem stack_step_deterministic : forall st,
-  deterministic (stack_step st).
-Proof.
-  unfold deterministic. intros st x y1 y2 H1 H2.
-  induction H1; inversion H2; reflexivity.
-Qed.
-
-Definition stack_multistep st := multi (stack_step st).
+> Stack : Type
+> Stack = List Nat
+>
+> Prog : Type
+> Prog = List SInstr
+>
+> data StackStep : State -> (Prog, Stack) -> (Prog, Stack) -> Type where
+>   SS_Push  : StackStep st (SPush n :: p, stk)       (p, n            :: stk)
+>   SS_Load  : StackStep st (SLoad i :: p, stk  )     (p, st i         :: stk)
+>   SS_Plus  : StackStep st (SPlus   :: p, n::m::stk) (p, m + n        :: stk)
+>   SS_Minus : StackStep st (SMinus  :: p, n::m::stk) (p, (m `minus` n):: stk)
+>   SS_Mult  : StackStep st (SMult   :: p, n::m::stk) (p, m * n        :: stk)
+>
+> stack_step_deterministic : deterministic (StackStep st)
+> stack_step_deterministic SS_Push  SS_Push  = Refl
+> stack_step_deterministic SS_Load  SS_Load  = Refl
+> stack_step_deterministic SS_Plus  SS_Plus  = Refl
+> stack_step_deterministic SS_Minus SS_Minus = Refl
+> stack_step_deterministic SS_Mult  SS_Mult  = Refl
+>
+> StackMultistep : State -> (Prog, Stack) -> (Prog, Stack) -> Type
+> StackMultistep st = Multi (StackStep st)
+>
 
 
 ==== Exercise: 3 stars, advanced (compiler_is_correct)
@@ -1442,11 +1469,11 @@ the stack machine.
 State what it means for the compiler to be correct according to the stack
 machine small step semantics and then prove it.
 
-Definition compiler_is_correct_statement : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
-
-Theorem compiler_is_correct : compiler_is_correct_statement.
-Proof.
-(* FILL IN HERE *) Admitted.
+> Compiler_is_correct_statement : Type
+> Compiler_is_correct_statement = ?compiler_is_correct_statement_rhs
+>
+> compiler_is_correct : Compiler_is_correct_statement
+> compiler_is_correct = ?compiler_is_correct_rhs
+>
 
 $\square$
