@@ -516,7 +516,7 @@ Example:
       idBB idB ->>* idB
 
 > step_example1 : Stlc.idBB # Stlc.idB ->>* Stlc.idB
-> step_example1 = Multi_step (ST_AppAbs V_abs) Multi_refl -- (ST_AppAbs V_abs) Multi_refl
+> step_example1 = Multi_step (ST_AppAbs V_abs) Multi_refl
 
 Example:
 
@@ -635,7 +635,7 @@ Following the usual notation for partial maps, we could write `Gamma
 
 \[
   \begin{prooftree}
-    \hypo{\idr{Gamma & {{ x --> T11 }} |- t12 :: T12}}
+    \hypo{\idr{Gamma & {{ x ==> T11 }} |- t12 :: T12}}
     \infer1[\idr{T_Abs}]{\idr{Gamma |- \x:T11.t12 ::T11->T12}}
   \end{prooftree}
 \]
@@ -672,32 +672,32 @@ Following the usual notation for partial maps, we could write `Gamma
 We can read the three-place relation `Gamma |- t ::T` as:
 "under the assumptions in Gamma, the term `t` has the type `T`." *)
 
-> syntax  [context] "|-" [t] "::" [T] "." = Has_type context t T
+> syntax  [context] "|-" [t] "::" [T] = Has_type context t T
 
 > data Has_type : Context -> Tm -> Ty -> Type where
 >   T_Var : {Gamma: Context} -> {x: Id} -> {T: Ty} ->
 >      Gamma x = Just T ->
->      Gamma |- (Tvar x) :: T .
+>      (Gamma |- (Tvar x) :: T)
 >   T_Abs : {Gamma: Context} -> {x: Id} -> {T11, T12: Ty} -> {t12 : Tm} ->
->      (Gamma & {{ x ==> T11 }}) |- t12 :: T12 . ->
->      Gamma |- (Tabs x T11 t12) :: (T11 :=> T12) .
+>      ((Gamma & {{ x ==> T11 }}) |- t12 :: T12) ->
+>      Gamma |- (Tabs x T11 t12) :: (T11 :=> T12)
 >   T_App : {Gamma: Context} -> {T11, T12: Ty} -> {t1, t2 : Tm} ->
->      Gamma |- t1 :: (T11 :=> T12). ->
->      Gamma |- t2 :: T11 . ->
->      Gamma |- (t1 # t2) :: T12 .
+>      (Gamma |- t1 :: (T11 :=> T12)) ->
+>      (Gamma |- t2 :: T11) ->
+>      Gamma |- (t1 # t2) :: T12
 >   T_True : {Gamma: Context} ->
->      Gamma |- Ttrue :: TBool .
+>      Gamma |- Ttrue :: TBool
 >   T_False : {Gamma: Context} ->
->      Gamma |- Tfalse :: TBool .
+>      Gamma |- Tfalse :: TBool
 >   T_If : {Gamma: Context} -> {T : Ty} -> {t1, t2, t3 : Tm} ->
->       Gamma |- t1 :: TBool . ->
->       Gamma |- t2 :: T . ->
->       Gamma |- t3 :: T . ->
->       Gamma |- (Tif t1 t2 t3) :: T .
+>       (Gamma |- t1 :: TBool) ->
+>       (Gamma |- t2 :: T) ->
+>       (Gamma |- t3 :: T) ->
+>       Gamma |- (Tif t1 t2 t3) :: T
 
 ==== Examples
 
-> typing_example_1 : empty |- (Tabs (MkId "x") TBool (var "x")) :: (TBool :=> TBool) .
+> typing_example_1 : empty |- (Tabs (MkId "x") TBool (var "x")) :: (TBool :=> TBool)
 > typing_example_1 = T_Abs (T_Var Refl)
 
 
@@ -712,7 +712,7 @@ Another example:
 >    (Tabs (MkId "x") TBool
 >       (Tabs (MkId "y") (TBool :=> TBool)
 >          (var "y" # var "y" # var "x"))) ::
->    (TBool :=> (TBool :=> TBool) :=> TBool) .
+>    (TBool :=> (TBool :=> TBool) :=> TBool)
 > typing_example_2 =
 >   T_Abs (T_Abs (T_App (T_Var Refl) (T_App (T_Var Refl) (T_Var Refl))))
 
@@ -732,7 +732,7 @@ Formally prove the following typing derivation holds:
 >      (Tabs (MkId "x") (TBool :=> TBool)
 >         (Tabs (MkId "y") (TBool :=> TBool)
 >            (Tabs (MkId "z") TBool
->               (Tvar (MkId "y") # (Tvar (MkId "x") # Tvar (MkId "z")))))) :: T . )
+>               (Tvar (MkId "y") # (Tvar (MkId "x") # Tvar (MkId "z")))))) :: T)
 > typing_example_3 = ?typing_example_3_rhs
 
 $\square$
@@ -755,7 +755,7 @@ to the term `\x:Bool. \y:Bool, x y` -- i.e.,
 >     empty |-
 >        (Tabs (MkId "x") TBool
 >            (Tabs (MkId "y") TBool
->               (Tvar (MkId "x") # Tvar (MkId y)))) :: T . )
+>               (Tvar (MkId "x") # Tvar (MkId y)))) :: T)
 > typing_nonexample_1 = forallToExistence
 >   (\ a , (T_Abs (T_Abs (T_App (T_Var Refl)(T_Var Refl)))) impossible)
 
@@ -771,7 +771,7 @@ Another nonexample:
 >  Not (s : Ty ** t : Ty **
 >        empty |-
 >          (Tabs (MkId "x") s
->             (Tvar (MkId "x") # Tvar (MkId "x"))) :: t . )
+>             (Tvar (MkId "x") # Tvar (MkId "x"))) :: t)
 > typing_nonexample_3 = ?typing_nonexample_3_rhs
 
 $\square$

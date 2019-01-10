@@ -4,16 +4,10 @@
 
 > module StlcProp
 > import Maps
-> import Types
-> import Smallstep
 > import Stlc
 
 > %access public export
 > %default total
-> %hide Smallstep.Tm
-> %hide Types.progress
-
-
 
 In this chapter, we develop the fundamental theory of the Simply
 Typed Lambda Calculus -- in particular, the type safety
@@ -29,21 +23,17 @@ boolean values `ttrue` and `tfalse`; for arrow types, they are
 lambda-abstractions.
 
 > canonical_forms_bool : {t : Tm} ->
->   empty |- t :: TBool . ->
+>   (empty |- t :: TBool) ->
 >   Value t ->
 >   (t = Ttrue) `Either` (t = Tfalse)
-
 > canonical_forms_bool {t=Ttrue} tb vt = Left Refl
 > canonical_forms_bool {t=Tfalse} tb vt = Right Refl
 
 
 > canonical_forms_fun : {t: Tm} -> {ty1, ty2: Ty} ->
->   empty |- t :: (ty1 :=> ty2) . ->
+>   (empty |- t :: (ty1 :=> ty2)) ->
 >   Value t ->
 >   (x : Id ** u : Tm ** t = Tabs x ty1 u)
-
-> canonical_forms_fun {t = Ttrue} T_True _ impossible
-> canonical_forms_fun {t = Tfalse} T_False _ impossible
 > canonical_forms_fun {t = Tabs x ty t1} {ty1} tt vt =
 >   case tt of
 >     T_Abs {x} {t12} pre => (x ** t12 ** Refl)
@@ -55,14 +45,13 @@ The _progress_ theorem tells us that closed, well-typed
 terms are not stuck: either a well-typed term is a value, or it
 can take a reduction step.  The proof is a relatively
 straightforward extension of the progress proof we saw in the
-`Types` chapter.  We'll give the proof in English first, then
-the formal version.
+`Types` chapter.
 
 > progress : {t : Tm} ->  {ty: Ty} ->
->   (empty {a=Ty}) |- t :: ty . ->
+>   ((empty {a=Ty}) |- t :: ty) ->
 >   (Value t) `Either` (t': Tm ** t ->> t')
 
-_Proof_: By induction on the derivation of `|- t \in T`
+_Proof_: By induction on the derivation of `|- t :: T`
 
     - The last rule of the derivation cannot be `T_Var`, since a
       variable is never well typed in an empty context.
@@ -72,8 +61,8 @@ _Proof_: By induction on the derivation of `|- t \in T`
       is a value.
 
     - If the last rule of the derivation is `T_App`, then `t` has the
-      form `t1 t2` for some `t1` and `t2`, where `|- t1 \in T2 -> T`
-      and `|- t2 \in T2` for some type `T2`.  By the induction
+      form `t1 t2` for some `t1` and `t2`, where `|- t1 :: T2 -> T`
+      and `|- t2 :: T2` for some type `T2`.  By the induction
       hypothesis, either `t1` is a value or it can take a reduction
       step.
 
@@ -233,10 +222,10 @@ a variable `x` appears free in a term `t`, and if we know `t` is
 well typed in context `Gamma`, then it must be the case that
 `Gamma` assigns a type to `x`. *)
 
--- > free_in_context : {x : Id} -> {t: Tm} -> {ty: Ty} -> {gamma: Context} ->
--- >   Appears_free_in x t ->
--- >   gamma |- t :: T . ->
--- >   (t' : Ty ** gamma x = Just t')
+> free_in_context : {x : Id} -> {t: Tm} -> {ty: Ty} -> {gamma: Context} ->
+>   Appears_free_in x t ->
+>   (gamma |- t :: ty) ->
+>   (t' : Ty ** gamma x = Just t')
 
 _Proof_: We show, by induction on the proof that `x` appears free
 in `t`, that, for all contexts `Gamma`, if `t` is well typed
@@ -261,17 +250,13 @@ under `Gamma`, then `Gamma` assigns some type to `x`.
     \y:T11.t12` and `x` appears free in `t12`, and we also know
     that `x` is different from `y`.  The difference from the
     previous cases is that, whereas `t` is well typed under
-    `Gamma`, its body `t12` is well typed under `(Gamma & {{y-->T11}}`,
+    `Gamma`, its body `t12` is well typed under `(Gamma & {{y==>T11}}`,
     so the IH allows us to conclude that `x` is assigned some type
-    by the extended context `(Gamma & {{y-->T11}}`.  To conclude that
+    by the extended context `(Gamma & {{y==>T11}}`.  To conclude that
     `Gamma` assigns a type to `x`, we appeal to lemma
     `update_neq`, noting that `x` and `y` are different
     variables. *)
 
-> free_in_context : {x : Id} -> {t: Tm} -> {ty: Ty} -> {gamma: Context} ->
->   Appears_free_in x t ->
->   gamma |- t :: ty . ->
->   (t' : Ty ** gamma x = Just t')
 > free_in_context {ty} Afi_var (T_Var h1) = (ty ** h1)
 > free_in_context {t = t1 # t2} (Afi_app1 h) (T_App h1 h2) = free_in_context h h1
 > free_in_context {t = t1 # t2} (Afi_app2 h) (T_App h1 h2) = free_in_context h h2
@@ -287,180 +272,181 @@ the empty context is closed (it has no free variables).
 
 ==== Exercise: 2 stars, optional (typable_empty__closed)
 
-Corollary typable_empty__closed : forall t T,
-    empty |- t \in T  ->
-    closed t.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** `` *)
+> typable_empty__closed : {t: Tm} -> {ty : Ty} ->
+>   (empty |- t :: ty) ->
+>   closed t
+> typable_empty__closed hyp = ?typable_empty__closed_rhs
 
-(** Sometimes, when we have a proof `Gamma |- t : T`, we will need to
-    replace `Gamma` by a different context `Gamma'`.  When is it safe
-    to do this?  Intuitively, it must at least be the case that
-    `Gamma'` assigns the same types as `Gamma` to all the variables
-    that appear free in `t`. In fact, this is the only condition that
-    is needed. *)
+Sometimes, when we have a proof `Gamma |- t : T`, we will need to
+replace `Gamma` by a different context `Gamma'`.  When is it safe
+to do this?  Intuitively, it must at least be the case that
+`Gamma'` assigns the same types as `Gamma` to all the variables
+that appear free in `t`. In fact, this is the only condition that
+is needed.
 
-Lemma context_invariance : forall Gamma Gamma' t T,
-     Gamma |- t \in T  ->
-     (forall x, appears_free_in x t -> Gamma x = Gamma' x) ->
-     Gamma' |- t \in T.
+> context_invariance : {gamma, gamma': Context} -> {t: Tm} -> {ty: Ty} ->
+>    (gamma |- t :: ty) ->
+>    ((x: Id) -> Appears_free_in x t -> gamma x = gamma' x) ->
+>    gamma' |- t :: ty
 
-(** _Proof_: By induction on the derivation of `Gamma |- t \in T`.
+_Proof_: By induction on the derivation of `Gamma |- t :: T`.
 
-      - If the last rule in the derivation was `T_Var`, then `t = x`
-        and `Gamma x = T`.  By assumption, `Gamma' x = T` as well, and
-        hence `Gamma' |- t \in T` by `T_Var`.
+  - If the last rule in the derivation was `T_Var`, then `t = x`
+    and `Gamma x = T`.  By assumption, `Gamma' x = T` as well, and
+    hence `Gamma' |- t :: T` by `T_Var`.
 
-      - If the last rule was `T_Abs`, then `t = \y:T11. t12`, with `T
-        = T11 -> T12` and `Gamma & {{y-->T11}} |- t12 \in T12`.  The
-        induction hypothesis is that, for any context `Gamma''`, if
-        `Gamma & {{y-->T11}}` and `Gamma''` assign the same types to
-        all the free variables in `t12`, then `t12` has type `T12`
-        under `Gamma''`.  Let `Gamma'` be a context which agrees with
-        `Gamma` on the free variables in `t`; we must show `Gamma' |-
-        \y:T11. t12 \in T11 -> T12`.
+  - If the last rule was `T_Abs`, then `t = \y:T11. t12`, with `T
+    = T11 -> T12` and `Gamma & {{y==>T11}} |- t12 :: T12`.  The
+    induction hypothesis is that, for any context `Gamma''`, if
+    `Gamma & {{y==>T11}}` and `Gamma''` assign the same types to
+    all the free variables in `t12`, then `t12` has type `T12`
+    under `Gamma''`.  Let `Gamma'` be a context which agrees with
+    `Gamma` on the free variables in `t`; we must show `Gamma' |-
+    \y:T11. t12 :: T11 -> T12`.
 
-        By `T_Abs`, it suffices to show that `Gamma' & {{y-->T11}} |-
-        t12 \in T12`.  By the IH (setting `Gamma'' = Gamma' &
-        {{y:T11}}`), it suffices to show that `Gamma & {{y-->T11}}`
-        and `Gamma' & {{y-->T11}}` agree on all the variables that
-        appear free in `t12`.
+    By `T_Abs`, it suffices to show that `Gamma' & {{y==>T11}} |-
+    t12 :: T12`.  By the IH (setting `Gamma'' = Gamma' &
+    {{y:T11}}`), it suffices to show that `Gamma & {{y==>T11}}`
+    and `Gamma' & {{y==>T11}}` agree on all the variables that
+    appear free in `t12`.
 
-        Any variable occurring free in `t12` must be either `y` or
-        some other variable.  `Gamma & {{y-->T11}}` and `Gamma' &
-        {{y-->T11}}` clearly agree on `y`.  Otherwise, note that any
-        variable other than `y` that occurs free in `t12` also occurs
-        free in `t = \y:T11. t12`, and by assumption `Gamma` and
-        `Gamma'` agree on all such variables; hence so do `Gamma &
-        {{y-->T11}}` and `Gamma' & {{y-->T11}}`.
+    Any variable occurring free in `t12` must be either `y` or
+    some other variable.  `Gamma & {{y==>T11}}` and `Gamma' &
+    {{y==>T11}}` clearly agree on `y`.  Otherwise, note that any
+    variable other than `y` that occurs free in `t12` also occurs
+    free in `t = \y:T11. t12`, and by assumption `Gamma` and
+    `Gamma'` agree on all such variables; hence so do `Gamma &
+    {{y==>T11}}` and `Gamma' & {{y==>T11}}`.
 
-      - If the last rule was `T_App`, then `t = t1 t2`, with `Gamma |-
-        t1 \in T2 -> T` and `Gamma |- t2 \in T2`.  One induction
-        hypothesis states that for all contexts `Gamma'`, if `Gamma'`
-        agrees with `Gamma` on the free variables in `t1`, then `t1`
-        has type `T2 -> T` under `Gamma'`; there is a similar IH for
-        `t2`.  We must show that `t1 t2` also has type `T` under
-        `Gamma'`, given the assumption that `Gamma'` agrees with
-        `Gamma` on all the free variables in `t1 t2`.  By `T_App`, it
-        suffices to show that `t1` and `t2` each have the same type
-        under `Gamma'` as under `Gamma`.  But all free variables in
-        `t1` are also free in `t1 t2`, and similarly for `t2`; hence
-        the desired result follows from the induction hypotheses. *)
+  - If the last rule was `T_App`, then `t = t1 t2`, with `Gamma |-
+    t1 :: T2 -> T` and `Gamma |- t2 :: T2`.  One induction
+    hypothesis states that for all contexts `Gamma'`, if `Gamma'`
+    agrees with `Gamma` on the free variables in `t1`, then `t1`
+    has type `T2 -> T` under `Gamma'`; there is a similar IH for
+    `t2`.  We must show that `t1 t2` also has type `T` under
+    `Gamma'`, given the assumption that `Gamma'` agrees with
+    `Gamma` on all the free variables in `t1 t2`.  By `T_App`, it
+    suffices to show that `t1` and `t2` each have the same type
+    under `Gamma'` as under `Gamma`.  But all free variables in
+    `t1` are also free in `t1 t2`, and similarly for `t2`; hence
+    the desired result follows from the induction hypotheses. *)
 
-Proof with eauto.
-  intros.
-  generalize dependent Gamma'.
-  induction H; intros; auto.
-  - (* T_Var *)
-    apply T_Var. rewrite <- H0...
-  - (* T_Abs *)
-    apply T_Abs.
-    apply IHhas_type. intros x1 Hafi.
-    (* the only tricky step... the `Gamma'` we use to
-       instantiate is `Gamma & {{x-->T11}}` *)
-    unfold update. unfold t_update. destruct (beq_string x0 x1) eqn: Hx0x1...
-    rewrite beq_string_false_iff in Hx0x1. auto.
-  - (* T_App *)
-    apply T_App with T11...
-Qed.
+> context_invariance T_True freeEq = T_True
+> context_invariance T_False freeEq = T_False
+> context_invariance {t= Tvar id} (T_Var h) freeEq =
+>   let hyp = freeEq id (Afi_var {x=id})
+>   in T_Var (rewrite sym hyp in h)
+> context_invariance {gamma'} {t = Tabs id ty tm} (T_Abs h) freeEq = ?context_invariance_rhs
+> context_invariance {gamma} {gamma'} {t = tl # tr} (T_App tyl tyr) freeEq = ?context_invariance_rhs2
+> context_invariance {t = Tif cond pos neg} (T_If condt post negt) freeEq =
+>   let -- dhyp = Afi_if1 {t1 =cond} {t2 = pos} {t3= neg} ?hyp1
+>       hypCond = context_invariance {t=cond} condt _
+>       hypPos = context_invariance {t=pos} post ?hypPos
+>       hypNeg = context_invariance {t=neg} negt ?hypNeg
+>   in T_If hypCond hypPos hypNeg
 
-(** Now we come to the conceptual heart of the proof that reduction
-    preserves types -- namely, the observation that _substitution_
-    preserves types. *)
+Now we come to the conceptual heart of the proof that reduction
+preserves types -- namely, the observation that _substitution_
+preserves types.
 
-(** Formally, the so-called _substitution lemma_ says this:
-    Suppose we have a term `t` with a free variable `x`, and suppose
-    we've assigned a type `T` to `t` under the assumption that `x` has
-    some type `U`.  Also, suppose that we have some other term `v` and
-    that we've shown that `v` has type `U`.  Then, since `v` satisfies
-    the assumption we made about `x` when typing `t`, we can
-    substitute `v` for each of the occurrences of `x` in `t` and
-    obtain a new term that still has type `T`. *)
+Formally, the so-called _substitution lemma_ says this:
+Suppose we have a term `t` with a free variable `x`, and suppose
+we've assigned a type `T` to `t` under the assumption that `x` has
+some type `U`.  Also, suppose that we have some other term `v` and
+that we've shown that `v` has type `U`.  Then, since `v` satisfies
+the assumption we made about `x` when typing `t`, we can
+substitute `v` for each of the occurrences of `x` in `t` and
+obtain a new term that still has type `T`.
 
-(** _Lemma_: If `Gamma & {{x-->U}} |- t \in T` and `|- v \in U`,
-    then `Gamma |- `x:=v`t \in T`. *)
+_Lemma_: If `Gamma & {{x==>U}} |- t :: T` and `|- v :: U`,
+    then `Gamma |- [x:=v]t :: T` .
 
-Lemma substitution_preserves_typing : forall Gamma x U t v T,
-  Gamma & {{x-->U}} |- t \in T ->
-  empty |- v \in U   ->
-  Gamma |- `x:=v`t \in T.
+> substitution_preserves_typing : {gamma: Context} -> {x: Id} -> {t, v : Tm} -> {uty, tty: Ty} ->
+>   ((gamma & {{x ==> uty}}) |- t :: tty) ->
+>   (empty |- v :: uty) ->
+>   gamma |- ([x:=v] t) :: tty
+> substitution_preserves_typing {x} {t=Tvar id} (T_Var st1) st2 with (decEq x id)
+>   | Yes prf = let af = 0 -- \ id af =>
+>               in ?hole0 -- context_invariance st2 ?hole00
+>   | No contra = let hyp = 0 -- update_neq {v} contra
+>                 in ?hole1
+> substitution_preserves_typing st1 st2 = ?substitution_preserves_typing_rhs
 
-(** One technical subtlety in the statement of the lemma is that
-    we assume `v` has type `U` in the _empty_ context -- in other
-    words, we assume `v` is closed.  This assumption considerably
-    simplifies the `T_Abs` case of the proof (compared to assuming
-    `Gamma |- v \in U`, which would be the other reasonable assumption
-    at this point) because the context invariance lemma then tells us
-    that `v` has type `U` in any context at all -- we don't have to
-    worry about free variables in `v` clashing with the variable being
-    introduced into the context by `T_Abs`.
+(One technical subtlety in the statement of the lemma is that
+we assume `v` has type `U` in the _empty_ context -- in other
+words, we assume `v` is closed.  This assumption considerably
+simplifies the `T_Abs` case of the proof (compared to assuming
+`Gamma |- v :: U`, which would be the other reasonable assumption
+at this point) because the context invariance lemma then tells us
+that `v` has type `U` in any context at all -- we don't have to
+worry about free variables in `v` clashing with the variable being
+introduced into the context by `T_Abs`.
 
-    The substitution lemma can be viewed as a kind of commutation
-    property.  Intuitively, it says that substitution and typing can
-    be done in either order: we can either assign types to the terms
-    `t` and `v` separately (under suitable contexts) and then combine
-    them using substitution, or we can substitute first and then
-    assign a type to ` `x:=v` t ` -- the result is the same either
-    way.
+The substitution lemma can be viewed as a kind of commutation
+property.  Intuitively, it says that substitution and typing can
+be done in either order: we can either assign types to the terms
+`t` and `v` separately (under suitable contexts) and then combine
+them using substitution, or we can substitute first and then
+assign a type to ` [x:=v] t ` -- the result is the same either
+way.
 
-    _Proof_: We show, by induction on `t`, that for all `T` and
-    `Gamma`, if `Gamma & {{x-->U}} |- t \in T` and `|- v \in U`, then
-    `Gamma |- `x:=v`t \in T`.
+_Proof_: We show, by induction on `t`, that for all `T` and
+`Gamma`, if `Gamma & {{x==>U}} |- t :: T` and `|- v :: U`, then
+`Gamma |- [x:=v] t :: T`.
 
-      - If `t` is a variable there are two cases to consider,
-        depending on whether `t` is `x` or some other variable.
+  - If `t` is a variable there are two cases to consider,
+    depending on whether `t` is `x` or some other variable.
 
-          - If `t = x`, then from the fact that `Gamma & {{x-->U}} |-
-            x \in T` we conclude that `U = T`.  We must show that
-            ``x:=v`x = v` has type `T` under `Gamma`, given the
-            assumption that `v` has type `U = T` under the empty
-            context.  This follows from context invariance: if a
-            closed term has type `T` in the empty context, it has that
-            type in any context.
+      - If `t = x`, then from the fact that `Gamma & {{x==>U}} |-
+        x :: T` we conclude that `U = T`.  We must show that
+        `[x:=v]x = v` has type `T` under `Gamma`, given the
+        assumption that `v` has type `U = T` under the empty
+        context.  This follows from context invariance: if a
+        closed term has type `T` in the empty context, it has that
+        type in any context.
 
-          - If `t` is some variable `y` that is not equal to `x`, then
-            we need only note that `y` has the same type under `Gamma
-            & {{x-->U}}` as under `Gamma`.
+      - If `t` is some variable `y` that is not equal to `x`, then
+        we need only note that `y` has the same type under `Gamma
+        & {{x==>U}}` as under `Gamma`.
 
-      - If `t` is an abstraction `\y:T11. t12`, then the IH tells us,
-        for all `Gamma'` and `T'`, that if `Gamma' & {{x-->U} |- t12
-        \in T'` and `|- v \in U`, then `Gamma' |- `x:=v`t12 \in T'`.
+  - If `t` is an abstraction `\y:T11. t12`, then the IH tells us,
+    for all `Gamma'` and `T'`, that if `Gamma' & {{x==>U} |- t12
+    :: T'` and `|- v :: U`, then `Gamma' |- [x:=v] t12 :: T'`.
 
-        The substitution in the conclusion behaves differently
-        depending on whether `x` and `y` are the same variable.
+    The substitution in the conclusion behaves differently
+    depending on whether `x` and `y` are the same variable.
 
-        First, suppose `x = y`.  Then, by the definition of
-        substitution, ``x:=v`t = t`, so we just need to show `Gamma |-
-        t \in T`.  But we know `Gamma & {{x-->U}} |- t : T`, and,
-        since `y` does not appear free in `\y:T11. t12`, the context
-        invariance lemma yields `Gamma |- t \in T`.
+    First, suppose `x = y`.  Then, by the definition of
+    substitution, `[x:=v]t = t`, so we just need to show `Gamma |-
+    t :: T`.  But we know `Gamma & {{x==>U}} |- t : T`, and,
+    since `y` does not appear free in `\y:T11. t12`, the context
+    invariance lemma yields `Gamma |- t :: T`.
 
-        Second, suppose `x <> y`.  We know `Gamma & {{x-->U; y-->T11}}
-        |- t12 \in T12` by inversion of the typing relation, from
-        which `Gamma & {{y-->T11; x-->U}} |- t12 \in T12` follows by
-        the context invariance lemma, so the IH applies, giving us
-        `Gamma & {{y-->T11}} |- `x:=v`t12 \in T12`.  By `T_Abs`,
-        `Gamma |- \y:T11. `x:=v`t12 \in T11->T12`, and by the
-        definition of substitution (noting that `x <> y`), `Gamma |-
-        \y:T11. `x:=v`t12 \in T11->T12` as required.
+    Second, suppose `x <> y`.  We know `Gamma & {{x==>U; y==>T11}}
+    |- t12 :: T12` by inversion of the typing relation, from
+    which `Gamma & {{y==>T11; x==>U}} |- t12 :: T12` follows by
+    the context invariance lemma, so the IH applies, giving us
+    `Gamma & {{y==>T11}} |- [x:=v]t12 :: T12`.  By `T_Abs`,
+    `Gamma |- \y:T11. [x:=v]t12 :: T11->T12`, and by the
+    definition of substitution (noting that `x <> y`), `Gamma |-
+    \y:T11. [x:=v]t12 :: T11->T12` as required.
 
-      - If `t` is an application `t1 t2`, the result follows
-        straightforwardly from the definition of substitution and the
-        induction hypotheses.
+  - If `t` is an application `t1 t2`, the result follows
+    straightforwardly from the definition of substitution and the
+    induction hypotheses.
 
-      - The remaining cases are similar to the application case.
+  - The remaining cases are similar to the application case.
 
-    _Technical note_: This proof is a rare case where an induction on
-    terms, rather than typing derivations, yields a simpler argument.
-    The reason for this is that the assumption `Gamma & {{x-->U}} |- t
-    \in T` is not completely generic, in the sense that one of the
-    "slots" in the typing relation -- namely the context -- is not
-    just a variable, and this means that Coq's native induction tactic
-    does not give us the induction hypothesis that we want.  It is
-    possible to work around this, but the needed generalization is a
-    little tricky.  The term `t`, on the other hand, is completely
-    generic. *)
+_Technical note_: This proof is a rare case where an induction on
+terms, rather than typing derivations, yields a simpler argument.
+The reason for this is that the assumption `Gamma & {{x==>U}} |- t
+:: T` is not completely generic, in the sense that one of the
+"slots" in the typing relation -- namely the context -- is not
+just a variable, and this means that Coq's native induction tactic
+does not give us the induction hypothesis that we want.  It is
+possible to work around this, but the needed generalization is a
+little tricky.  The term `t`, on the other hand, is completely
+generic.
 
 Proof with eauto.
   intros Gamma x U t v T Ht Ht'.
@@ -492,79 +478,78 @@ Proof with eauto.
       rewrite Hxy...
 Qed.
 
-(* ================================================================= *)
-(** ** Main Theorem *)
+=== Main Theorem
 
-(** We now have the tools we need to prove preservation: if a closed
-    term `t` has type `T` and takes a step to `t'`, then `t'`
-    is also a closed term with type `T`.  In other words, the small-step
-    reduction relation preserves types. *)
+We now have the tools we need to prove preservation: if a closed
+term `t` has type `T` and takes a step to `t'`, then `t'`
+is also a closed term with type `T`.  In other words, the small-step
+reduction relation preserves types.
 
-Theorem preservation : forall t t' T,
-  empty |- t \in T  ->
-  t ==> t'  ->
-  empty |- t' \in T.
+> preservation : {t, t' : Tm} -> {ty: Ty} ->
+>   (empty |- t :: ty) ->
+>   t ->> t'  ->
+>   empty |- t' :: ty
 
-(** _Proof_: By induction on the derivation of `|- t \in T`.
+_Proof_: By induction on the derivation of `|- t :: T`.
 
-    - We can immediately rule out `T_Var`, `T_Abs`, `T_True`, and
-      `T_False` as the final rules in the derivation, since in each of
-      these cases `t` cannot take a step.
+  - We can immediately rule out `T_Var`, `T_Abs`, `T_True`, and
+    `T_False` as the final rules in the derivation, since in each of
+    these cases `t` cannot take a step.
 
-    - If the last rule in the derivation is `T_App`, then `t = t1
-      t2`.  There are three cases to consider, one for each rule that
-      could be used to show that `t1 t2` takes a step to `t'`.
+  - If the last rule in the derivation is `T_App`, then `t = t1
+    t2`.  There are three cases to consider, one for each rule that
+    could be used to show that `t1 t2` takes a step to `t'`.
 
-        - If `t1 t2` takes a step by `ST_App1`, with `t1` stepping to
-          `t1'`, then by the IH `t1'` has the same type as `t1`, and
-          hence `t1' t2` has the same type as `t1 t2`.
+      - If `t1 t2` takes a step by `ST_App1`, with `t1` stepping to
+        `t1'`, then by the IH `t1'` has the same type as `t1`, and
+        hence `t1' t2` has the same type as `t1 t2`.
 
-        - The `ST_App2` case is similar.
+      - The `ST_App2` case is similar.
 
-        - If `t1 t2` takes a step by `ST_AppAbs`, then `t1 =
-          \x:T11.t12` and `t1 t2` steps to ``x:=t2`t12`; the
-          desired result now follows from the fact that substitution
-          preserves types.
+      - If `t1 t2` takes a step by `ST_AppAbs`, then `t1 =
+        \x:T11.t12` and `t1 t2` steps to ``x:=t2`t12`; the
+        desired result now follows from the fact that substitution
+        preserves types.
 
-    - If the last rule in the derivation is `T_If`, then `t = if t1
-      then t2 else t3`, and there are again three cases depending on
-      how `t` steps.
+  - If the last rule in the derivation is `T_If`, then `t = if t1
+    then t2 else t3`, and there are again three cases depending on
+    how `t` steps.
 
-        - If `t` steps to `t2` or `t3`, the result is immediate, since
-          `t2` and `t3` have the same type as `t`.
+      - If `t` steps to `t2` or `t3`, the result is immediate, since
+        `t2` and `t3` have the same type as `t`.
 
-        - Otherwise, `t` steps by `ST_If`, and the desired conclusion
-          follows directly from the induction hypothesis. *)
+      - Otherwise, `t` steps by `ST_If`, and the desired conclusion
+        follows directly from the induction hypothesis. *)
 
-Proof with eauto.
-  remember (@empty ty) as Gamma.
-  intros t t' T HT. generalize dependent t'.
-  induction HT;
-       intros t' HE; subst Gamma; subst;
-       try solve `inversion HE; subst; auto`.
-  - (* T_App *)
-    inversion HE; subst...
-    (* Most of the cases are immediate by induction,
-       and `eauto` takes care of them *)
-    + (* ST_AppAbs *)
-      apply substitution_preserves_typing with T11...
-      inversion HT1...
-Qed.
+> preservation {t= lt # rt} (T_App tal tar) (ST_App1 red) =
+>   let indHyp = preservation {t=lt} tal red
+>   in T_App indHyp tar
+> preservation {t= lt # rt} (T_App tal tar) (ST_App2 val red) =
+>   let indHyp = preservation {t=rt} tar red
+>   in T_App tal indHyp
+> preservation {t= (Tabs x ty lt) # rt} (T_App (T_Abs tabs) tar) (ST_AppAbs val) =
+>   substitution_preserves_typing {x} {t=lt} {v=rt} tabs tar
+> preservation {t= Tif cond pos neg} (T_If condht posht neght) (ST_If val) =
+>   let indHyp = preservation {t=cond} condht val
+>   in T_If indHyp posht neght
+> preservation {t= Tif Ttrue pos neg} (T_If condht posht neght) ST_IfTrue = posht
+> preservation {t= Tif Tfalse pos neg} (T_If condht posht neght) ST_IfFalse = neght
 
-(** **** Exercise: 2 stars, recommended (subject_expansion_stlc)  *)
-(** An exercise in the `Types` chapter asked about the _subject
-    expansion_ property for the simple language of arithmetic and
-    boolean expressions.  Does this property hold for STLC?  That is,
-    is it always the case that, if `t ==> t'` and `has_type t' T`,
-    then `empty |- t \in T`?  If so, prove it.  If not, give a
-    counter-example not involving conditionals.
+==== Exercise: 2 stars, recommended (subject_expansion_stlc)
 
-    You can state your counterexample informally
-    in words, with a brief explanation.
+An exercise in the `Types` chapter asked about the _subject
+expansion_ property for the simple language of arithmetic and
+boolean expressions.  Does this property hold for STLC?  That is,
+is it always the case that, if `t ==> t'` and `has_type t' T`,
+then `empty |- t :: T`?  If so, prove it.  If not, give a
+counter-example not involving conditionals.
+
+You can state your counterexample informally
+in words, with a brief explanation.
 
 (* FILL IN HERE *)
-*)
-(** `` *)
+
+
 
 (* ################################################################# *)
 (** * Type Soundness *)
@@ -577,7 +562,7 @@ Definition stuck (t:tm) : Prop :=
   (normal_form step) t /\ ~ value t.
 
 Corollary soundness : forall t t' T,
-  empty |- t \in T ->
+  empty |- t :: T ->
   t ==>* t' ->
   ~(stuck t').
 Proof.
@@ -700,10 +685,10 @@ and the following typing rule:
 (** Suppose instead that we add the following new rule to the typing
     relation:
 
-                 Gamma |- t1 \in Bool->Bool->Bool
-                     Gamma |- t2 \in Bool
+                 Gamma |- t1 :: Bool->Bool->Bool
+                     Gamma |- t2 :: Bool
                  ------------------------------          (T_FunnyApp)
-                    Gamma |- t1 t2 \in Bool
+                    Gamma |- t1 t2 :: Bool
 
     Which of the following properties of the STLC remain true in
     the presence of this rule?  For each one, write either
@@ -723,10 +708,10 @@ and the following typing rule:
 (** Suppose instead that we add the following new rule to the typing
     relation:
 
-                     Gamma |- t1 \in Bool
-                     Gamma |- t2 \in Bool
+                     Gamma |- t1 :: Bool
+                     Gamma |- t2 :: Bool
                     ---------------------               (T_FunnyApp')
-                    Gamma |- t1 t2 \in Bool
+                    Gamma |- t1 t2 :: Bool
 
     Which of the following properties of the STLC remain true in
     the presence of this rule?  For each one, write either
@@ -747,7 +732,7 @@ and the following typing rule:
     of the STLC:
 
                          ------------------- (T_FunnyAbs)
-                         |- \x:Bool.t \in Bool
+                         |- \x:Bool.t :: Bool
 
     Which of the following properties of the STLC remain true in
     the presence of this rule?  For each one, write either
