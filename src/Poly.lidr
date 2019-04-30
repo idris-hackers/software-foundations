@@ -1024,17 +1024,18 @@ Successor of a natural number:
 >   succ' : (n : Nat' {x}) -> Nat' {x}
 >   succ' n = ?succ__rhs
 
-\todo[inline]{Even if you add \idr{f x} on both sides of \idr{=}, these "unit
-tests" don't seem to work neither with \idr{Refl} nor with more advanced
-techniques currently}
+When we write a lower case word in an `argument position` Idris assumes it's a
+variable even if it shares the name of an earlier definition. To fix this we
+prefix \idr{Church} here to make it clear to Idris that they refer to our
+earlier definitions.
 
->   succ'_1 : succ' zero = one
+>   succ'_1 : succ' Church.zero f x = one f x
 >   succ'_1 = ?succ__1_rhs
 
->   succ'_2 : succ' one = two
+>   succ'_2 : succ' Church.one f x = two f x
 >   succ'_2 = ?succ__2_rhs
 
->   succ'_3 : succ' two = three
+>   succ'_3 : succ' Church.two f x = three f x
 >   succ'_3 = ?succ__3_rhs
 
 Addition of two natural numbers:
@@ -1042,13 +1043,14 @@ Addition of two natural numbers:
 >   plus' : (n, m : Nat' {x}) -> Nat' {x}
 >   plus' n m = ?plus__rhs
 
->   plus'_1 : plus' zero one = one
+>   plus'_1 : plus' Church.zero Church.one f x = one f x
 >   plus'_1 = ?plus__1_rhs
 
->   plus'_2 : plus' two three = plus' three two
+>   plus'_2 : plus' Church.two Church.three = plus' Church.three Church.two
 >   plus'_2 = ?plus__2_rhs
 
->   plus'_3 : plus' (plus' two two) three = plus' one (plus' three three)
+>   plus'_3 : plus' (plus' Church.two Church.two) Church.three
+>           = plus' Church.one (plus' Church.three Church.three)
 >   plus'_3 = ?plus__3_rhs
 
 Multiplication:
@@ -1056,13 +1058,13 @@ Multiplication:
 >   mult' : (n, m : Nat' {x}) -> Nat' {x}
 >   mult' n m = ?mult__rhs
 
->   mult'_1 : mult' one one = one
+>   mult'_1 : mult' Church.one Church.one f x = one f x
 >   mult'_1 = ?mult__1_rhs
 
->   mult'_2 : mult' zero (plus' three three) = zero
+>   mult'_2 : mult' Church.zero (plus' Church.three Church.three) f x = zero f x
 >   mult'_2 = ?mult__2_rhs
 
->   mult'_3 : mult' two three = plus' three three
+>   mult'_3 : mult' Church.two Church.three = plus' Church.three Church.three
 >   mult'_3 = ?mult__3_rhs
 
 Exponentiation:
@@ -1077,16 +1079,14 @@ iterating over a different type: \idr{Nat'} itself is usually problematic.)
 >   exp' : (n : Nat' {x}) -> (m : Nat' {x=x->x}) -> Nat' {x}
 >   exp' n m = ?exp__rhs
 
-\todo[inline]{This won't typecheck under this signature of \idr{exp} because of
-2 instances of \idr{two}}
+>   exp'_1 : exp' Church.two Church.two = plus' Church.two Church.two
+>   exp'_1 = ?exp__1_rhs
 
->   -- exp'_1 : exp' two two = plus' two two
->   -- exp'_1 = ?exp__1_rhs
-
->   exp'_2 : exp' three two = plus' (mult' two (mult' two two)) one
+>   exp'_2 : exp' Church.three Church.two
+>          = plus' (mult' Church.two (mult' Church.two Church.two)) Church.one
 >   exp'_2 = ?exp__2_rhs
 
->   exp'_3 : exp' three zero = one
+>   exp'_3 : exp' Church.three Church.zero f x = one f x
 >   exp'_3 = ?exp__3_rhs
 
 $\square$
