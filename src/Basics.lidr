@@ -550,8 +550,8 @@ just the same as if we had written \idr{(n : Nat) -> (m : Nat)}.
 
 ```idris
   mult : (n, m : Nat) -> Nat
-  mult  Z    = Z
-  mult (S k) = plus m (mult k m)
+  mult Z      _ = Z
+  mult (S k)  m = plus m (mult k m)
 ```
 
 >   testMult1 : (mult 3 3) = 9
