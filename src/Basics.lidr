@@ -179,12 +179,12 @@ and observe the result.
 
 Second, we can record what we _expect_ the result to be in the form of a proof.
 
->   ||| The second weekday after `Saturday` is `Tuesday`.
+>   ||| The second weekday after `Saturday` is `Monday`.
 >   testNextWeekday :
->     (nextWeekday (nextWeekday Saturday)) = Tuesday
+>     (nextWeekday (nextWeekday Saturday)) = Monday
 
 This declaration does two things: it makes an assertion (that the second weekday
-after \idr{Saturday} is \idr{Tuesday}) and it gives the assertion a name that
+after \idr{Saturday} is \idr{Monday}) and it gives the assertion a name that
 can be used to refer to it later.
 
 Having made the assertion, we can also ask Idris to verify it, like this:
